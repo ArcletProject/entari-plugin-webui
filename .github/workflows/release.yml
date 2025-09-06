@@ -1,0 +1,76 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - v*
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      # 下载源码
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 设置 Node.js 环境
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: './website/package-lock.json'
+
+      # 前端构建
+      - name: Build frontend
+        run: |
+          cd website
+          npm install
+          npm run build
+
+      # 复制前端文件到后端目录
+      - name: Copy frontend to backend
+        run: |
+          # 删除现有前端文件
+          rm -rf $GITHUB_WORKSPACE/entari_plugin_webui/entari_plugin_webui/frontend
+          # 创建目标目录
+          mkdir -p $GITHUB_WORKSPACE/entari_plugin_webui/entari_plugin_webui/frontend
+          # 复制构建后的文件
+          cp -r dist/* $GITHUB_WORKSPACE/entari_plugin_webui/entari_plugin_webui/frontend/
+
+      # 设置 PDM
+      - name: Setup PDM
+        uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: '3.11'
+          cache: true
+          cache-dependency-path: 'entari_plugin_webui/pdm.lock'
+
+      # 构建 wheel 包
+      - name: Build wheel package
+        run: |
+          cd entari_plugin_webui
+          pdm build
+
+      # 创建 Release
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          draft: false
+          prerelease: false
+
+      # 上传 Release Asset (wheel 包)
+      - name: Upload Release Asset
+        uses: actions/upload-release-asset@v1
+        env:
+            GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+            upload_url: ${{ steps.create_release.outputs.upload_url }}
+            asset_path: entari_plugin_webui/dist/entari_plugin_webui-${{ github.ref_name }}-py3-none-any.whl
+            asset_name: entari_plugin_webui-${{ github.ref_name }}.whl
+            asset_content_type: application/x-wheel+zip
