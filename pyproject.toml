@@ -6,16 +6,16 @@ authors = [
     {name = "Utopia", email = "utopia@qq.com"}
 ]
 dependencies = [
-    "arclet-entari>=0.5.0",
-    "entari-plugin-database>=0.1.0",
-    "entari-plugin-server>=0.1.0",
-    "sqlalchemy>=2.0.0",
-    "fastapi>=0.100.0",
-    "starlette>=0.27.0",
-    "uvicorn>=0.23.0",
-    "ansi2html>=1.8.0",
-    "loguru>=0.7.0",
-    "pyyaml>=6.0.0"
+    "arclet-entari>=0.15.1",
+    "entari-plugin-database>=0.1.1",
+    "entari-plugin-server>=0.2.3",
+    "sqlalchemy>=2.0.43",
+    "fastapi>=0.116.1",
+    "starlette>=0.47.2",
+    "uvicorn>=0.35.0",
+    "ansi2html>=1.9.2",
+    "loguru>=0.7.3",
+    "pyyaml>=6.0.2",
 ]
 requires-python = ">=3.8"
 
