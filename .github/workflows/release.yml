@@ -31,19 +31,12 @@ jobs:
           npm install -no-fund
           npm run build -no-fund
 
-      - name: Copy frontend -> backend
-        run: |
-          set -e
-          rm -rf "$BACKEND_ROOT/$PACKAGE_NAME/frontend"
-          mkdir -p "$BACKEND_ROOT/$PACKAGE_NAME/frontend"
-          cp -r "$FRONTEND_ROOT/dist"/* "$BACKEND_ROOT/$PACKAGE_NAME/frontend/"
-
       - name: Setup PDM
         uses: pdm-project/setup-pdm@v4
         with:
           python-version: "3.11"
           cache: true
-          cache-dependency-path: ${{ env.BACKEND_ROOT }}/pdm.lock
+          cache-dependency-path: ./pdm.lock
 
       - name: Build wheel
         working-directory: ${{ env.BACKEND_ROOT }}
