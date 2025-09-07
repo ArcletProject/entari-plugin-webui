@@ -2,9 +2,7 @@
 name = "entari-plugin-webui"
 version = "0.1.1"
 description = "基于 Vue3 + entari_plugin_server + entari_plugin_database 的可视化面板"
-authors = [
-    {name = "Utopia", email = "utopia@qq.com"}
-]
+authors = [{name = "Utopia", email = "utopia@qq.com"}]
 dependencies = [
     "arclet-entari>=0.15.1",
     "entari-plugin-database>=0.1.1",
@@ -17,19 +15,11 @@ dependencies = [
     "loguru>=0.7.3",
     "pyyaml>=6.0.2",
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
-[tool.pdm]
-package-dir = "entari_plugin_we
-
 [tool.pdm.build]
 package-dir = "entari_plugin_webui"
-includes = [
-    "entari_plugin_webui/backend/**/*",
-    "entari_plugin_webui/frontend/**/*",
-    "entari_plugin_webui/__init__.py"
-]
