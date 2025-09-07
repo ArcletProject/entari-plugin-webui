@@ -6,6 +6,10 @@ on:
     tags:
       - "v*"
 
+permissions:
+  contents: write
+  pull-requests: read
+
 env:
   FRONTEND_ROOT: frontend
   BACKEND_ROOT: entari_plugin_webui
@@ -42,16 +46,10 @@ jobs:
         working-directory: ${{ env.BACKEND_ROOT }}
         run: pdm build
 
-      - name: Release
-        uses: softprops/action-gh-release@v2
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
         with:
-          tag_name: ${{ github.ref_name }}
-          name: Release ${{ github.ref_name }}
-          body: ${{ github.event.head_commit.message }}
-          files: |
-            ${{ env.BACKEND_ROOT }}/dist/*.whl
-            ${{ env.BACKEND_ROOT }}/dist/*.tar.gz
-          draft: false
-          prerelease: false
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          name: python-dist
+          path: |
+              ${{ env.BACKEND_ROOT }}/dist/*.whl
+              ${{ env.BACKEND_ROOT }}/dist/*.tar.gz
