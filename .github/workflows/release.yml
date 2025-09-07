@@ -36,7 +36,7 @@ jobs:
         with:
           python-version: "3.11"
           cache: true
-          cache-dependency-path: ./pdm.lock
+          cache-dependency-path: ${{ env.BACKEND_ROOT }}/pdm.lock
 
       - name: Build wheel
         working-directory: ${{ env.BACKEND_ROOT }}
