@@ -1,61 +1,22 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { installPlugin, uninstallPlugin, listMarketPlugins } from '@/api/plugin'
+import type { MarketItem } from '@/api/plugin'
+import { ElMessage } from 'element-plus'
 
-/* 1. 模拟接口返回的插件列表 */
 interface Plugin {
     name: string
     fullName: string
     desc: string
-    author: string
+    author?: string
     stars: number
     updated: string
     tags: string[]
     installed: boolean
 }
-const allPlugins = ref<Plugin[]>([
-    {
-        name: 'astrbot_plugin_bilibili',
-        fullName: '哔哩哔哩动态推送',
-        desc: '哔哩哔哩动态推送、视频信息、直播间信息查询插件',
-        author: 'Flartiny & Soulter',
-        stars: 49,
-        updated: '2025/7/14 20:25',
-        tags: ['推荐', '媒体'],
-        installed: true
-    },
-    {
-        name: 'astrbot_plugin_cloudrank',
-        fullName: 'AstrBot词云与排名插件',
-        desc: '支持群聊与私聊消息，生成美观词云图，并展示用户活跃度排行。',
-        author: 'GEMILUXVII',
-        stars: 9,
-        updated: '2025/7/12 16:12',
-        tags: ['统计', '可视化'],
-        installed: false
-    },
-    {
-        name: 'pet',
-        fullName: '内宠物养成插件',
-        desc: '一个简单的内宠物养成插件，支持LLM随机事件、PVP对决和图片状态卡。',
-        author: 'DITF16',
-        stars: 0,
-        updated: '2025/7/14 20:25',
-        tags: ['游戏', '趣味'],
-        installed: false
-    },
-    {
-        name: 'error_monitor',
-        fullName: 'ImmersiveError 捕获器',
-        desc: '捕获 ImmersiveError 抛出的异常，并通过 SMTP 邮件通知。',
-        author: 'Magstic',
-        stars: 0,
-        updated: '2025/7/12 16:12',
-        tags: ['工具', '实用'],
-        installed: false
-    }
-])
 
-/* 2. 搜索 & 过滤 */
+const allPlugins = ref<MarketItem[]>([])
+
 const keyword = ref('')
 const filterTag = ref('')
 const tagOptions = ['全部', '推荐', '媒体', '统计', '游戏', '工具', '实用']
@@ -67,13 +28,47 @@ const filteredPlugins = computed(() => {
     )
 })
 
-/* 3. 分页 */
 const pageSize = ref(6)
 const currentPage = ref(1)
 const pagedPlugins = computed(() => {
     const start = (currentPage.value - 1) * pageSize.value
     return filteredPlugins.value.slice(start, start + pageSize.value)
 })
+
+const installing = ref<Set<string>>(new Set())
+
+const handleInstall = async (p: Plugin) => {
+    installing.value.add(p.name)
+    try {
+        await installPlugin(p.name)
+        p.installed = true
+        ElMessage.success('安装成功')
+    } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e)
+        ElMessage.error(msg || '安装失败')
+    } finally {
+        installing.value.delete(p.name)
+    }
+}
+
+const handleUninstall = async (p: Plugin) => {
+    installing.value.add(p.name);
+    try {
+        await uninstallPlugin(p.name);
+        p.installed = false;
+        ElMessage.success('卸载成功');
+    } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e)
+        ElMessage.error(msg || '卸载失败');
+    } finally {
+        installing.value.delete(p.name);
+    }
+}
+
+onMounted(async () => {
+    const response = await listMarketPlugins();
+    allPlugins.value = response
+});
 </script>
 
 <template>
@@ -104,15 +99,15 @@ const pagedPlugins = computed(() => {
                                 <StarFilled />
                             </el-icon>{{ p.stars }}</span>
                     </div>
-                    <!-- 标签 -->
                     <div class="tags">
                         <el-tag v-for="tag in p.tags" :key="tag">{{ tag }}</el-tag>
                     </div>
-                    <!-- 操作 -->
                     <div class="actions">
                         <el-button size="small" text>查看文档</el-button>
-                        <el-button size="small" :type="p.installed ? 'info' : 'primary'" :disabled="p.installed">
-                            {{ p.installed ? '已安装' : '安装' }}
+                        <el-button size="small" :type="p.installed ? 'danger' : 'primary'"
+                            :disabled="installing.has(p.name)" :loading="installing.has(p.name)"
+                            @click="p.installed ? handleUninstall(p) : handleInstall(p)">
+                            {{ p.installed ? '卸载' : '安装' }}
                         </el-button>
                     </div>
                 </el-card>

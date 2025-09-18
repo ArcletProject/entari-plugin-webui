@@ -1,12 +1,9 @@
-export {}
+export interface RuntimeConfig {
+  baseURL: string;
+}
 
 declare global {
   interface Window {
-    RUNTIME_CONFIG?: {
-      baseURL?: string
-    }
-    WS_PATH: {
-      baseURL?: string
-    }
+    RUNTIME_CONFIG?: RuntimeConfig;
   }
 }

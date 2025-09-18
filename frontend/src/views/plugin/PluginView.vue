@@ -1,63 +1,66 @@
 <script lang="ts" setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { listPlugins, togglePluginAPI } from '@/api/plugin'
+import type { PluginItem } from '@/api/plugin'
+import { ElMessage } from 'element-plus'
+import ConfigDrawer from './PluginConfigForm.vue'
 
 interface Plugin {
     name: string
+    id: string
     title: string
     desc: string
     version: string
-    author: string
+    author?: string
     status: boolean
     builtin?: boolean
+    urls?: { homepage?: string }
+    installed: boolean
 }
 
-interface Document {
-    name: string
-    url: string
-}
+const tableData = ref<Plugin[]>([])
 
-const tableData = ref<Plugin[]>([
-    {
-        name: 'entari-plugin-server',
-        title: 'entari-plugin-server',
-        desc: '为 Entari 提供 Satori 服务器支持，基于此为 Entari 提供 ASGI 服务、适配器连接等功能',
-        version: '0.2.3',
-        author: 'RF-Tar-Railt',
-        status: true,
-        builtin: true
-    },
-    {
-        name: 'entari-plugin-database',
-        title: 'entari-plugin-database',
-        desc: '为 Entari 提供统一的数据库抽象层，支持 SQLite 等多种后端，实现插件数据持久化与迁移管理。',
-        version: '0.1.1',
-        author: 'RF-Tar-Railt',
-        status: true,
-        builtin: true
+onMounted(async () => {
+    try {
+        const raw = await listPlugins()
+        tableData.value = raw.map(p => ({
+            ...p,
+            title: p.name,
+            desc: p.desc || '暂无描述',
+        }))
+    } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : String(e)
+        ElMessage.error('插件列表加载失败：' + msg)
     }
-])
-
-const document_url = ref<Document[]>([
-    {
-        name: 'entari-plugin-server',
-        url: 'https://arclet.top/tutorial/entari/server.html'
-    },
-    {
-        name: 'entari-plugin-database',
-        url: 'https://arclet.top/tutorial/entari/database.html'
-    }
-])
+})
 
 const pageSize = ref(10)
 const currentPage = ref(1)
 const keyword = ref('')
 const viewMode = ref<'table' | 'card'>('table')
+const cardPageSize = ref(6)
+const cardCurrentPage = ref(1)
+
+const configDrawerVisible = ref(false)
+const currentPlugin = ref<PluginItem | null>(null)
+
+function openConfigDrawer(plugin: PluginItem) {
+    currentPlugin.value = plugin
+    configDrawerVisible.value = true
+}
+
+const cardPagedData = computed(() =>
+    filtered.value.slice(
+        (cardCurrentPage.value - 1) * cardPageSize.value,
+        cardCurrentPage.value * cardPageSize.value
+    )
+)
 
 const filtered = computed(() =>
     tableData.value.filter(p =>
         p.title.includes(keyword.value) ||
         p.desc.includes(keyword.value) ||
-        p.author.includes(keyword.value)
+        p.author?.includes(keyword.value)
     )
 )
 
@@ -69,12 +72,17 @@ const pagedData = computed(() =>
 )
 
 function openDoc(name: string) {
-    const doc = document_url.value.find(d => d.name === name)
-    if (doc) {
-        window.open(doc.url.trim(), '_blank')
-    } else {
-        ElMessage.warning('暂无文档链接')
-    }
+    const plugin = tableData.value.find(p => p.name === name)
+    const url = plugin?.urls?.homepage
+    if (url) window.open(url.trim(), '_blank')
+    else ElMessage.warning('暂无文档链接')
+}
+
+async function togglePlugin(plugin: PluginItem) {
+    const next = !plugin.status
+    await togglePluginAPI(plugin.id, !plugin.status)
+    plugin.status = next
+    ElMessage.success(next ? '已启用' : '已禁用')
 }
 </script>
 
@@ -96,15 +104,13 @@ function openDoc(name: string) {
 
             <div v-if="viewMode === 'table'" class="plugin-message">
                 <el-table :data="pagedData" style="width: 100%" stripe>
-                    <el-table-column prop="title" label="名称" min-width="200" />
-                    <el-table-column prop="desc" label="描述" min-width="300" />
-                    <el-table-column prop="version" label="版本" width="100" />
-                    <el-table-column prop="author" label="作者" width="120" />
-                    <el-table-column prop="status" label="状态" width="80">
+                    <el-table-column prop="title" label="名称" min-width="200" show-overflow-tooltip />
+                    <el-table-column prop="desc" label="描述" min-width="300" show-overflow-tooltip />
+                    <el-table-column prop="version" label="版本" width="100" show-overflow-tooltip />
+                    <el-table-column prop="author" label="作者" width="120" show-overflow-tooltip />
+                    <el-table-column label="状态" width="80">
                         <template #default="{ row }">
-                            <el-tag :type="row.status ? 'success' : 'info'">
-                                {{ row.status ? '启用' : '禁用' }}
-                            </el-tag>
+                            <el-switch :model-value="row.status" @change="togglePlugin(row)" />
                         </template>
                     </el-table-column>
                     <el-table-column label="操作" width="260">
@@ -113,6 +119,7 @@ function openDoc(name: string) {
                                 <template v-if="row.builtin">
                                     <el-button size="small" type="warning">更新</el-button>
                                     <el-button size="small" type="primary" @click="openDoc(row.name)">查看文档</el-button>
+                                    <el-button size="small" type="primary" @click="openConfigDrawer(row)">配置</el-button>
                                 </template>
 
                                 <template v-else>
@@ -121,6 +128,7 @@ function openDoc(name: string) {
                                     </el-button>
                                     <el-button size="small" type="warning">更新</el-button>
                                     <el-button size="small" type="primary" @click="openDoc(row.name)">查看文档</el-button>
+                                    <el-button size="small" type="primary" @click="openConfigDrawer(row)">配置</el-button>
                                     <el-button size="small" type="danger">卸载</el-button>
                                 </template>
                             </el-button-group>
@@ -131,24 +139,32 @@ function openDoc(name: string) {
                 <el-pagination v-model:current-page="currentPage" v-model:page-size="pageSize" :total="filtered.length"
                     layout="total, sizes, prev, pager, next, jumper"
                     style="margin-top: 16px; justify-content: flex-end" />
+                <ConfigDrawer v-model="configDrawerVisible" :plugin="currentPlugin!" @closed="currentPlugin = null" />
             </div>
 
             <div v-else class="card-view">
                 <el-row :gutter="20">
-                    <el-col v-for="plugin in filtered" :key="plugin.name" :xs="24" :sm="12" :md="8">
+                    <el-col v-for="plugin in cardPagedData" :key="plugin.name" :xs="24" :sm="12" :md="8">
                         <el-card shadow="hover" class="plugin-card">
                             <template #header>
                                 <div class="card-header">
-                                    <strong>{{ plugin.title }}</strong>
+                                    <el-tooltip :content="plugin.title" placement="top">
+                                        <strong>{{ plugin.title }}</strong>
+                                    </el-tooltip>
                                     <el-tag size="small" :type="plugin.status ? 'success' : 'info'">
                                         {{ plugin.status ? '启用' : '禁用' }}
                                     </el-tag>
                                 </div>
                             </template>
 
-                            <p class="desc">{{ plugin.desc }}</p>
+                            <el-tooltip :content="plugin.desc" placement="top">
+                                <p class="desc ellipsis-2">{{ plugin.desc }}</p>
+                            </el-tooltip>
+
                             <div class="meta">
-                                <span>作者：{{ plugin.author }}</span>
+                                <el-tooltip :content="`作者：${plugin.author}`" placement="top">
+                                    <span class="ellipsis">作者：{{ plugin.author }}</span>
+                                </el-tooltip>
                                 <span>版本：{{ plugin.version }}</span>
                             </div>
 
@@ -157,16 +173,20 @@ function openDoc(name: string) {
                                     <template v-if="plugin.builtin">
                                         <el-button size="small" type="primary" text
                                             @click="openDoc(plugin.name)">查看文档</el-button>
+                                        <el-button size="small" type="primary" text
+                                            @click="openConfigDrawer(plugin)">配置</el-button>
                                         <el-button size="small" type="warning" text>更新</el-button>
                                     </template>
 
                                     <template v-else>
-                                        <el-button size="small" text>
-                                            {{ plugin.status ? '禁用' : '启用' }}
-                                        </el-button>
+                                        <el-switch :model-value="plugin.status" @change="togglePlugin(plugin)"
+                                            style="margin-right: 8px" />
+                                        <el-button size="small" text>{{ plugin.status ? '禁用' : '启用' }}</el-button>
                                         <el-button size="small" type="warning" text>更新</el-button>
                                         <el-button size="small" type="primary" text
                                             @click="openDoc(plugin.name)">查看文档</el-button>
+                                        <el-button size="small" type="primary" text
+                                            @click="openConfigDrawer(plugin)">配置</el-button>
                                         <el-button size="small" type="danger" text>卸载</el-button>
                                     </template>
                                 </div>
@@ -174,6 +194,11 @@ function openDoc(name: string) {
                         </el-card>
                     </el-col>
                 </el-row>
+
+                <el-pagination v-model:current-page="cardCurrentPage" :page-size="cardPageSize" :total="filtered.length"
+                    layout="total, prev, pager, next, jumper" style="margin-top: 16px; justify-content: flex-end" />
+
+                <ConfigDrawer v-model="configDrawerVisible" :plugin="currentPlugin!" @closed="currentPlugin = null" />
             </div>
         </div>
     </div>
@@ -186,7 +211,6 @@ function openDoc(name: string) {
     border-radius: 5px;
     height: 88vh;
     box-shadow: 0 4px 12px var(--plugin-card-shadow);
-    transition: background 0.3s, box-shadow 0.3s;
 }
 
 .plugin-title {
@@ -232,7 +256,6 @@ function openDoc(name: string) {
         width: 500px;
         background: var(--plugin-input-bg);
         border: 1px solid var(--plugin-input-border);
-        transition: background 0.3s, border-color 0.3s;
     }
 }
 
@@ -250,7 +273,6 @@ function openDoc(name: string) {
     background: var(--plugin-card-bg);
     border: 1px solid var(--plugin-card-border);
     box-shadow: 0 2px 8px var(--plugin-card-shadow);
-    transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
 }
 
 .card-header {
@@ -289,7 +311,6 @@ function openDoc(name: string) {
 :deep(.el-table) {
     background: var(--plugin-card-bg);
     color: var(--plugin-header-text);
-    transition: background 0.3s, color 0.3s;
 }
 
 :deep(.el-table th),
@@ -304,5 +325,22 @@ function openDoc(name: string) {
 
 :deep(.el-table tr:hover) {
     background: var(--plugin-panel-bg);
+}
+
+.ellipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* 两行省略 */
+.ellipsis-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+
+    line-clamp: 2;
+    box-orient: vertical;
 }
 </style>

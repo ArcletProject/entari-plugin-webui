@@ -3,6 +3,7 @@ import { ref } from 'vue';
 
 export interface UserInfo {
   name: string;
+  email: string;
 }
 
 export interface Instance {

@@ -1,0 +1,1240 @@
+09-11 00:00:14 | ERROR    | lagrange | Unhandled exception on push handler
+Traceback (most recent call last):
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+
+  File "E:\Ananconda\Deposit\envs\Entari\Scripts\nekobox.exe\__main__.py", line 7, in <module>
+
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 308, in main
+    if args.func(args):
+       │    │    └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021866165A80>)
+       │    └ <function _run at 0x0000021866165A80>
+       └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021866165A80>)
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 188, in _run
+    run(int(uin), host, port, token, path, protocol, sign_url, level, args.use_png)
+    │       │     │     │     │      │     │         │         │      │    └ False
+    │       │     │     │     │      │     │         │         │      └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021866165A80>)
+    │       │     │     │     │      │     │         │         └ 'INFO'
+    │       │     │     │     │      │     │         └ 'https://sign.lagrangecore.org/api/sign/30366'
+    │       │     │     │     │      │     └ 'remote'
+    │       │     │     │     │      └ ''
+    │       │     │     │     └ '045cdc97af66376e'
+    │       │     │     └ 7777
+    │       │     └ '127.0.0.1'
+    │       └ '1192007819'
+    └ <function run at 0x00000218624E49A0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 38, in run
+    server.run()
+    │      └ <function Server.run at 0x00000218661031A0>
+    └ <satori.server.Server object at 0x0000021864970090>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\satori\server\__init__.py", line 521, in run
+    manager.launch_blocking(loop=loop, stop_signal=stop_signal)
+    │       │                    │                 └ (<Signals.SIGINT: 2>,)
+    │       │                    └ None
+    │       └ <function Launart.launch_blocking at 0x0000021865D78680>
+    └ <launart.manager.Launart object at 0x0000021865C73950>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\launart\manager.py", line 468, in launch_blocking
+    loop.run_until_complete(launch_task)
+    │    │                  └ <Task pending name='amnesia-launch' coro=<Launart.launch() running at E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\laun...
+    │    └ <function BaseEventLoop.run_until_complete at 0x00000218641EEFC0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x00000218642C2520>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x00000218641F4D60>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x000002186413F100>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+> File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\base.py", line 148, in _push_handle_loop
+    await self.push_handler(sso)
+          │    │            └ SSOPacket(seq=-1853347559, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\xe2\x...
+          │    └ <function Client.push_handler at 0x0000021864C28FE0>
+          └ <lagrange.client.client.Client object at 0x00000218662C6E10>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\client.py", line 185, in push_handler
+    if rsp := await self._push_deliver.execute(sso.cmd, sso):
+                    │    │             │       │   │    └ SSOPacket(seq=-1853347559, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\xe2\x...
+                    │    │             │       │   └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                    │    │             │       └ SSOPacket(seq=-1853347559, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\xe2\x...
+                    │    │             └ <function PushDeliver.execute at 0x0000021864C03D80>
+                    │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x000002186619EF10>
+                    └ <lagrange.client.client.Client object at 0x00000218662C6E10>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\binder.py", line 26, in execute
+    return await self._handle_map[cmd](self._client, sso)
+                 │    │           │    │    │        └ SSOPacket(seq=-1853347559, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\xe2\x...
+                 │    │           │    │    └ <lagrange.client.client.Client object at 0x00000218662C6E10>
+                 │    │           │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x000002186619EF10>
+                 │    │           └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                 │    └ {'trpc.msg.olpush.OlPushService.MsgPush': <function msg_push_handler at 0x0000021864C285E0>, 'trpc.qq_new_tech.status_svc.Sta...
+                 └ <lagrange.client.server_push.binder.PushDeliver object at 0x000002186619EF10>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\msg.py", line 83, in msg_push_handler
+    return await parse_grp_msg(client, pkg)
+                 │             │       └ MsgPushBody(response_head=ResponseHead(from_uin=3503265897, from_uid='u_nE2Tmz-we1ZwSRobP9iDig', type=1001, sigmap=537309843,...
+                 │             └ <lagrange.client.client.Client object at 0x00000218662C6E10>
+                 └ <function parse_grp_msg at 0x0000021864C02020>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\message\decoder.py", line 332, in parse_grp_msg
+    parsed_msg = await parse_msg_new(client, pkg, fri_id=None, grp_id=grp_id)
+                       │             │       │                        └ 1042105453
+                       │             │       └ MsgPushBody(response_head=ResponseHead(from_uin=3503265897, from_uid='u_nE2Tmz-we1ZwSRobP9iDig', type=1001, sigmap=537309843,...
+                       │             └ <lagrange.client.client.Client object at 0x00000218662C6E10>
+                       └ <function parse_msg_new at 0x0000021864C01E40>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\message\decoder.py", line 173, in parse_msg_new
+    extra = MsgInfo.decode(proto_encode(raw.common_elem.pb_elem))
+            │       │      │            │   │           └ {1: {1: {1: {1: 112231, 2: b'deeb48020a543e907c29eac37316bf17', 3: b'8481c7bb41d6a6b77a0ef546f342d65ff6450ed2', 4: b'DEEB4802...
+            │       │      │            │   └ CommonElem(service_type=48, pb_elem={1: {1: {1: {1: 112231, 2: b'deeb48020a543e907c29eac37316bf17', 3: b'8481c7bb41d6a6b77a0e...
+            │       │      │            └ Elems(text=None, face=None, online_image=None, not_online_image=None, trans_elem=None, market_face=None, custom_face=None, el...
+            │       │      └ <function proto_encode at 0x0000021864990F40>
+            │       └ <classmethod(<function ProtoStruct.decode at 0x0000021864991E40>)>
+            └ <class 'lagrange.pb.highway.comm.MsgInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 294, in decode
+    return cls(True, **kwargs)
+           │           └ {'body': b'\n\x85\x02\n\x8b\x01\x08\xe7\xec\x06\x12 deeb48020a543e907c29eac37316bf17\x1a(8481c7bb41d6a6b77a0ef546f342d65ff645...
+           └ <class 'lagrange.pb.highway.comm.MsgInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 185, in __init__
+    value = _decode(field.type_without_optional, value)
+            │       │     │                      └ b'\n\xb4\x01\x08\x00\x12\x00b\xa0\x01\x08\x00\x18\x00 \x00J\x00P\x00b\x00\x92\x01\x00\x9a\x01\x00\xaa\x01\x0c\x08\x00\x12\x00...
+            │       │     └ <property object at 0x0000021864998900>
+            │       └ <lagrange.utils.binary.protobuf.models.ProtoField object at 0x00000218649DBC10>
+            └ <function _decode at 0x0000021864991800>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 120, in _decode
+    return typ.decode(raw)
+           │   │      └ b'\n\xb4\x01\x08\x00\x12\x00b\xa0\x01\x08\x00\x18\x00 \x00J\x00P\x00b\x00\x92\x01\x00\x9a\x01\x00\xaa\x01\x0c\x08\x00\x12\x00...
+           │   └ <classmethod(<function ProtoStruct.decode at 0x0000021864991E40>)>
+           └ <class 'lagrange.pb.highway.comm.ExtBizInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 294, in decode
+    return cls(True, **kwargs)
+           │           └ {'pic': b'\x08\x00\x12\x00b\xa0\x01\x08\x00\x18\x00 \x00J\x00P\x00b\x00\x92\x01\x00\x9a\x01\x00\xaa\x01\x0c\x08\x00\x12\x00\x...
+           └ <class 'lagrange.pb.highway.comm.ExtBizInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 185, in __init__
+    value = _decode(field.type_without_optional, value)
+            │       │     │                      └ b'\n\x00'
+            │       │     └ <property object at 0x0000021864998900>
+            │       └ <lagrange.utils.binary.protobuf.models.ProtoField object at 0x00000218649DAAD0>
+            └ <function _decode at 0x0000021864991800>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 143, in _decode
+    raise NotImplementedError(f"unknown type '{typ}' and data {raw}")
+
+NotImplementedError: unknown type '<class 'int'>' and data b'\n\x00'
+09-11 00:00:16 | ERROR    | lagrange | Unhandled exception on push handler
+Traceback (most recent call last):
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+
+  File "E:\Ananconda\Deposit\envs\Entari\Scripts\nekobox.exe\__main__.py", line 7, in <module>
+
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 308, in main
+    if args.func(args):
+       │    │    └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021866165A80>)
+       │    └ <function _run at 0x0000021866165A80>
+       └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021866165A80>)
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 188, in _run
+    run(int(uin), host, port, token, path, protocol, sign_url, level, args.use_png)
+    │       │     │     │     │      │     │         │         │      │    └ False
+    │       │     │     │     │      │     │         │         │      └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021866165A80>)
+    │       │     │     │     │      │     │         │         └ 'INFO'
+    │       │     │     │     │      │     │         └ 'https://sign.lagrangecore.org/api/sign/30366'
+    │       │     │     │     │      │     └ 'remote'
+    │       │     │     │     │      └ ''
+    │       │     │     │     └ '045cdc97af66376e'
+    │       │     │     └ 7777
+    │       │     └ '127.0.0.1'
+    │       └ '1192007819'
+    └ <function run at 0x00000218624E49A0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 38, in run
+    server.run()
+    │      └ <function Server.run at 0x00000218661031A0>
+    └ <satori.server.Server object at 0x0000021864970090>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\satori\server\__init__.py", line 521, in run
+    manager.launch_blocking(loop=loop, stop_signal=stop_signal)
+    │       │                    │                 └ (<Signals.SIGINT: 2>,)
+    │       │                    └ None
+    │       └ <function Launart.launch_blocking at 0x0000021865D78680>
+    └ <launart.manager.Launart object at 0x0000021865C73950>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\launart\manager.py", line 468, in launch_blocking
+    loop.run_until_complete(launch_task)
+    │    │                  └ <Task pending name='amnesia-launch' coro=<Launart.launch() running at E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\laun...
+    │    └ <function BaseEventLoop.run_until_complete at 0x00000218641EEFC0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x00000218642C2520>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x00000218641F4D60>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x000002186413F100>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+> File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\base.py", line 148, in _push_handle_loop
+    await self.push_handler(sso)
+          │    │            └ SSOPacket(seq=-1848041845, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\xef\x...
+          │    └ <function Client.push_handler at 0x0000021864C28FE0>
+          └ <lagrange.client.client.Client object at 0x00000218662C6E10>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\client.py", line 185, in push_handler
+    if rsp := await self._push_deliver.execute(sso.cmd, sso):
+                    │    │             │       │   │    └ SSOPacket(seq=-1848041845, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\xef\x...
+                    │    │             │       │   └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                    │    │             │       └ SSOPacket(seq=-1848041845, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\xef\x...
+                    │    │             └ <function PushDeliver.execute at 0x0000021864C03D80>
+                    │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x000002186619EF10>
+                    └ <lagrange.client.client.Client object at 0x00000218662C6E10>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\binder.py", line 26, in execute
+    return await self._handle_map[cmd](self._client, sso)
+                 │    │           │    │    │        └ SSOPacket(seq=-1848041845, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\xef\x...
+                 │    │           │    │    └ <lagrange.client.client.Client object at 0x00000218662C6E10>
+                 │    │           │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x000002186619EF10>
+                 │    │           └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                 │    └ {'trpc.msg.olpush.OlPushService.MsgPush': <function msg_push_handler at 0x0000021864C285E0>, 'trpc.qq_new_tech.status_svc.Sta...
+                 └ <lagrange.client.server_push.binder.PushDeliver object at 0x000002186619EF10>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\msg.py", line 83, in msg_push_handler
+    return await parse_grp_msg(client, pkg)
+                 │             │       └ MsgPushBody(response_head=ResponseHead(from_uin=3503265897, from_uid='u_nE2Tmz-we1ZwSRobP9iDig', type=1001, sigmap=537309843,...
+                 │             └ <lagrange.client.client.Client object at 0x00000218662C6E10>
+                 └ <function parse_grp_msg at 0x0000021864C02020>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\message\decoder.py", line 332, in parse_grp_msg
+    parsed_msg = await parse_msg_new(client, pkg, fri_id=None, grp_id=grp_id)
+                       │             │       │                        └ 1042105453
+                       │             │       └ MsgPushBody(response_head=ResponseHead(from_uin=3503265897, from_uid='u_nE2Tmz-we1ZwSRobP9iDig', type=1001, sigmap=537309843,...
+                       │             └ <lagrange.client.client.Client object at 0x00000218662C6E10>
+                       └ <function parse_msg_new at 0x0000021864C01E40>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\message\decoder.py", line 173, in parse_msg_new
+    extra = MsgInfo.decode(proto_encode(raw.common_elem.pb_elem))
+            │       │      │            │   │           └ {1: {1: {1: {1: 1188801, 2: b'2ae6700da5a7c3e158a739e488a750f6', 3: b'f70a47c2a758edb5cacfa8b591bb6bec92fa1be4', 4: b'2AE6700...
+            │       │      │            │   └ CommonElem(service_type=48, pb_elem={1: {1: {1: {1: 1188801, 2: b'2ae6700da5a7c3e158a739e488a750f6', 3: b'f70a47c2a758edb5cac...
+            │       │      │            └ Elems(text=None, face=None, online_image=None, not_online_image=None, trans_elem=None, market_face=None, custom_face=None, el...
+            │       │      └ <function proto_encode at 0x0000021864990F40>
+            │       └ <classmethod(<function ProtoStruct.decode at 0x0000021864991E40>)>
+            └ <class 'lagrange.pb.highway.comm.MsgInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 294, in decode
+    return cls(True, **kwargs)
+           │           └ {'body': b'\n\xfe\x01\n\x8b\x01\x08\xc1\xc7H\x12 2ae6700da5a7c3e158a739e488a750f6\x1a(f70a47c2a758edb5cacfa8b591bb6bec92fa1be...
+           └ <class 'lagrange.pb.highway.comm.MsgInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 185, in __init__
+    value = _decode(field.type_without_optional, value)
+            │       │     │                      └ b'\n\xd0\x01\x08\x01\x12\x0e[\xe5\x8a\xa8\xe7\x94\xbb\xe8\xa1\xa8\xe6\x83\x85]b\xae\x01\x08\x01\x18\x00 \x00J\x0e[\xe5\x8a\xa...
+            │       │     └ <property object at 0x0000021864998900>
+            │       └ <lagrange.utils.binary.protobuf.models.ProtoField object at 0x00000218649DBC10>
+            └ <function _decode at 0x0000021864991800>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 120, in _decode
+    return typ.decode(raw)
+           │   │      └ b'\n\xd0\x01\x08\x01\x12\x0e[\xe5\x8a\xa8\xe7\x94\xbb\xe8\xa1\xa8\xe6\x83\x85]b\xae\x01\x08\x01\x18\x00 \x00J\x0e[\xe5\x8a\xa...
+           │   └ <classmethod(<function ProtoStruct.decode at 0x0000021864991E40>)>
+           └ <class 'lagrange.pb.highway.comm.ExtBizInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 294, in decode
+    return cls(True, **kwargs)
+           │           └ {'pic': b'\x08\x01\x12\x0e[\xe5\x8a\xa8\xe7\x94\xbb\xe8\xa1\xa8\xe6\x83\x85]b\xae\x01\x08\x01\x18\x00 \x00J\x0e[\xe5\x8a\xa8\...
+           └ <class 'lagrange.pb.highway.comm.ExtBizInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 185, in __init__
+    value = _decode(field.type_without_optional, value)
+            │       │     │                      └ b'\n\x00'
+            │       │     └ <property object at 0x0000021864998900>
+            │       └ <lagrange.utils.binary.protobuf.models.ProtoField object at 0x00000218649DAAD0>
+            └ <function _decode at 0x0000021864991800>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 143, in _decode
+    raise NotImplementedError(f"unknown type '{typ}' and data {raw}")
+
+NotImplementedError: unknown type '<class 'int'>' and data b'\n\x00'
+09-11 00:00:18 | INFO     | nekobox.events | [message-created] 耄耋没什么坏心思(3933916140)@1042105453: 'stop'
+09-11 00:06:12 | INFO     | logging | 127.0.0.1:46762 - "WebSocket /v1/events" [accepted]
+09-11 00:06:12 | INFO     | logging | connection open
+09-11 00:06:27 | INFO     | logging | connection closed
+09-11 00:06:39 | INFO     | logging | 127.0.0.1:7782 - "WebSocket /v1/events" [accepted]
+09-11 00:06:39 | INFO     | logging | connection open
+09-11 00:06:44 | INFO     | logging | connection closed
+09-11 00:07:18 | INFO     | logging | 127.0.0.1:43922 - "WebSocket /v1/events" [accepted]
+09-11 00:07:18 | INFO     | logging | connection open
+09-11 00:10:15 | INFO     | logging | connection closed
+09-11 00:10:19 | INFO     | logging | 127.0.0.1:50773 - "WebSocket /v1/events" [accepted]
+09-11 00:10:19 | INFO     | logging | connection open
+09-11 00:10:57 | INFO     | logging | connection closed
+09-11 00:11:09 | INFO     | logging | 127.0.0.1:20695 - "WebSocket /v1/events" [accepted]
+09-11 00:11:09 | INFO     | logging | connection open
+09-11 00:15:24 | WARNING  | lagrange.network | Connection lost, reconnecting...
+09-11 00:15:25 | INFO     | lagrange.network | Connected to 120.233.17.147:8080
+09-11 00:15:25 | INFO     | lagrange.login | Register(new) successful
+09-11 00:15:42 | INFO     | nekobox.events | [guild-member-added] u_J2kEVcy-SrGr5Z0xTuODeQ(u_J2kEVcy-SrGr5Z0xTuODeQ) joined 桂电大数赛非专业组(142616968)
+09-11 00:15:49 | INFO     | nekobox.events | [message-created] 東洋魔女.(3406255407)@992942562: '爽了830有银'
+09-11 00:15:53 | INFO     | nekobox.events | [message-created] 東洋魔女.(3406255407)@992942562: '<img src="http://127.0.0.1:7777/v1/proxy/https://multimedia.nt.qq.com.cn/download%3Fappid=1407&amp;fileid=EhQ98W5jPPbySDPo_3b3AqVCMMu8VRib-j0g_woojvrE4MvOjwMyBHByb2RQgL2jAVoQkEd4ZVypfeZAbbghfcKqYXoCP9c" width="200" height="188"/>'
+09-11 00:16:08 | INFO     | nekobox.events | [message-created] Reisentyan(793632284)@992942562: '羡慕有银'
+09-11 00:23:47 | INFO     | logging | connection closed
+09-11 00:23:50 | INFO     | logging | 127.0.0.1:48489 - "WebSocket /v1/events" [accepted]
+09-11 00:23:50 | INFO     | logging | connection open
+09-11 00:48:52 | INFO     | logging | connection closed
+09-11 00:48:54 | INFO     | logging | 127.0.0.1:4078 - "WebSocket /v1/events" [accepted]
+09-11 00:48:54 | INFO     | logging | connection open
+09-11 00:50:14 | INFO     | logging | connection closed
+09-11 00:50:31 | INFO     | logging | 127.0.0.1:16514 - "WebSocket /v1/events" [accepted]
+09-11 00:50:31 | INFO     | logging | connection open
+09-11 00:51:41 | INFO     | logging | connection closed
+09-11 00:51:43 | INFO     | logging | 127.0.0.1:5343 - "WebSocket /v1/events" [accepted]
+09-11 00:51:43 | INFO     | logging | connection open
+09-11 00:54:18 | INFO     | logging | connection closed
+09-11 00:54:20 | INFO     | logging | 127.0.0.1:11533 - "WebSocket /v1/events" [accepted]
+09-11 00:54:20 | INFO     | logging | connection open
+09-11 00:57:19 | INFO     | logging | connection closed
+09-11 00:57:21 | INFO     | logging | 127.0.0.1:35225 - "WebSocket /v1/events" [accepted]
+09-11 00:57:21 | INFO     | logging | connection open
+09-11 00:58:16 | INFO     | logging | connection closed
+09-11 00:58:22 | INFO     | logging | 127.0.0.1:5088 - "WebSocket /v1/events" [accepted]
+09-11 00:58:22 | INFO     | logging | connection open
+09-11 01:11:14 | INFO     | logging | connection closed
+09-11 01:26:27 | INFO     | launart.manager | Starting launart main task...
+09-11 01:26:27 | INFO     | launart.manager | Component asgi.service/uvicorn is preparing.
+09-11 01:26:27 | INFO     | launart.manager | Component http.client/aiohttp is preparing.
+09-11 01:26:27 | INFO     | launart.manager | Sideload cache.client/memcache: injecting
+09-11 01:26:27 | INFO     | launart.manager | Sideload cache.client/memcache: start blocking
+09-11 01:26:27 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2313153893264: injecting
+09-11 01:26:27 | INFO     | launart.manager | Waiting sideload satori-python.adapter.nekobox#2313153893264 for prepare
+09-11 01:26:27 | INFO     | nekobox.main | Running on '0.1.7' for 1192007819
+09-11 01:26:27 | SUCCESS  | lagrange | D:\VScode\project\Entari\bots\1192007819\device.json loaded
+09-11 01:26:27 | SUCCESS  | lagrange | D:\VScode\project\Entari\bots\1192007819\sig.bin loaded
+09-11 01:26:27 | INFO     | logging | Started server process [24760]
+09-11 01:26:27 | INFO     | logging | Waiting for application startup.
+09-11 01:26:27 | SUCCESS  | launart.manager | Component asgi.service/uvicorn is prepared.
+09-11 01:26:27 | SUCCESS  | launart.manager | Component http.client/aiohttp is prepared.
+09-11 01:26:27 | INFO     | logging | Application startup complete.
+09-11 01:26:27 | INFO     | launart.manager | Component satori-python.server is preparing.
+09-11 01:26:27 | INFO     | logging | Uvicorn running on http://127.0.0.1:7777 (Press CTRL+C to quit)
+09-11 01:26:27 | SUCCESS  | launart.manager | Component satori-python.server is prepared.
+09-11 01:26:28 | INFO     | nekobox.main | AppInfo: platform=Linux, ver=30366(537258424)
+09-11 01:26:28 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2313153893264: preparing
+09-11 01:26:28 | INFO     | nekobox.main | try to fast login
+09-11 01:26:28 | INFO     | lagrange.network | Connected to 120.233.18.186:8080
+09-11 01:26:29 | INFO     | lagrange.login | Register(new) successful
+09-11 01:26:29 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2313153893264: preparation completed
+09-11 01:26:29 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2313153893264: start blocking
+09-11 01:26:29 | SUCCESS  | lagrange | device & sig_info saved
+09-11 01:26:44 | INFO     | nekobox.events | [message-created] doro(609203201)@822130018: '<at id="2298404121" name="@悠崽"/> <quote id="332124"><author id="2298404121"/>哪里的api\\</quote> 竞技场'
+09-11 01:26:53 | INFO     | nekobox.events | [message-created] 悠崽(2298404121)@822130018: '好好好'
+09-11 01:26:59 | INFO     | logging | 127.0.0.1:41921 - "WebSocket /v1/events" [accepted]
+09-11 01:26:59 | INFO     | logging | connection open
+09-11 01:27:32 | INFO     | logging | connection closed
+09-11 01:28:04 | INFO     | logging | 127.0.0.1:33328 - "WebSocket /v1/events" [accepted]
+09-11 01:28:04 | INFO     | logging | connection open
+09-11 01:28:29 | INFO     | lagrange.network | 49.31ms to server
+09-11 01:28:44 | INFO     | nekobox.events | [message-created] 硫磺岛库瓦托罗(3085310278)@1042105453: '一个周年庆要是抽的比主线还爽那不是倒反天罡了'
+09-11 01:28:52 | INFO     | nekobox.events | [message-created] 悠崽(2298404121)@822130018: '他纯文字生图'
+09-11 01:29:14 | INFO     | logging | connection closed
+09-11 01:29:24 | INFO     | nekobox.events | [message-created] 硫磺岛库瓦托罗(3085310278)@1042105453: '黄鸡要是这么慷慨估计要关服了'
+09-11 01:29:32 | INFO     | nekobox.events | [message-created] 摩尼(842880755)@1042105453: '或者可以这样理解，这个抽数已经远远达到不可思议的地步，比如5000钻石'
+09-11 01:29:51 | INFO     | nekobox.events | [message-created] 摩尼(842880755)@1042105453: '或者1000魔方加100w物资'
+09-11 01:29:54 | INFO     | logging | 127.0.0.1:17789 - "WebSocket /v1/events" [accepted]
+09-11 01:29:54 | INFO     | logging | connection open
+09-11 01:30:29 | INFO     | lagrange.network | 55.31ms to server
+09-11 01:30:41 | INFO     | nekobox.events | [message-created] 帅气逼人(740424462)@822130018: '<quote id="332143"><author id="609203201"/>花钱的我看他们卖四分一张，不用，而且发点擦边的生图失败了也算次数[动画表情]\\</quote><at id="609203201" name="@doro"/> <at id="609203201" name="@doro"/> 还好吧'
+09-11 01:30:47 | INFO     | nekobox.events | [message-created] 帅气逼人(740424462)@822130018: '主要稳定'
+09-11 01:31:02 | ERROR    | lagrange | Unhandled exception on push handler
+Traceback (most recent call last):
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+
+  File "E:\Ananconda\Deposit\envs\Entari\Scripts\nekobox.exe\__main__.py", line 7, in <module>
+
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 308, in main
+    if args.func(args):
+       │    │    └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+       │    └ <function _run at 0x0000021A944B59E0>
+       └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 188, in _run
+    run(int(uin), host, port, token, path, protocol, sign_url, level, args.use_png)
+    │       │     │     │     │      │     │         │         │      │    └ False
+    │       │     │     │     │      │     │         │         │      └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+    │       │     │     │     │      │     │         │         └ 'INFO'
+    │       │     │     │     │      │     │         └ 'https://sign.lagrangecore.org/api/sign/30366'
+    │       │     │     │     │      │     └ 'remote'
+    │       │     │     │     │      └ ''
+    │       │     │     │     └ '045cdc97af66376e'
+    │       │     │     └ 7777
+    │       │     └ '127.0.0.1'
+    │       └ '1192007819'
+    └ <function run at 0x0000021A907D49A0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 38, in run
+    server.run()
+    │      └ <function Server.run at 0x0000021A944334C0>
+    └ <satori.server.Server object at 0x0000021A92C50110>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\satori\server\__init__.py", line 521, in run
+    manager.launch_blocking(loop=loop, stop_signal=stop_signal)
+    │       │                    │                 └ (<Signals.SIGINT: 2>,)
+    │       │                    └ None
+    │       └ <function Launart.launch_blocking at 0x0000021A9409E5C0>
+    └ <launart.manager.Launart object at 0x0000021A93A92C90>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\launart\manager.py", line 468, in launch_blocking
+    loop.run_until_complete(launch_task)
+    │    │                  └ <Task pending name='amnesia-launch' coro=<Launart.launch() running at E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\laun...
+    │    └ <function BaseEventLoop.run_until_complete at 0x0000021A92512FC0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x0000021A925E2520>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000021A92514D60>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000021A90E3F100>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+> File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\base.py", line 148, in _push_handle_loop
+    await self.push_handler(sso)
+          │    │            └ SSOPacket(seq=-1853614985, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x99\x...
+          │    └ <function Client.push_handler at 0x0000021A92F091C0>
+          └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\client.py", line 185, in push_handler
+    if rsp := await self._push_deliver.execute(sso.cmd, sso):
+                    │    │             │       │   │    └ SSOPacket(seq=-1853614985, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x99\x...
+                    │    │             │       │   └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                    │    │             │       └ SSOPacket(seq=-1853614985, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x99\x...
+                    │    │             └ <function PushDeliver.execute at 0x0000021A92F08220>
+                    │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+                    └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\binder.py", line 26, in execute
+    return await self._handle_map[cmd](self._client, sso)
+                 │    │           │    │    │        └ SSOPacket(seq=-1853614985, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x99\x...
+                 │    │           │    │    └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+                 │    │           │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+                 │    │           └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                 │    └ {'trpc.msg.olpush.OlPushService.MsgPush': <function msg_push_handler at 0x0000021A92F087C0>, 'trpc.qq_new_tech.status_svc.Sta...
+                 └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\msg.py", line 266, in msg_push_handler
+    raise ValueError(f"Unknown subtype_12 flag: {pb.flag}: {pb.body.hex() if pb.body else pb}")
+
+ValueError: Unknown subtype_12 flag: 17: GroupSub16Head(timestamp=0, uin=18083619, body=None, flag=17, operator_uid='', f44=None)
+09-11 01:31:11 | WARNING  | nekobox.transformer | cannot parse message to satori Service(raw=b'<?xml version=\'1.0\' encoding=\'UTF-8\' standalone="yes"?> <msg serviceID="35" templa
+09-11 01:31:11 | INFO     | nekobox.events | [message-created] 帅气逼人(740424462)@822130018: ''
+09-11 01:31:39 | INFO     | nekobox.events | [message-created] 难道说??(3910475931)@1042105453: '黄鸡开服到现在送的不止一千抽了'
+09-11 01:31:55 | INFO     | nekobox.events | [message-created] 集训坐牢别踢(1967739370)@1022489779: '再打一把三角洲就睡觉'
+09-11 01:32:29 | INFO     | lagrange.network | 49.38ms to server
+09-11 01:32:30 | INFO     | nekobox.events | [message-created] 难道说??(3910475931)@1042105453: '而且升级角色的素材可以无限获取'
+09-11 01:32:56 | INFO     | nekobox.events | [message-created] 摩尼(842880755)@1042105453: '<at id="3910475931" name="@难道说??"/> 这里不是讨论抽卡资源获取的难易'
+09-11 01:32:59 | INFO     | nekobox.events | [message-created] 硫磺岛库瓦托罗(3085310278)@1042105453: '氪金点全在老婆配置上了'
+09-11 01:33:03 | INFO     | logging | connection closed
+09-11 01:33:13 | INFO     | nekobox.events | [message-created] 摩尼(842880755)@1042105453: '而是对比fgo的福利，相当于这游戏什么，便于理解'
+09-11 01:33:28 | INFO     | nekobox.events | [message-created] 难道说??(3910475931)@1042105453: '中'
+09-11 01:33:45 | INFO     | nekobox.events | [message-created] Tairitsu_nya(1245438146)@822130018: '插件叫什么喵'
+09-11 01:34:13 | INFO     | nekobox.events | [message-created] α(1592866155)@1042105453: '碧蓝感觉就皮肤是氪金点吧'
+09-11 01:34:29 | INFO     | lagrange.network | 53.78ms to server
+09-11 01:34:46 | INFO     | nekobox.events | [message-created] 帅气逼人(740424462)@822130018: '<quote id="332147"><author id="1245438146"/>插件叫什么喵\\</quote><at id="1245438146" name="@Tairitsu_nya"/> <at id="1245438146" name="@Tairitsu_nya"/> 还没上架  在审核'
+09-11 01:35:04 | ERROR    | lagrange | Unhandled exception on push handler
+Traceback (most recent call last):
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+
+  File "E:\Ananconda\Deposit\envs\Entari\Scripts\nekobox.exe\__main__.py", line 7, in <module>
+
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 308, in main
+    if args.func(args):
+       │    │    └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+       │    └ <function _run at 0x0000021A944B59E0>
+       └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 188, in _run
+    run(int(uin), host, port, token, path, protocol, sign_url, level, args.use_png)
+    │       │     │     │     │      │     │         │         │      │    └ False
+    │       │     │     │     │      │     │         │         │      └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+    │       │     │     │     │      │     │         │         └ 'INFO'
+    │       │     │     │     │      │     │         └ 'https://sign.lagrangecore.org/api/sign/30366'
+    │       │     │     │     │      │     └ 'remote'
+    │       │     │     │     │      └ ''
+    │       │     │     │     └ '045cdc97af66376e'
+    │       │     │     └ 7777
+    │       │     └ '127.0.0.1'
+    │       └ '1192007819'
+    └ <function run at 0x0000021A907D49A0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 38, in run
+    server.run()
+    │      └ <function Server.run at 0x0000021A944334C0>
+    └ <satori.server.Server object at 0x0000021A92C50110>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\satori\server\__init__.py", line 521, in run
+    manager.launch_blocking(loop=loop, stop_signal=stop_signal)
+    │       │                    │                 └ (<Signals.SIGINT: 2>,)
+    │       │                    └ None
+    │       └ <function Launart.launch_blocking at 0x0000021A9409E5C0>
+    └ <launart.manager.Launart object at 0x0000021A93A92C90>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\launart\manager.py", line 468, in launch_blocking
+    loop.run_until_complete(launch_task)
+    │    │                  └ <Task pending name='amnesia-launch' coro=<Launart.launch() running at E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\laun...
+    │    └ <function BaseEventLoop.run_until_complete at 0x0000021A92512FC0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x0000021A925E2520>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000021A92514D60>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000021A90E3F100>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+> File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\base.py", line 148, in _push_handle_loop
+    await self.push_handler(sso)
+          │    │            └ SSOPacket(seq=-16951742, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x9a\x01...
+          │    └ <function Client.push_handler at 0x0000021A92F091C0>
+          └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\client.py", line 185, in push_handler
+    if rsp := await self._push_deliver.execute(sso.cmd, sso):
+                    │    │             │       │   │    └ SSOPacket(seq=-16951742, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x9a\x01...
+                    │    │             │       │   └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                    │    │             │       └ SSOPacket(seq=-16951742, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x9a\x01...
+                    │    │             └ <function PushDeliver.execute at 0x0000021A92F08220>
+                    │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+                    └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\binder.py", line 26, in execute
+    return await self._handle_map[cmd](self._client, sso)
+                 │    │           │    │    │        └ SSOPacket(seq=-16951742, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x9a\x01...
+                 │    │           │    │    └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+                 │    │           │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+                 │    │           └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                 │    └ {'trpc.msg.olpush.OlPushService.MsgPush': <function msg_push_handler at 0x0000021A92F087C0>, 'trpc.qq_new_tech.status_svc.Sta...
+                 └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\msg.py", line 266, in msg_push_handler
+    raise ValueError(f"Unknown subtype_12 flag: {pb.flag}: {pb.body.hex() if pb.body else pb}")
+
+ValueError: Unknown subtype_12 flag: 17: GroupSub16Head(timestamp=0, uin=18083619, body=None, flag=17, operator_uid='', f44=None)
+09-11 01:35:08 | INFO     | nekobox.events | [message-created] Tairitsu_nya(1245438146)@822130018: '有无仓库地址'
+09-11 01:35:14 | ERROR    | lagrange | Unhandled exception on push handler
+Traceback (most recent call last):
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+
+  File "E:\Ananconda\Deposit\envs\Entari\Scripts\nekobox.exe\__main__.py", line 7, in <module>
+
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 308, in main
+    if args.func(args):
+       │    │    └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+       │    └ <function _run at 0x0000021A944B59E0>
+       └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 188, in _run
+    run(int(uin), host, port, token, path, protocol, sign_url, level, args.use_png)
+    │       │     │     │     │      │     │         │         │      │    └ False
+    │       │     │     │     │      │     │         │         │      └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+    │       │     │     │     │      │     │         │         └ 'INFO'
+    │       │     │     │     │      │     │         └ 'https://sign.lagrangecore.org/api/sign/30366'
+    │       │     │     │     │      │     └ 'remote'
+    │       │     │     │     │      └ ''
+    │       │     │     │     └ '045cdc97af66376e'
+    │       │     │     └ 7777
+    │       │     └ '127.0.0.1'
+    │       └ '1192007819'
+    └ <function run at 0x0000021A907D49A0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 38, in run
+    server.run()
+    │      └ <function Server.run at 0x0000021A944334C0>
+    └ <satori.server.Server object at 0x0000021A92C50110>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\satori\server\__init__.py", line 521, in run
+    manager.launch_blocking(loop=loop, stop_signal=stop_signal)
+    │       │                    │                 └ (<Signals.SIGINT: 2>,)
+    │       │                    └ None
+    │       └ <function Launart.launch_blocking at 0x0000021A9409E5C0>
+    └ <launart.manager.Launart object at 0x0000021A93A92C90>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\launart\manager.py", line 468, in launch_blocking
+    loop.run_until_complete(launch_task)
+    │    │                  └ <Task pending name='amnesia-launch' coro=<Launart.launch() running at E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\laun...
+    │    └ <function BaseEventLoop.run_until_complete at 0x0000021A92512FC0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x0000021A925E2520>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000021A92514D60>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000021A90E3F100>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+> File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\base.py", line 148, in _push_handle_loop
+    await self.push_handler(sso)
+          │    │            └ SSOPacket(seq=-1805604264, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\xf5\x...
+          │    └ <function Client.push_handler at 0x0000021A92F091C0>
+          └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\client.py", line 185, in push_handler
+    if rsp := await self._push_deliver.execute(sso.cmd, sso):
+                    │    │             │       │   │    └ SSOPacket(seq=-1805604264, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\xf5\x...
+                    │    │             │       │   └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                    │    │             │       └ SSOPacket(seq=-1805604264, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\xf5\x...
+                    │    │             └ <function PushDeliver.execute at 0x0000021A92F08220>
+                    │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+                    └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\binder.py", line 26, in execute
+    return await self._handle_map[cmd](self._client, sso)
+                 │    │           │    │    │        └ SSOPacket(seq=-1805604264, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\xf5\x...
+                 │    │           │    │    └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+                 │    │           │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+                 │    │           └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                 │    └ {'trpc.msg.olpush.OlPushService.MsgPush': <function msg_push_handler at 0x0000021A92F087C0>, 'trpc.qq_new_tech.status_svc.Sta...
+                 └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\msg.py", line 83, in msg_push_handler
+    return await parse_grp_msg(client, pkg)
+                 │             │       └ MsgPushBody(response_head=ResponseHead(from_uin=1245438146, from_uid='u_cTUPsCEGY5D50GScv0ciAA', type=1001, sigmap=537309845,...
+                 │             └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+                 └ <function parse_grp_msg at 0x0000021A92EE2200>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\message\decoder.py", line 332, in parse_grp_msg
+    parsed_msg = await parse_msg_new(client, pkg, fri_id=None, grp_id=grp_id)
+                       │             │       │                        └ 822130018
+                       │             │       └ MsgPushBody(response_head=ResponseHead(from_uin=1245438146, from_uid='u_cTUPsCEGY5D50GScv0ciAA', type=1001, sigmap=537309845,...
+                       │             └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+                       └ <function parse_msg_new at 0x0000021A92EE2020>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\message\decoder.py", line 173, in parse_msg_new
+    extra = MsgInfo.decode(proto_encode(raw.common_elem.pb_elem))
+            │       │      │            │   │           └ {1: {1: {1: {1: 81398, 2: b'6fc231a2cfd31fb3ea44edfaff337f7f', 3: b'58842cce134b160b30f62b9c769089a0c4856877', 4: b'6FC231A2C...
+            │       │      │            │   └ CommonElem(service_type=48, pb_elem={1: {1: {1: {1: 81398, 2: b'6fc231a2cfd31fb3ea44edfaff337f7f', 3: b'58842cce134b160b30f62...
+            │       │      │            └ Elems(text=None, face=None, online_image=None, not_online_image=None, trans_elem=None, market_face=None, custom_face=None, el...
+            │       │      └ <function proto_encode at 0x0000021A92C6D120>
+            │       └ <classmethod(<function ProtoStruct.decode at 0x0000021A92C6E020>)>
+            └ <class 'lagrange.pb.highway.comm.MsgInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 294, in decode
+    return cls(True, **kwargs)
+           │           └ {'body': b'\n\xfe\x01\n\x8b\x01\x08\xf6\xfb\x04\x12 6fc231a2cfd31fb3ea44edfaff337f7f\x1a(58842cce134b160b30f62b9c769089a0c485...
+           └ <class 'lagrange.pb.highway.comm.MsgInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 185, in __init__
+    value = _decode(field.type_without_optional, value)
+            │       │     │                      └ b'\n\xcf\x01\x08\x01\x12\x0e[\xe5\x8a\xa8\xe7\x94\xbb\xe8\xa1\xa8\xe6\x83\x85]b\xae\x01\x08\x01\x18\x00 \x00J\x0e[\xe5\x8a\xa...
+            │       │     └ <property object at 0x0000021A92C74BD0>
+            │       └ <lagrange.utils.binary.protobuf.models.ProtoField object at 0x0000021A92CA41D0>
+            └ <function _decode at 0x0000021A92C6D9E0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 120, in _decode
+    return typ.decode(raw)
+           │   │      └ b'\n\xcf\x01\x08\x01\x12\x0e[\xe5\x8a\xa8\xe7\x94\xbb\xe8\xa1\xa8\xe6\x83\x85]b\xae\x01\x08\x01\x18\x00 \x00J\x0e[\xe5\x8a\xa...
+           │   └ <classmethod(<function ProtoStruct.decode at 0x0000021A92C6E020>)>
+           └ <class 'lagrange.pb.highway.comm.ExtBizInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 294, in decode
+    return cls(True, **kwargs)
+           │           └ {'pic': b'\x08\x01\x12\x0e[\xe5\x8a\xa8\xe7\x94\xbb\xe8\xa1\xa8\xe6\x83\x85]b\xae\x01\x08\x01\x18\x00 \x00J\x0e[\xe5\x8a\xa8\...
+           └ <class 'lagrange.pb.highway.comm.ExtBizInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 185, in __init__
+    value = _decode(field.type_without_optional, value)
+            │       │     │                      └ b'\n\x00'
+            │       │     └ <property object at 0x0000021A92C74BD0>
+            │       └ <lagrange.utils.binary.protobuf.models.ProtoField object at 0x0000021A92CBF090>
+            └ <function _decode at 0x0000021A92C6D9E0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 143, in _decode
+    raise NotImplementedError(f"unknown type '{typ}' and data {raw}")
+
+NotImplementedError: unknown type '<class 'int'>' and data b'\n\x00'
+09-11 01:35:21 | INFO     | nekobox.events | [message-created] 帅气逼人(740424462)@822130018: '有'
+09-11 01:35:22 | INFO     | nekobox.events | [message-created] 帅气逼人(740424462)@822130018: '稍等'
+09-11 01:35:27 | INFO     | nekobox.events | [message-created] 帅气逼人(740424462)@822130018: '我登个qq'
+09-11 01:36:09 | INFO     | nekobox.events | [message-created] 帅气逼人(740424462)@822130018: 'https://github.com/shskjw/astrbot_plugin_shoubanhua'
+09-11 01:36:17 | INFO     | nekobox.events | [message-created] Tairitsu_nya(1245438146)@822130018: '感谢喵'
+09-11 01:36:29 | INFO     | lagrange.network | 52.59ms to server
+09-11 01:36:45 | INFO     | nekobox.events | [message-created] 帅气逼人(740424462)@822130018: '<img src="http://127.0.0.1:7777/v1/proxy/https://multimedia.nt.qq.com.cn/download%3Fappid=1407&amp;fileid=EhQ-CxtPW6Aet5V7vnsZrg9K2DH4ihixkwUg_woozIaS6t3OjwMyBHByb2RQgL2jAVoQ2KYzyER7zFyzFytodyIjrHoC5Aw" width="999" height="1004"/>还在持续增加内置命令'
+09-11 01:37:06 | INFO     | nekobox.events | [message-created] Tairitsu_nya(1245438146)@822130018: '不能自定义tag么'
+09-11 01:38:29 | INFO     | lagrange.network | 51.88ms to server
+09-11 01:38:57 | ERROR    | lagrange | Unhandled exception on push handler
+Traceback (most recent call last):
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+
+  File "E:\Ananconda\Deposit\envs\Entari\Scripts\nekobox.exe\__main__.py", line 7, in <module>
+
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 308, in main
+    if args.func(args):
+       │    │    └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+       │    └ <function _run at 0x0000021A944B59E0>
+       └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 188, in _run
+    run(int(uin), host, port, token, path, protocol, sign_url, level, args.use_png)
+    │       │     │     │     │      │     │         │         │      │    └ False
+    │       │     │     │     │      │     │         │         │      └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+    │       │     │     │     │      │     │         │         └ 'INFO'
+    │       │     │     │     │      │     │         └ 'https://sign.lagrangecore.org/api/sign/30366'
+    │       │     │     │     │      │     └ 'remote'
+    │       │     │     │     │      └ ''
+    │       │     │     │     └ '045cdc97af66376e'
+    │       │     │     └ 7777
+    │       │     └ '127.0.0.1'
+    │       └ '1192007819'
+    └ <function run at 0x0000021A907D49A0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 38, in run
+    server.run()
+    │      └ <function Server.run at 0x0000021A944334C0>
+    └ <satori.server.Server object at 0x0000021A92C50110>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\satori\server\__init__.py", line 521, in run
+    manager.launch_blocking(loop=loop, stop_signal=stop_signal)
+    │       │                    │                 └ (<Signals.SIGINT: 2>,)
+    │       │                    └ None
+    │       └ <function Launart.launch_blocking at 0x0000021A9409E5C0>
+    └ <launart.manager.Launart object at 0x0000021A93A92C90>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\launart\manager.py", line 468, in launch_blocking
+    loop.run_until_complete(launch_task)
+    │    │                  └ <Task pending name='amnesia-launch' coro=<Launart.launch() running at E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\laun...
+    │    └ <function BaseEventLoop.run_until_complete at 0x0000021A92512FC0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x0000021A925E2520>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000021A92514D60>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000021A90E3F100>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+> File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\base.py", line 148, in _push_handle_loop
+    await self.push_handler(sso)
+          │    │            └ SSOPacket(seq=-1846470277, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x9a\x...
+          │    └ <function Client.push_handler at 0x0000021A92F091C0>
+          └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\client.py", line 185, in push_handler
+    if rsp := await self._push_deliver.execute(sso.cmd, sso):
+                    │    │             │       │   │    └ SSOPacket(seq=-1846470277, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x9a\x...
+                    │    │             │       │   └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                    │    │             │       └ SSOPacket(seq=-1846470277, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x9a\x...
+                    │    │             └ <function PushDeliver.execute at 0x0000021A92F08220>
+                    │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+                    └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\binder.py", line 26, in execute
+    return await self._handle_map[cmd](self._client, sso)
+                 │    │           │    │    │        └ SSOPacket(seq=-1846470277, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x9a\x...
+                 │    │           │    │    └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+                 │    │           │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+                 │    │           └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                 │    └ {'trpc.msg.olpush.OlPushService.MsgPush': <function msg_push_handler at 0x0000021A92F087C0>, 'trpc.qq_new_tech.status_svc.Sta...
+                 └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\msg.py", line 266, in msg_push_handler
+    raise ValueError(f"Unknown subtype_12 flag: {pb.flag}: {pb.body.hex() if pb.body else pb}")
+
+ValueError: Unknown subtype_12 flag: 17: GroupSub16Head(timestamp=0, uin=18083619, body=None, flag=17, operator_uid='', f44=None)
+09-11 01:38:58 | INFO     | nekobox.events | [message-created] 摇啊摇时崎到(528508704)@1042105453: '<img src="http://127.0.0.1:7777/v1/proxy/https://multimedia.nt.qq.com.cn/download%3Fappid=1407&amp;fileid=EhTSop9qDIkD40ZXRfs4bWdgzGB7Sxig-AEg_woo6Ynxqd7OjwMyBHByb2RQgL2jAVoQS0MPcF3K9aSfcPEtZxUw5XoCuvo" width="554" height="580"/>'
+09-11 01:39:05 | ERROR    | lagrange | Unhandled exception on push handler
+Traceback (most recent call last):
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+
+  File "E:\Ananconda\Deposit\envs\Entari\Scripts\nekobox.exe\__main__.py", line 7, in <module>
+
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 308, in main
+    if args.func(args):
+       │    │    └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+       │    └ <function _run at 0x0000021A944B59E0>
+       └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 188, in _run
+    run(int(uin), host, port, token, path, protocol, sign_url, level, args.use_png)
+    │       │     │     │     │      │     │         │         │      │    └ False
+    │       │     │     │     │      │     │         │         │      └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000021A944B59E0>)
+    │       │     │     │     │      │     │         │         └ 'INFO'
+    │       │     │     │     │      │     │         └ 'https://sign.lagrangecore.org/api/sign/30366'
+    │       │     │     │     │      │     └ 'remote'
+    │       │     │     │     │      └ ''
+    │       │     │     │     └ '045cdc97af66376e'
+    │       │     │     └ 7777
+    │       │     └ '127.0.0.1'
+    │       └ '1192007819'
+    └ <function run at 0x0000021A907D49A0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 38, in run
+    server.run()
+    │      └ <function Server.run at 0x0000021A944334C0>
+    └ <satori.server.Server object at 0x0000021A92C50110>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\satori\server\__init__.py", line 521, in run
+    manager.launch_blocking(loop=loop, stop_signal=stop_signal)
+    │       │                    │                 └ (<Signals.SIGINT: 2>,)
+    │       │                    └ None
+    │       └ <function Launart.launch_blocking at 0x0000021A9409E5C0>
+    └ <launart.manager.Launart object at 0x0000021A93A92C90>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\launart\manager.py", line 468, in launch_blocking
+    loop.run_until_complete(launch_task)
+    │    │                  └ <Task pending name='amnesia-launch' coro=<Launart.launch() running at E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\laun...
+    │    └ <function BaseEventLoop.run_until_complete at 0x0000021A92512FC0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x0000021A925E2520>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000021A92514D60>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000021A90E3F100>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+> File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\base.py", line 148, in _push_handle_loop
+    await self.push_handler(sso)
+          │    │            └ SSOPacket(seq=-1815990181, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x91\t...
+          │    └ <function Client.push_handler at 0x0000021A92F091C0>
+          └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\client.py", line 185, in push_handler
+    if rsp := await self._push_deliver.execute(sso.cmd, sso):
+                    │    │             │       │   │    └ SSOPacket(seq=-1815990181, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x91\t...
+                    │    │             │       │   └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                    │    │             │       └ SSOPacket(seq=-1815990181, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x91\t...
+                    │    │             └ <function PushDeliver.execute at 0x0000021A92F08220>
+                    │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+                    └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\binder.py", line 26, in execute
+    return await self._handle_map[cmd](self._client, sso)
+                 │    │           │    │    │        └ SSOPacket(seq=-1815990181, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x91\t...
+                 │    │           │    │    └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+                 │    │           │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+                 │    │           └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                 │    └ {'trpc.msg.olpush.OlPushService.MsgPush': <function msg_push_handler at 0x0000021A92F087C0>, 'trpc.qq_new_tech.status_svc.Sta...
+                 └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000021A945E2010>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\msg.py", line 83, in msg_push_handler
+    return await parse_grp_msg(client, pkg)
+                 │             │       └ MsgPushBody(response_head=ResponseHead(from_uin=2819855397, from_uid='u_nXTwJHdtWXWcIDECGd1x3w', type=1001, sigmap=537309841,...
+                 │             └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+                 └ <function parse_grp_msg at 0x0000021A92EE2200>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\message\decoder.py", line 332, in parse_grp_msg
+    parsed_msg = await parse_msg_new(client, pkg, fri_id=None, grp_id=grp_id)
+                       │             │       │                        └ 1022489779
+                       │             │       └ MsgPushBody(response_head=ResponseHead(from_uin=2819855397, from_uid='u_nXTwJHdtWXWcIDECGd1x3w', type=1001, sigmap=537309841,...
+                       │             └ <lagrange.client.client.Client object at 0x0000021A945FE2D0>
+                       └ <function parse_msg_new at 0x0000021A92EE2020>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\message\decoder.py", line 173, in parse_msg_new
+    extra = MsgInfo.decode(proto_encode(raw.common_elem.pb_elem))
+            │       │      │            │   │           └ {1: {1: {1: {1: 1652665, 2: b'ed34835a30526cd35b73bfd93be240d0', 3: b'3a250a5a98495eb3de4821e13167d3d826f4ac0d', 4: b'ED34835...
+            │       │      │            │   └ CommonElem(service_type=48, pb_elem={1: {1: {1: {1: 1652665, 2: b'ed34835a30526cd35b73bfd93be240d0', 3: b'3a250a5a98495eb3de4...
+            │       │      │            └ Elems(text=None, face=None, online_image=None, not_online_image=None, trans_elem=None, market_face=None, custom_face=None, el...
+            │       │      └ <function proto_encode at 0x0000021A92C6D120>
+            │       └ <classmethod(<function ProtoStruct.decode at 0x0000021A92C6E020>)>
+            └ <class 'lagrange.pb.highway.comm.MsgInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 294, in decode
+    return cls(True, **kwargs)
+           │           └ {'body': b'\n\x85\x02\n\x8b\x01\x08\xb9\xefd\x12 ed34835a30526cd35b73bfd93be240d0\x1a(3a250a5a98495eb3de4821e13167d3d826f4ac0...
+           └ <class 'lagrange.pb.highway.comm.MsgInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 185, in __init__
+    value = _decode(field.type_without_optional, value)
+            │       │     │                      └ b'\n\xd0\x01\x08\x01\x12\x0e[\xe5\x8a\xa8\xe7\x94\xbb\xe8\xa1\xa8\xe6\x83\x85]b\xae\x01\x08\x01\x18\x00 \x00J\x0e[\xe5\x8a\xa...
+            │       │     └ <property object at 0x0000021A92C74BD0>
+            │       └ <lagrange.utils.binary.protobuf.models.ProtoField object at 0x0000021A92CA41D0>
+            └ <function _decode at 0x0000021A92C6D9E0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 120, in _decode
+    return typ.decode(raw)
+           │   │      └ b'\n\xd0\x01\x08\x01\x12\x0e[\xe5\x8a\xa8\xe7\x94\xbb\xe8\xa1\xa8\xe6\x83\x85]b\xae\x01\x08\x01\x18\x00 \x00J\x0e[\xe5\x8a\xa...
+           │   └ <classmethod(<function ProtoStruct.decode at 0x0000021A92C6E020>)>
+           └ <class 'lagrange.pb.highway.comm.ExtBizInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 294, in decode
+    return cls(True, **kwargs)
+           │           └ {'pic': b'\x08\x01\x12\x0e[\xe5\x8a\xa8\xe7\x94\xbb\xe8\xa1\xa8\xe6\x83\x85]b\xae\x01\x08\x01\x18\x00 \x00J\x0e[\xe5\x8a\xa8\...
+           └ <class 'lagrange.pb.highway.comm.ExtBizInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 185, in __init__
+    value = _decode(field.type_without_optional, value)
+            │       │     │                      └ b'\n\x00'
+            │       │     └ <property object at 0x0000021A92C74BD0>
+            │       └ <lagrange.utils.binary.protobuf.models.ProtoField object at 0x0000021A92CBF090>
+            └ <function _decode at 0x0000021A92C6D9E0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 143, in _decode
+    raise NotImplementedError(f"unknown type '{typ}' and data {raw}")
+
+NotImplementedError: unknown type '<class 'int'>' and data b'\n\x00'
+09-11 01:39:11 | INFO     | nekobox.events | [message-created] 摇啊摇时崎到(528508704)@1042105453: '1000石'
+09-11 01:39:24 | INFO     | nekobox.events | [message-created] 摇啊摇时崎到(528508704)@1042105453: '等于300抽'
+09-11 01:39:40 | INFO     | nekobox.events | [message-created] 帅气逼人(740424462)@822130018: '等等我想想  我多加几个空白进去  用户自己填'
+09-11 01:39:47 | INFO     | logging | Shutting down
+09-11 01:39:47 | INFO     | logging | Waiting for application shutdown.
+09-11 01:39:47 | INFO     | logging | Application shutdown complete.
+09-11 01:39:47 | INFO     | logging | Finished server process [24760]
+09-11 01:39:47 | WARNING  | launart.manager | Ctrl-C triggered by user.
+09-11 01:39:47 | INFO     | launart.manager | Entering cleanup phase.
+09-11 01:39:47 | WARNING  | lagrange.network | Connection closed
+09-11 01:39:47 | SUCCESS  | nekobox.main | Client stopped
+09-11 01:39:47 | SUCCESS  | lagrange | device & sig_info saved
+09-11 01:39:47 | SUCCESS  | launart.manager | Component satori-python.adapter.nekobox#2313153893264 finished.
+09-11 01:39:47 | INFO     | launart.manager | Component satori-python.adapter.nekobox#2313153893264 completed.
+09-11 01:39:47 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2313153893264: cleanup completed.
+09-11 01:39:47 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2313153893264: completed.
+09-11 01:39:47 | WARNING  | launart.manager | Ctrl-C triggered by user.
+09-11 01:39:47 | WARNING  | launart.manager | [asgi.service/uvicorn] was cancelled in abort.
+09-11 01:39:47 | WARNING  | launart.manager | [satori-python.server] was cancelled in abort.
+09-11 01:39:47 | WARNING  | launart.manager | [http.client/aiohttp] was cancelled in abort.
+09-11 01:39:47 | WARNING  | launart.manager | [cache.client/memcache] was cancelled in abort.
+09-11 01:39:47 | SUCCESS  | launart.manager | asyncio shutdown complete.
+09-11 01:39:48 | INFO     | launart.manager | Starting launart main task...
+09-11 01:39:48 | INFO     | launart.manager | Component asgi.service/uvicorn is preparing.
+09-11 01:39:48 | INFO     | launart.manager | Component http.client/aiohttp is preparing.
+09-11 01:39:48 | INFO     | launart.manager | Sideload cache.client/memcache: injecting
+09-11 01:39:48 | INFO     | launart.manager | Sideload cache.client/memcache: start blocking
+09-11 01:39:48 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2881478123536: injecting
+09-11 01:39:48 | INFO     | launart.manager | Waiting sideload satori-python.adapter.nekobox#2881478123536 for prepare
+09-11 01:39:48 | INFO     | nekobox.main | Running on '0.1.7' for 1192007819
+09-11 01:39:48 | SUCCESS  | lagrange | D:\VScode\project\Entari\bots\1192007819\device.json loaded
+09-11 01:39:48 | SUCCESS  | lagrange | D:\VScode\project\Entari\bots\1192007819\sig.bin loaded
+09-11 01:39:48 | INFO     | logging | Started server process [18528]
+09-11 01:39:48 | INFO     | logging | Waiting for application startup.
+09-11 01:39:48 | SUCCESS  | launart.manager | Component asgi.service/uvicorn is prepared.
+09-11 01:39:48 | SUCCESS  | launart.manager | Component http.client/aiohttp is prepared.
+09-11 01:39:48 | INFO     | logging | Application startup complete.
+09-11 01:39:48 | INFO     | launart.manager | Component satori-python.server is preparing.
+09-11 01:39:48 | INFO     | logging | Uvicorn running on http://127.0.0.1:7777 (Press CTRL+C to quit)
+09-11 01:39:48 | SUCCESS  | launart.manager | Component satori-python.server is prepared.
+09-11 01:39:49 | INFO     | nekobox.main | AppInfo: platform=Linux, ver=30366(537258424)
+09-11 01:39:49 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2881478123536: preparing
+09-11 01:39:49 | INFO     | nekobox.main | try to fast login
+09-11 01:39:49 | INFO     | lagrange.network | Connected to 120.233.18.186:8080
+09-11 01:39:50 | INFO     | lagrange.login | Register(new) successful
+09-11 01:39:50 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2881478123536: preparation completed
+09-11 01:39:50 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2881478123536: start blocking
+09-11 01:39:50 | SUCCESS  | lagrange | device & sig_info saved
+09-11 01:39:54 | INFO     | nekobox.events | [message-created] 摇啊摇时崎到(528508704)@1042105453: '国服有保底'
+09-11 01:39:55 | ERROR    | lagrange | Unhandled exception on push handler
+Traceback (most recent call last):
+
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+
+  File "E:\Ananconda\Deposit\envs\Entari\Scripts\nekobox.exe\__main__.py", line 7, in <module>
+
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 308, in main
+    if args.func(args):
+       │    │    └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000029EE5CC7E20>)
+       │    └ <function _run at 0x0000029EE5CC7E20>
+       └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000029EE5CC7E20>)
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 188, in _run
+    run(int(uin), host, port, token, path, protocol, sign_url, level, args.use_png)
+    │       │     │     │     │      │     │         │         │      │    └ False
+    │       │     │     │     │      │     │         │         │      └ Namespace(command='run', uin=None, debug=False, use_png=False, func=<function _run at 0x0000029EE5CC7E20>)
+    │       │     │     │     │      │     │         │         └ 'INFO'
+    │       │     │     │     │      │     │         └ 'https://sign.lagrangecore.org/api/sign/30366'
+    │       │     │     │     │      │     └ 'remote'
+    │       │     │     │     │      └ ''
+    │       │     │     │     └ '045cdc97af66376e'
+    │       │     │     └ 7777
+    │       │     └ '127.0.0.1'
+    │       └ '1192007819'
+    └ <function run at 0x0000029EE1FE49A0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\nekobox\__main__.py", line 38, in run
+    server.run()
+    │      └ <function Server.run at 0x0000029EE5C45620>
+    └ <satori.server.Server object at 0x0000029EE44B0110>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\satori\server\__init__.py", line 521, in run
+    manager.launch_blocking(loop=loop, stop_signal=stop_signal)
+    │       │                    │                 └ (<Signals.SIGINT: 2>,)
+    │       │                    └ None
+    │       └ <function Launart.launch_blocking at 0x0000029EE58B8FE0>
+    └ <launart.manager.Launart object at 0x0000029EE4535390>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\launart\manager.py", line 468, in launch_blocking
+    loop.run_until_complete(launch_task)
+    │    │                  └ <Task pending name='amnesia-launch' coro=<Launart.launch() running at E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\laun...
+    │    └ <function BaseEventLoop.run_until_complete at 0x0000029EE3D42FC0>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 641, in run_until_complete
+    self.run_forever()
+    │    └ <function ProactorEventLoop.run_forever at 0x0000029EE3E0E520>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\windows_events.py", line 321, in run_forever
+    super().run_forever()
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 608, in run_forever
+    self._run_once()
+    │    └ <function BaseEventLoop._run_once at 0x0000029EE3D44D60>
+    └ <ProactorEventLoop running=True closed=False debug=False>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\base_events.py", line 1936, in _run_once
+    handle._run()
+    │      └ <function Handle._run at 0x0000029EE3C8F100>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\asyncio\events.py", line 84, in _run
+    self._context.run(self._callback, *self._args)
+    │    │            │    │           │    └ <member '_args' of 'Handle' objects>
+    │    │            │    │           └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    │            │    └ <member '_callback' of 'Handle' objects>
+    │    │            └ <Handle Task.task_wakeup(<Future finished result=None>)>
+    │    └ <member '_context' of 'Handle' objects>
+    └ <Handle Task.task_wakeup(<Future finished result=None>)>
+> File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\base.py", line 148, in _push_handle_loop
+    await self.push_handler(sso)
+          │    │            └ SSOPacket(seq=-1841937687, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x82\t...
+          │    └ <function Client.push_handler at 0x0000029EE47691C0>
+          └ <lagrange.client.client.Client object at 0x0000029EE5E23D90>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\client.py", line 185, in push_handler
+    if rsp := await self._push_deliver.execute(sso.cmd, sso):
+                    │    │             │       │   │    └ SSOPacket(seq=-1841937687, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x82\t...
+                    │    │             │       │   └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                    │    │             │       └ SSOPacket(seq=-1841937687, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x82\t...
+                    │    │             └ <function PushDeliver.execute at 0x0000029EE4768220>
+                    │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000029EE5D5B690>
+                    └ <lagrange.client.client.Client object at 0x0000029EE5E23D90>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\binder.py", line 26, in execute
+    return await self._handle_map[cmd](self._client, sso)
+                 │    │           │    │    │        └ SSOPacket(seq=-1841937687, ret_code=0, extra='', session_id=b'', cmd='trpc.msg.olpush.OlPushService.MsgPush', data=b'\n\x82\t...
+                 │    │           │    │    └ <lagrange.client.client.Client object at 0x0000029EE5E23D90>
+                 │    │           │    └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000029EE5D5B690>
+                 │    │           └ 'trpc.msg.olpush.OlPushService.MsgPush'
+                 │    └ {'trpc.msg.olpush.OlPushService.MsgPush': <function msg_push_handler at 0x0000029EE47687C0>, 'trpc.qq_new_tech.status_svc.Sta...
+                 └ <lagrange.client.server_push.binder.PushDeliver object at 0x0000029EE5D5B690>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\server_push\msg.py", line 83, in msg_push_handler
+    return await parse_grp_msg(client, pkg)
+                 │             │       └ MsgPushBody(response_head=ResponseHead(from_uin=1245438146, from_uid='u_cTUPsCEGY5D50GScv0ciAA', type=1001, sigmap=537309845,...
+                 │             └ <lagrange.client.client.Client object at 0x0000029EE5E23D90>
+                 └ <function parse_grp_msg at 0x0000029EE4742200>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\message\decoder.py", line 332, in parse_grp_msg
+    parsed_msg = await parse_msg_new(client, pkg, fri_id=None, grp_id=grp_id)
+                       │             │       │                        └ 822130018
+                       │             │       └ MsgPushBody(response_head=ResponseHead(from_uin=1245438146, from_uid='u_cTUPsCEGY5D50GScv0ciAA', type=1001, sigmap=537309845,...
+                       │             └ <lagrange.client.client.Client object at 0x0000029EE5E23D90>
+                       └ <function parse_msg_new at 0x0000029EE4742020>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\client\message\decoder.py", line 173, in parse_msg_new
+    extra = MsgInfo.decode(proto_encode(raw.common_elem.pb_elem))
+            │       │      │            │   │           └ {1: {1: {1: {1: 75122, 2: b'745773bb759763b7caf121dbfe7ff438', 3: b'95099c2b67a92efd66a6e1c88d5537d1e149d6de', 4: b'745773BB7...
+            │       │      │            │   └ CommonElem(service_type=48, pb_elem={1: {1: {1: {1: 75122, 2: b'745773bb759763b7caf121dbfe7ff438', 3: b'95099c2b67a92efd66a6e...
+            │       │      │            └ Elems(text=None, face=None, online_image=None, not_online_image=None, trans_elem=None, market_face=None, custom_face=None, el...
+            │       │      └ <function proto_encode at 0x0000029EE44CD120>
+            │       └ <classmethod(<function ProtoStruct.decode at 0x0000029EE44CE020>)>
+            └ <class 'lagrange.pb.highway.comm.MsgInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 294, in decode
+    return cls(True, **kwargs)
+           │           └ {'body': b'\n\x85\x02\n\x8b\x01\x08\xf2\xca\x04\x12 745773bb759763b7caf121dbfe7ff438\x1a(95099c2b67a92efd66a6e1c88d5537d1e149...
+           └ <class 'lagrange.pb.highway.comm.MsgInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 185, in __init__
+    value = _decode(field.type_without_optional, value)
+            │       │     │                      └ b'\n\xcf\x01\x08\x01\x12\x0e[\xe5\x8a\xa8\xe7\x94\xbb\xe8\xa1\xa8\xe6\x83\x85]b\xae\x01\x08\x01\x18\x00 \x00J\x0e[\xe5\x8a\xa...
+            │       │     └ <property object at 0x0000029EE44D4CC0>
+            │       └ <lagrange.utils.binary.protobuf.models.ProtoField object at 0x0000029EE45040D0>
+            └ <function _decode at 0x0000029EE44CD9E0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 120, in _decode
+    return typ.decode(raw)
+           │   │      └ b'\n\xcf\x01\x08\x01\x12\x0e[\xe5\x8a\xa8\xe7\x94\xbb\xe8\xa1\xa8\xe6\x83\x85]b\xae\x01\x08\x01\x18\x00 \x00J\x0e[\xe5\x8a\xa...
+           │   └ <classmethod(<function ProtoStruct.decode at 0x0000029EE44CE020>)>
+           └ <class 'lagrange.pb.highway.comm.ExtBizInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 294, in decode
+    return cls(True, **kwargs)
+           │           └ {'pic': b'\x08\x01\x12\x0e[\xe5\x8a\xa8\xe7\x94\xbb\xe8\xa1\xa8\xe6\x83\x85]b\xae\x01\x08\x01\x18\x00 \x00J\x0e[\xe5\x8a\xa8\...
+           └ <class 'lagrange.pb.highway.comm.ExtBizInfo'>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 185, in __init__
+    value = _decode(field.type_without_optional, value)
+            │       │     │                      └ b'\n\x00'
+            │       │     └ <property object at 0x0000029EE44D4CC0>
+            │       └ <lagrange.utils.binary.protobuf.models.ProtoField object at 0x0000029EE451EF90>
+            └ <function _decode at 0x0000029EE44CD9E0>
+  File "E:\Ananconda\Deposit\envs\Entari\Lib\site-packages\lagrange\utils\binary\protobuf\models.py", line 143, in _decode
+    raise NotImplementedError(f"unknown type '{typ}' and data {raw}")
+
+NotImplementedError: unknown type '<class 'int'>' and data b'\n\x00'
+09-11 01:40:07 | INFO     | nekobox.events | [message-created] 硫磺岛库瓦托罗(3085310278)@1042105453: '可是池子里没东西啊'
+09-11 01:40:08 | INFO     | logging | 127.0.0.1:45008 - "WebSocket /v1/events" [accepted]
+09-11 01:40:08 | INFO     | logging | connection open
+09-11 01:41:50 | INFO     | lagrange.network | 48.65ms to server
+09-11 01:42:08 | INFO     | nekobox.events | [message-created] 摩尼(842880755)@1042105453: '虽然有些是付费石池子'
+09-11 01:43:50 | INFO     | lagrange.network | 42.58ms to server
+09-11 01:44:36 | INFO     | logging | connection closed
+09-11 01:44:39 | INFO     | logging | Shutting down
+09-11 01:44:39 | INFO     | logging | Waiting for application shutdown.
+09-11 01:44:39 | INFO     | logging | Application shutdown complete.
+09-11 01:44:39 | INFO     | logging | Finished server process [18528]
+09-11 01:44:39 | WARNING  | launart.manager | Ctrl-C triggered by user.
+09-11 01:44:39 | INFO     | launart.manager | Entering cleanup phase.
+09-11 01:44:39 | WARNING  | lagrange.network | Connection closed
+09-11 01:44:39 | SUCCESS  | nekobox.main | Client stopped
+09-11 01:44:39 | SUCCESS  | lagrange | device & sig_info saved
+09-11 01:44:39 | SUCCESS  | launart.manager | Component satori-python.adapter.nekobox#2881478123536 finished.
+09-11 01:44:39 | INFO     | launart.manager | Component satori-python.adapter.nekobox#2881478123536 completed.
+09-11 01:44:39 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2881478123536: cleanup completed.
+09-11 01:44:39 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2881478123536: completed.
+09-11 01:44:39 | WARNING  | launart.manager | Ctrl-C triggered by user.
+09-11 01:44:39 | WARNING  | launart.manager | [asgi.service/uvicorn] was cancelled in abort.
+09-11 01:44:39 | WARNING  | launart.manager | [satori-python.server] was cancelled in abort.
+09-11 01:44:39 | WARNING  | launart.manager | [http.client/aiohttp] was cancelled in abort.
+09-11 01:44:39 | WARNING  | launart.manager | [cache.client/memcache] was cancelled in abort.
+09-11 01:44:39 | SUCCESS  | launart.manager | asyncio shutdown complete.
+09-11 01:47:50 | INFO     | launart.manager | Starting launart main task...
+09-11 01:47:50 | INFO     | launart.manager | Component asgi.service/uvicorn is preparing.
+09-11 01:47:50 | INFO     | launart.manager | Component http.client/aiohttp is preparing.
+09-11 01:47:50 | INFO     | launart.manager | Sideload cache.client/memcache: injecting
+09-11 01:47:50 | INFO     | launart.manager | Sideload cache.client/memcache: start blocking
+09-11 01:47:50 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2864958852496: injecting
+09-11 01:47:50 | INFO     | launart.manager | Waiting sideload satori-python.adapter.nekobox#2864958852496 for prepare
+09-11 01:47:50 | INFO     | nekobox.main | Running on '0.1.7' for 1192007819
+09-11 01:47:50 | SUCCESS  | lagrange | D:\VScode\project\Entari\bots\1192007819\device.json loaded
+09-11 01:47:50 | SUCCESS  | lagrange | D:\VScode\project\Entari\bots\1192007819\sig.bin loaded
+09-11 01:47:50 | INFO     | logging | Started server process [34344]
+09-11 01:47:50 | INFO     | logging | Waiting for application startup.
+09-11 01:47:50 | SUCCESS  | launart.manager | Component asgi.service/uvicorn is prepared.
+09-11 01:47:50 | SUCCESS  | launart.manager | Component http.client/aiohttp is prepared.
+09-11 01:47:50 | INFO     | logging | Application startup complete.
+09-11 01:47:50 | INFO     | launart.manager | Component satori-python.server is preparing.
+09-11 01:47:50 | INFO     | logging | Uvicorn running on http://127.0.0.1:7777 (Press CTRL+C to quit)
+09-11 01:47:50 | SUCCESS  | launart.manager | Component satori-python.server is prepared.
+09-11 01:47:51 | INFO     | nekobox.main | AppInfo: platform=Linux, ver=30366(537258424)
+09-11 01:47:51 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2864958852496: preparing
+09-11 01:47:51 | INFO     | nekobox.main | try to fast login
+09-11 01:47:51 | INFO     | lagrange.network | Connected to 120.233.18.186:8080
+09-11 01:47:51 | INFO     | lagrange.login | Register(new) successful
+09-11 01:47:51 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2864958852496: preparation completed
+09-11 01:47:51 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2864958852496: start blocking
+09-11 01:47:51 | SUCCESS  | lagrange | device & sig_info saved
+09-11 01:47:57 | INFO     | logging | 127.0.0.1:15749 - "WebSocket /v1/events" [accepted]
+09-11 01:47:57 | INFO     | logging | connection open
+09-11 01:48:13 | INFO     | logging | connection closed
+09-11 01:48:24 | INFO     | logging | Shutting down
+09-11 01:48:24 | INFO     | logging | Waiting for application shutdown.
+09-11 01:48:24 | INFO     | logging | Application shutdown complete.
+09-11 01:48:24 | INFO     | logging | Finished server process [34344]
+09-11 01:48:24 | WARNING  | launart.manager | Ctrl-C triggered by user.
+09-11 01:48:24 | INFO     | launart.manager | Entering cleanup phase.
+09-11 01:48:24 | WARNING  | lagrange.network | Connection closed
+09-11 01:48:24 | SUCCESS  | nekobox.main | Client stopped
+09-11 01:48:24 | SUCCESS  | lagrange | device & sig_info saved
+09-11 01:48:24 | SUCCESS  | launart.manager | Component satori-python.adapter.nekobox#2864958852496 finished.
+09-11 01:48:24 | INFO     | launart.manager | Component satori-python.adapter.nekobox#2864958852496 completed.
+09-11 01:48:24 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2864958852496: cleanup completed.
+09-11 01:48:24 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2864958852496: completed.
+09-11 01:48:25 | SUCCESS  | launart.manager | Component cache.client/memcache finished.
+09-11 01:48:25 | INFO     | launart.manager | Component cache.client/memcache completed.
+09-11 01:48:25 | INFO     | launart.manager | Sideload cache.client/memcache: completed.
+09-11 01:48:25 | INFO     | launart.manager | Component satori-python.server enter cleanup phase.
+09-11 01:48:25 | SUCCESS  | launart.manager | Component satori-python.server finished.
+09-11 01:48:25 | INFO     | launart.manager | Component satori-python.server completed.
+09-11 01:48:25 | INFO     | launart.manager | Component asgi.service/uvicorn enter cleanup phase.
+09-11 01:48:25 | INFO     | launart.manager | Component http.client/aiohttp enter cleanup phase.
+09-11 01:48:25 | WARNING  | graia.amnesia.builtins.asgi | try to shutdown uvicorn server...
+09-11 01:48:25 | SUCCESS  | launart.manager | Component http.client/aiohttp finished.
+09-11 01:48:25 | INFO     | launart.manager | Component http.client/aiohttp completed.
+09-11 01:48:25 | SUCCESS  | launart.manager | Component asgi.service/uvicorn finished.
+09-11 01:48:25 | INFO     | launart.manager | Component asgi.service/uvicorn completed.
+09-11 01:48:25 | SUCCESS  | launart.manager | Lifespan finished, waiting for finalization.
+09-11 01:48:25 | SUCCESS  | launart.manager | Launart finished.
+09-11 01:48:25 | SUCCESS  | launart.manager | asyncio shutdown complete.
+09-11 01:48:27 | INFO     | launart.manager | Starting launart main task...
+09-11 01:48:27 | INFO     | launart.manager | Component asgi.service/uvicorn is preparing.
+09-11 01:48:27 | INFO     | launart.manager | Component http.client/aiohttp is preparing.
+09-11 01:48:27 | INFO     | launart.manager | Sideload cache.client/memcache: injecting
+09-11 01:48:27 | INFO     | launart.manager | Sideload cache.client/memcache: start blocking
+09-11 01:48:27 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2208475955088: injecting
+09-11 01:48:27 | INFO     | launart.manager | Waiting sideload satori-python.adapter.nekobox#2208475955088 for prepare
+09-11 01:48:27 | INFO     | nekobox.main | Running on '0.1.7' for 1192007819
+09-11 01:48:27 | SUCCESS  | lagrange | D:\VScode\project\Entari\bots\1192007819\device.json loaded
+09-11 01:48:27 | SUCCESS  | lagrange | D:\VScode\project\Entari\bots\1192007819\sig.bin loaded
+09-11 01:48:27 | INFO     | logging | Started server process [15540]
+09-11 01:48:27 | INFO     | logging | Waiting for application startup.
+09-11 01:48:27 | SUCCESS  | launart.manager | Component asgi.service/uvicorn is prepared.
+09-11 01:48:27 | SUCCESS  | launart.manager | Component http.client/aiohttp is prepared.
+09-11 01:48:27 | INFO     | logging | Application startup complete.
+09-11 01:48:27 | INFO     | launart.manager | Component satori-python.server is preparing.
+09-11 01:48:27 | INFO     | logging | Uvicorn running on http://127.0.0.1:7777 (Press CTRL+C to quit)
+09-11 01:48:27 | SUCCESS  | launart.manager | Component satori-python.server is prepared.
+09-11 01:48:28 | INFO     | nekobox.main | AppInfo: platform=Linux, ver=30366(537258424)
+09-11 01:48:28 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2208475955088: preparing
+09-11 01:48:28 | INFO     | nekobox.main | try to fast login
+09-11 01:48:28 | INFO     | lagrange.network | Connected to 120.233.18.186:8080
+09-11 01:48:29 | INFO     | lagrange.login | Register(new) successful
+09-11 01:48:29 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2208475955088: preparation completed
+09-11 01:48:29 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2208475955088: start blocking
+09-11 01:48:29 | SUCCESS  | lagrange | device & sig_info saved
+09-11 01:48:31 | INFO     | logging | 127.0.0.1:53700 - "WebSocket /v1/events" [accepted]
+09-11 01:48:31 | INFO     | logging | connection open
+09-11 01:49:45 | INFO     | logging | connection closed
+09-11 01:49:48 | INFO     | logging | 127.0.0.1:46085 - "WebSocket /v1/events" [accepted]
+09-11 01:49:48 | INFO     | logging | connection open
+09-11 01:50:02 | INFO     | logging | connection closed
+09-11 01:50:20 | INFO     | logging | 127.0.0.1:21390 - "WebSocket /v1/events" [accepted]
+09-11 01:50:20 | INFO     | logging | connection open
+09-11 01:50:29 | INFO     | lagrange.network | 42.08ms to server
+09-11 01:50:43 | INFO     | logging | connection closed
+09-11 01:51:14 | INFO     | logging | 127.0.0.1:38154 - "WebSocket /v1/events" [accepted]
+09-11 01:51:14 | INFO     | logging | connection open
+09-11 01:51:28 | INFO     | logging | connection closed
+09-11 01:51:29 | INFO     | logging | Shutting down
+09-11 01:51:29 | INFO     | logging | Waiting for application shutdown.
+09-11 01:51:29 | INFO     | logging | Application shutdown complete.
+09-11 01:51:29 | INFO     | logging | Finished server process [15540]
+09-11 01:51:29 | WARNING  | launart.manager | Ctrl-C triggered by user.
+09-11 01:51:29 | INFO     | launart.manager | Entering cleanup phase.
+09-11 01:51:29 | WARNING  | lagrange.network | Connection closed
+09-11 01:51:29 | SUCCESS  | nekobox.main | Client stopped
+09-11 01:51:29 | SUCCESS  | lagrange | device & sig_info saved
+09-11 01:51:29 | SUCCESS  | launart.manager | Component satori-python.adapter.nekobox#2208475955088 finished.
+09-11 01:51:29 | INFO     | launart.manager | Component satori-python.adapter.nekobox#2208475955088 completed.
+09-11 01:51:29 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2208475955088: cleanup completed.
+09-11 01:51:29 | INFO     | launart.manager | Sideload satori-python.adapter.nekobox#2208475955088: completed.
+09-11 01:51:29 | SUCCESS  | launart.manager | Component cache.client/memcache finished.
+09-11 01:51:29 | INFO     | launart.manager | Component cache.client/memcache completed.
+09-11 01:51:29 | INFO     | launart.manager | Sideload cache.client/memcache: completed.
+09-11 01:51:29 | INFO     | launart.manager | Component satori-python.server enter cleanup phase.
+09-11 01:51:29 | SUCCESS  | launart.manager | Component satori-python.server finished.
+09-11 01:51:29 | INFO     | launart.manager | Component satori-python.server completed.
+09-11 01:51:29 | INFO     | launart.manager | Component asgi.service/uvicorn enter cleanup phase.
+09-11 01:51:29 | INFO     | launart.manager | Component http.client/aiohttp enter cleanup phase.
+09-11 01:51:29 | WARNING  | graia.amnesia.builtins.asgi | try to shutdown uvicorn server...
+09-11 01:51:29 | SUCCESS  | launart.manager | Component http.client/aiohttp finished.
+09-11 01:51:29 | INFO     | launart.manager | Component http.client/aiohttp completed.
+09-11 01:51:29 | SUCCESS  | launart.manager | Component asgi.service/uvicorn finished.
+09-11 01:51:29 | INFO     | launart.manager | Component asgi.service/uvicorn completed.
+09-11 01:51:29 | SUCCESS  | launart.manager | Lifespan finished, waiting for finalization.
+09-11 01:51:29 | SUCCESS  | launart.manager | Launart finished.
+09-11 01:51:29 | SUCCESS  | launart.manager | asyncio shutdown complete.

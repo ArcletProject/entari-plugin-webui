@@ -49,7 +49,8 @@ function handleScroll() {
 }
 
 function connectWebSocket() {
-    const socketUrl = window.WS_PATH.baseURL || 'ws://127.0.0.1:5140/ws/log'
+    const ws_path = window.RUNTIME_CONFIG?.baseURL.replace("/api", "/ws/log")
+    const socketUrl = ws_path || 'ws://127.0.0.1:5140/ws/log'
 
     shouldReconnect = true
 

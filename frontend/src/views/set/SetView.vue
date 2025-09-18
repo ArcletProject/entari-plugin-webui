@@ -3,9 +3,7 @@ import { reactive, onMounted } from 'vue'
 import { saveConfig, type Config, type Plugins } from '@/api/set'
 import { ElMessage } from 'element-plus'
 import axios from 'axios'
-import { cloneDeep } from 'lodash-es'
 
-// 前端额外维护的「启用」标记
 const pluginEnable = reactive({
     record_message: true,
     scheduler: true,
@@ -81,9 +79,17 @@ const settings = reactive<Config>({
 onMounted(async () => {
     try {
         // 这里直接用 axios 绕过拦截器（不绕过有bug，暂时不改）
-        const cfg = await axios.get<Config>(window.RUNTIME_CONFIG?.baseURL + '/config')
+        const res = await axios.get<Config>(window.RUNTIME_CONFIG?.baseURL + '/config')
+        const cfg = res.data
 
-        Object.assign(settings, cloneDeep(cfg))
+        const plugins: Record<string, unknown> = {}
+        for (const [k, v] of Object.entries(cfg.plugins)) {
+            const bare = k.replace(/^[~.:]+/, '')
+            plugins[bare] = v
+        }
+
+        Object.assign(settings.basic, cfg.basic)
+        Object.assign(settings.plugins, plugins)
     } catch (error) {
         ElMessage.error('加载配置失败，请检查后端服务是否正常')
         console.error('加载配置失败', error)
@@ -210,93 +216,7 @@ const save = async () => {
                     </el-form-item>
                 </el-form>
             </section>
-
-            <section>
-                <h2>插件配置:</h2>
-                <el-form :model="settings.plugins" label-width="160px" style="max-width:600px">
-                    <el-form-item label="插件搜索目录">
-                        <el-input v-model="settings.plugins.$files" placeholder="多个目录用逗号分隔" />
-                    </el-form-item>
-                    <el-form-item label="预加载插件">
-                        <el-input v-model="settings.plugins.$prelude" placeholder="多个插件用逗号分隔" />
-                    </el-form-item>
-
-                    <el-collapse>
-                        <!-- 消息记录插件 -->
-                        <el-collapse-item title="消息记录插件 (.record_message)">
-                            <el-form-item label="启用">
-                                <el-switch v-model="pluginEnable.record_message" />
-                            </el-form-item>
-                            <el-form-item label="记录发送消息">
-                                <el-switch v-model="settings.plugins.record_message.record_send" />
-                            </el-form-item>
-                        </el-collapse-item>
-
-                        <!-- 调度器插件 -->
-                        <el-collapse-item title="调度器插件 (.scheduler)">
-                            <el-form-item label="启用">
-                                <el-switch v-model="pluginEnable.scheduler" />
-                            </el-form-item>
-                        </el-collapse-item>
-
-                        <!-- 回声插件 -->
-                        <el-collapse-item title="回声插件 (::echo)">
-                            <el-form-item label="启用">
-                                <el-switch v-model="pluginEnable.echo" />
-                            </el-form-item>
-                        </el-collapse-item>
-
-                        <!-- 调试插件 -->
-                        <el-collapse-item title="调试插件 (::inspect)">
-                            <el-form-item label="启用">
-                                <el-switch v-model="pluginEnable.inspect" />
-                            </el-form-item>
-                        </el-collapse-item>
-
-                        <!-- 自动重载插件 -->
-                        <el-collapse-item title="自动重载插件 (::auto_reload)">
-                            <el-form-item label="启用">
-                                <el-switch v-model="pluginEnable.auto_reload" />
-                            </el-form-item>
-                            <el-form-item label="监听目录">
-                                <el-input v-model="settings.plugins.auto_reload.watch_dirs" placeholder="多个目录用逗号分隔" />
-                            </el-form-item>
-                            <el-form-item label="监听配置文件">
-                                <el-switch v-model="settings.plugins.auto_reload.watch_config" />
-                            </el-form-item>
-                        </el-collapse-item>
-
-                        <!-- 指令插件 -->
-                        <el-collapse-item title="指令插件配置 (.commands)">
-                            <el-form-item label="需要@机器人">
-                                <el-switch v-model="settings.plugins.commands.need_notice_me" />
-                            </el-form-item>
-                            <el-form-item label="需要回复机器人">
-                                <el-switch v-model="settings.plugins.commands.need_reply_me" />
-                            </el-form-item>
-                            <el-form-item label="使用配置前缀">
-                                <el-switch v-model="settings.plugins.commands.use_config_prefix" />
-                            </el-form-item>
-                        </el-collapse-item>
-
-                        <!-- 帮助插件 -->
-                        <el-collapse-item title="帮助插件 (::help)">
-                            <el-form-item label="帮助指令">
-                                <el-input v-model="settings.plugins.help.help_command" placeholder="默认为 help" />
-                            </el-form-item>
-                            <el-form-item label="指令别名">
-                                <el-input v-model="settings.plugins.help.help_alias"
-                                    placeholder='多个别名用逗号分隔，如: "帮助","命令帮助"' />
-                            </el-form-item>
-                            <el-form-item label="每页数量">
-                                <el-input-number v-model="settings.plugins.help.page_size" :min="1" />
-                            </el-form-item>
-                        </el-collapse-item>
-                    </el-collapse>
-                </el-form>
-
-                <el-button class="save" @click="save" type="primary">保存配置</el-button>
-            </section>
+            <el-button class="save" @click="save" type="primary">保存配置</el-button>
         </el-card>
     </div>
 </template>

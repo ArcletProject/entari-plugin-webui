@@ -47,27 +47,12 @@ import { isCollapse } from './isCollapse';
                     <span>配置管理</span>
                 </el-menu-item>
 
-                <el-sub-menu index="/plugin-market">
-                    <template #title>
-                        <el-icon>
-                            <IEpTrendCharts />
-                        </el-icon>
-                        <span>扩展与开发</span>
-                    </template>
-                    <el-menu-item index="/plugin-market">
-                        <el-icon>
-                            <IEpSchool />
-                        </el-icon>
-                        <span>社区插件</span>
-                    </el-menu-item>
-
-                    <el-menu-item index="/plugin/plugin-manager">
-                        <el-icon>
-                            <IEpSuitcaseLine />
-                        </el-icon>
-                        <span>插件开发</span>
-                    </el-menu-item>
-                </el-sub-menu>
+                <el-menu-item index="/plugin-market">
+                    <el-icon>
+                        <IEpSchool />
+                    </el-icon>
+                    <span>插件市场</span>
+                </el-menu-item>
 
                 <el-sub-menu index="7">
                     <template #title>
@@ -172,6 +157,11 @@ import { isCollapse } from './isCollapse';
     img {
         width: 50px;
         height: 50px;
+    }
+
+    h1 {
+        font-size: 20px;
+        margin: 0 0 0 8px;
     }
 }
 </style>

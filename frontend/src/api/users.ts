@@ -1,4 +1,5 @@
 import axios from '@/utils/request';
+import { useAuthStore } from '@/stores/auth';
 
 export interface LoginInfo {
   name: string;
@@ -20,6 +21,7 @@ export interface LoginResult {
   message: string;
   token: string;
   instances?: Instance[];
+  user: { name: string; email: string };
 }
 
 // 获取用户信息
@@ -36,3 +38,13 @@ export const login = (data: LoginInfo): Promise<LoginResult> =>
 
 export const logout = (): Promise<boolean> =>
   axios.post('/logout');
+
+export const updateUser = (data: { password?: string; email?: string }): Promise<{
+  success: boolean;
+  message: string;
+}> => {
+  const authStore = useAuthStore();
+  return axios.post('/user/update', data, {
+    headers: { Authorization: authStore.token },
+  });
+};

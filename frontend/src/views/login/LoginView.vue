@@ -33,13 +33,14 @@ const onSubmit = async () => {
     await formRef.value?.validate();
 
     const res = await login(form.value);
+    console.log(res);
     if (!res.success) {
       throw new Error(res.message || '登录失败');
     }
     else {
       auth.setAuthData(
         res.token,
-        { name: form.value.name },
+        res.user,
         res.instances || []
       );
     }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { isCollapse } from './isCollapse';
 import { useAuthStore } from '@/stores/auth';
-import { logout } from '@/api/users';
+import { logout, updateUser } from '@/api/users';
 import { useRouter } from 'vue-router';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import 'element-plus/theme-chalk/el-message.css';
@@ -20,7 +20,7 @@ const isDark = inject<Ref<boolean>>('isDark')!
 // 用户信息表单
 const userForm = ref({
     username: authStore.user?.name ?? '未知用户',
-    email: 'user@example.com',
+    email: authStore.user?.email ?? 'user@example.com',
     role: '管理员',
     status: '正常'
 });
@@ -54,28 +54,31 @@ const openUserSettings = () => {
     dialogVisible.value = true;
 };
 
-// 保存用户信息
-const saveUserInfo = () => {
-    ElMessage.success('用户信息已更新');
-    dialogVisible.value = false;
-};
-
-// 修改密码
-const changePassword = () => {
+const changePassword = async () => {
     if (passwordForm.value.newPassword !== passwordForm.value.confirmPassword) {
-        ElMessage.error('两次输入的密码不一致');
-        return;
+        ElMessage.error('两次密码不一致')
+        return
     }
+    const res = await updateUser({ password: passwordForm.value.newPassword })
+    if (res.success) {
+        ElMessage.success('密码已更新')
+        dialogVisible.value = false
+        passwordForm.value = { currentPassword: '', newPassword: '', confirmPassword: '' }
+    } else {
+        ElMessage.error(res.message || '修改失败')
+    }
+}
 
-    ElMessage.success('密码修改成功');
-    // 清空密码表单
-    passwordForm.value = {
-        currentPassword: '',
-        newPassword: '',
-        confirmPassword: ''
-    };
-    dialogVisible.value = false;
-};
+const saveUserInfo = async () => {
+    const res = await updateUser({ email: userForm.value.email })
+    if (res.success) {
+        ElMessage.success('邮箱已更新')
+        authStore.user!.email = userForm.value.email
+        dialogVisible.value = false
+    } else {
+        ElMessage.error(res.message || '修改失败')
+    }
+}
 </script>
 
 <template>

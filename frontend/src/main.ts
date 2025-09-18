@@ -1,19 +1,23 @@
-import { createApp } from 'vue'
-import { createPinia } from 'pinia'
+import { createApp } from 'vue';
+import { createPinia } from 'pinia';
 import piniaPluginPersistedstate from 'pinia-plugin-persistedstate';
 
-import App from './App.vue'
-import router from './router'
+import App from './App.vue';
+import router from './router';
+import initRuntime from './api/runtime';
 
-import './styles/index.scss'
-import './styles/theme.scss'
-import 'element-plus/theme-chalk/dark/css-vars.css'
+import './styles/index.scss';
+import './styles/theme.scss';
+import 'element-plus/theme-chalk/dark/css-vars.css';
 
-const app = createApp(App)
-const pinia = createPinia()
-pinia.use(piniaPluginPersistedstate)
+(async () => {
+  await initRuntime();
 
-app.use(pinia)
-app.use(router)
+  const app = createApp(App);
+  const pinia = createPinia();
+  pinia.use(piniaPluginPersistedstate);
 
-app.mount('#app')
+  app.use(pinia);
+  app.use(router);
+  app.mount('#app');
+})();

@@ -22,4 +22,7 @@ requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
 [tool.pdm.build]
-package-dir = "entari_plugin_webui"
+includes = [
+    "entari_plugin_webui/",
+    "entari_plugin_webui/frontend/",
+]

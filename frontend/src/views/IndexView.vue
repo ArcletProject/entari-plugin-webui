@@ -1,100 +1,79 @@
-<script lang="ts" setup>
-import {
-    Warning,
-} from '@element-plus/icons-vue'
-import { useAuthStore } from '@/stores/auth';
-import * as echarts from 'echarts';
-import { useInitData } from '@/stores/counter';
+<script setup lang="ts">
+import { computed } from 'vue'
+import { onMounted } from 'vue'
+import { Warning } from '@element-plus/icons-vue'
+import { useAuthStore } from '@/stores/auth'
+import { useInitData } from '@/stores/counter'
+import TodayChart from '@/views/component/TodayChart.vue'
 
-const init_data = useInitData()
-
-type EChartsOption = echarts.EChartsOption
-const chartRef = ref<HTMLDivElement>()
 const authStore = useAuthStore()
+const initData = useInitData()
 
-onMounted(() => {
-    if (chartRef.value) {
-        const myChart = echarts.init(chartRef.value)
-        const option: EChartsOption = {
-            xAxis: {
-                type: 'category',
-                data: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'],
-                axisLabel: {
-                    fontSize: 12,
-                    color: 'var(--text-regular)'
-                }
-            },
-            yAxis: {
-                type: 'value',
-                axisLabel: {
-                    fontSize: 12,
-                    color: 'var(--text-regular)'
-                }
-            },
-            series: [{
-                data: [150, 230, 224, 218, 135, 147, 260],
-                type: 'line',
-                smooth: true,
-                lineStyle: {
-                    width: 3,
-                    color: 'var(--chart-line)'
-                },
-                itemStyle: {
-                    color: 'var(--chart-line)'
-                },
-                areaStyle: {
-                    color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
-                        { offset: 0, color: 'var(--chart-area-start)' },
-                        { offset: 1, color: 'var(--chart-area-end)' }
-                    ])
-                }
-            }],
-            grid: {
-                left: '3%',
-                right: '4%',
-                bottom: '3%',
-                top: '15%',
-                containLabel: true
-            },
-            tooltip: {
-                trigger: 'axis'
-            }
-        }
-        myChart.setOption(option)
-    }
+onMounted(async () => {
+    await initData.fetchInitData()
 })
 
-const cards = [
-    { value: init_data.message_count, title: '消息总数', tip: 'Total messages sent across all platforms', footer: '所有平台发送的消息总计' },
-    { value: init_data.instance_count, title: '实例个数', tip: 'The number of Entari instances created', footer: '创建Entari实例的个数' },
-    { value: init_data.runtime, title: '运行时间', tip: 'Entari Uptime', footer: 'Entari 运行时间' },
-    { value: init_data.memory_usage, title: '内存占用', tip: 'Entari Memory Usage', footer: 'Entari 内存占用' },
-]
+const pluginRate = computed(() => {
+    const total = initData.plugin_total || 1
+    const enabled = initData.plugin_enabled || 0
+    return Math.round((enabled / total) * 100)
+})
 
-const user_info = {
+const runtimeMinutes = computed(() => initData.runtime || 0)
+
+const cards = computed(() => [
+    {
+        value: initData.message_count,
+        title: '消息总数',
+        tip: 'All platforms total messages',
+        footer: '所有平台累计接收',
+        unit: '条'
+    },
+    {
+        value: initData.today_messages ?? 0,
+        title: '今日消息量',
+        tip: 'Messages received today',
+        footer: '本自然日 00:00 起',
+        unit: '条'
+    },
+    {
+        value: pluginRate.value,                      // ✅ 响应式
+        title: '插件启用率',
+        tip: 'Enabled plugin ratio',
+        footer: `已启用 ${initData.plugin_enabled ?? 0} / 总计 ${initData.plugin_total ?? 0}`,
+        unit: '%'
+    },
+    {
+        value: runtimeMinutes.value,                  // ✅ 响应式
+        title: '运行时长',
+        tip: 'Entari continuous uptime',
+        footer: '自启动以来连续运行',
+        unit: '分'
+    }
+])
+
+/*---------- 用户信息 ----------*/
+const userInfo = {
     username: authStore.user?.name ?? '未知用户',
     user_id: authStore.instances[0]?.id ?? '000000',
     role: '管理员',
     status: '正常',
     email: 'user@example.com',
-    join_date: '2023-01-15',
     last_login: '2025-08-14 14:30:22'
 }
-
 </script>
 
 <template>
     <div class="page">
         <div class="title">
-            <h1 class="name">
-                Entari Plugin WebUI
-            </h1>
+            <h1 class="name">Entari Plugin WebUI</h1>
             <p>基于 Satori 协议的即时通信开发框架</p>
         </div>
 
+        <!-- 四张指标卡片 -->
         <div class="card">
             <el-row :gutter="16">
-                <el-col :span="6" v-for="(item, idx) in cards" :key="idx" class="card_message">
+                <el-col :xs="24" :sm="12" :md="6" v-for="(item, idx) in cards" :key="idx" class="card_message">
                     <div class="statistic-card">
                         <el-statistic :value="item.value" :title="item.title">
                             <template #title>
@@ -107,64 +86,47 @@ const user_info = {
                                     </el-tooltip>
                                 </div>
                             </template>
+                            <template #suffix>{{ item.unit }}</template>
                         </el-statistic>
-
-                        <div class="statistic-footer">
-                            <div class="footer-item">
-                                <span>{{ item.footer }}</span>
-                            </div>
-                        </div>
+                        <div class="statistic-footer">{{ item.footer }}</div>
                     </div>
                 </el-col>
             </el-row>
         </div>
 
+        <!-- 用户信息 -->
         <div class="user-panel">
             <div class="panel-header">
                 <h2>用户信息</h2>
             </div>
-
-            <el-descriptions :column="4" class="user-info" direction="horizontal">
+            <el-descriptions :column="4" direction="horizontal" class="user-info">
                 <el-descriptions-item label="用户名" :span="2">
-                    {{ user_info.username || '-' }}
+                    {{ userInfo.username }}
                 </el-descriptions-item>
-
                 <el-descriptions-item label="用户 ID">
-                    {{ user_info.user_id || '-' }}
+                    {{ userInfo.user_id }}
                 </el-descriptions-item>
-
                 <el-descriptions-item label="角色">
-                    <el-tag :type="user_info.role === '管理员' ? 'primary' : 'info'">
-                        {{ user_info.role || '-' }}
+                    <el-tag :type="userInfo.role === '管理员' ? 'primary' : 'info'">
+                        {{ userInfo.role }}
                     </el-tag>
                 </el-descriptions-item>
-
                 <el-descriptions-item label="状态">
-                    <el-tag :type="user_info.status === '正常' ? 'success' : 'danger'">
-                        {{ user_info.status || '-' }}
+                    <el-tag :type="userInfo.status === '正常' ? 'success' : 'danger'">
+                        {{ userInfo.status }}
                     </el-tag>
                 </el-descriptions-item>
-
                 <el-descriptions-item label="邮箱" :span="2">
-                    {{ user_info.email || '-' }}
+                    {{ userInfo.email }}
                 </el-descriptions-item>
-
-                <el-descriptions-item label="注册日期">
-                    {{ user_info.join_date || '-' }}
-                </el-descriptions-item>
-
                 <el-descriptions-item label="最后登录" :span="4">
-                    {{ user_info.last_login || '-' }}
+                    {{ userInfo.last_login }}
                 </el-descriptions-item>
             </el-descriptions>
         </div>
 
-        <!-- 消息趋势图表 -->
-        <div class="chart-panel">
-            <div class="panel-header">
-                <h2>本周消息趋势</h2>
-            </div>
-            <div ref="chartRef" class="chart"></div>
+        <div class="card">
+            <TodayChart />
         </div>
     </div>
 </template>
@@ -194,7 +156,6 @@ const user_info = {
                 var(--title-gradient-end));
         background-size: 200% auto;
         animation: textGradient 2s linear infinite;
-
     }
 
     @keyframes textGradient {
@@ -229,40 +190,15 @@ const user_info = {
     }
 }
 
-:global(h2#card-usage ~ .example .example-showcase) {
-    background-color: var(--el-fill-color) !important;
-}
-
-.el-statistic {
-    --el-statistic-content-font-size: 28px;
-}
-
 .statistic-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    font-size: 15px;
+    margin-top: 12px;
+    font-size: 14px;
     color: var(--text-regular);
-    margin-top: 16px;
 }
 
-.statistic-footer .footer-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.statistic-footer .footer-item span:last-child {
-    display: inline-flex;
-    align-items: center;
-    margin-left: 4px;
-}
-
-.user-panel,
-.chart-panel {
+.user-panel {
     margin: 40px 20px 0;
-    background: #fff;
+    background: var(--card-bg);
     border-radius: 8px;
     box-shadow: 0 2px 8px var(--card-shadow);
     border: 1px solid var(--card-border);
@@ -295,29 +231,18 @@ const user_info = {
     }
 }
 
-.chart {
-    height: 400px;
-    width: 100%;
-    padding: 10px;
-}
-
-/* 移动端：单列显示 */
 @media (max-width: 768px) {
-    .user-info {
-        --el-descriptions-column: 1;
-    }
-
-    .card .el-col {
-        width: 100%;
-        margin-bottom: 16px;
-    }
-
     .title .name {
         font-size: 50px;
     }
 
     .title p {
         font-size: 30px;
+    }
+
+    .card .el-col {
+        width: 100%;
+        margin-bottom: 16px;
     }
 }
 </style>

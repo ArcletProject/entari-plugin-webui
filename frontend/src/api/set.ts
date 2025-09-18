@@ -47,7 +47,7 @@ export interface Plugins {
   database: DatabasePlugin
   server: ServerPlugin
   webui: Record<string, unknown>
-  [key: string]: unknown       // 允许其他插件
+  [key: string]: unknown 
 }
 
 export interface Config {

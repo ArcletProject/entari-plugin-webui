@@ -15,12 +15,12 @@ const router = createRouter({
     },
     {
       path: '/',
-      name: 'home',
       component: AppLayout,
       meta: { requiresAuth: true },
       children: [
         {
           path: '',
+          name: 'home',
           component: IndexView,
         },
         {
@@ -62,11 +62,6 @@ const router = createRouter({
           path: '/support/community',
           name: 'community',
           component: () => import('@/views/support/CommunityView.vue'),
-        },
-        {
-          path: '/plugin/plugin-manager',
-          name: 'plugin-manager',
-          component: () => import('@/views/plugin/PluginManager.vue'),
         },
         {
           path: '/about/contributors',
