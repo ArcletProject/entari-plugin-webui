@@ -1,0 +1,44 @@
+basic:
+  network:
+    - type: ws
+      host: 127.0.0.1
+      port: 7777
+      token: 045cdc97af66376e
+  ignore_self_message: true
+  prefix:
+    - /
+  log:
+    level: INFO
+  apiDomain: http://localhost:5100
+plugins:
+  .record_message:
+    record_send: true
+  .scheduler: {}
+  ::echo: {}
+  ::inspect: {}
+  ::auto_reload:
+    watch_dirs: ''
+    watch_config: true
+  .commands:
+    need_notice_me: true
+    need_reply_me: false
+    use_config_prefix: true
+  ::help:
+    help_command: help
+    help_alias: 帮助,命令帮助
+    page_size: 10
+  database:
+    type: sqlite
+    name: database.db
+    driver: aiosqlite
+  server:
+    host: 127.0.0.1
+    port: 5150
+    adapters:
+      - $path: nekobox.main:NekoBoxAdapter
+        uin: 1192007819
+        sign_url: https://sign.lagrangecore.org/api/sign/30366
+        protocol: remote
+        log_level: INFO
+        use_png: false
+  webui: {}
