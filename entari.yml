@@ -3,7 +3,7 @@ basic:
     - type: ws
       host: 127.0.0.1
       port: 7777
-      token: 045cdc97af66376e
+      token: 你的token
   ignore_self_message: true
   prefix:
     - /
@@ -36,7 +36,7 @@ plugins:
     port: 5150
     adapters:
       - $path: nekobox.main:NekoBoxAdapt
-        uin: 1192007819
+        uin: 你的账号
         sign_url: https://sign.lagrangecore.org/api/sign/30366
         protocol: remote
         log_level: INFO
