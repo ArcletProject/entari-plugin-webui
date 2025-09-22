@@ -17,4 +17,9 @@ export default defineConfigWithVueTs(
 
   pluginVue.configs['flat/essential'],
   vueTsConfigs.recommended,
+  {
+    rules: {
+      'eol-last': ['error', 'always'],
+    },
+  },
 )
