@@ -17,11 +17,16 @@ const emit = defineEmits<{
 
 const visible = computed<boolean>({
     get: () => props.modelValue,
-    set: (v) => emit('update:modelValue', v),
+    set: v => emit('update:modelValue', v)
 })
 
 const strConfig = ref<Record<string, string>>({})
 const originalType = ref<Record<string, string>>({})
+
+/* 过滤掉 $path 的表单项 */
+const formItems = computed(() =>
+    Object.entries(strConfig.value).filter(([k]) => k !== '$path')
+)
 
 function configToString(cfg: PluginConfig) {
     const str: Record<string, string> = {}
@@ -36,14 +41,14 @@ function configToString(cfg: PluginConfig) {
 
 watch(
     () => props.plugin,
-    (val) => {
+    val => {
         if (val?.config) configToString(val.config)
         else {
             strConfig.value = {}
             originalType.value = {}
         }
     },
-    { immediate: true },
+    { immediate: true }
 )
 
 function stringToConfig(): PluginConfig {
@@ -52,7 +57,7 @@ function stringToConfig(): PluginConfig {
         const type = originalType.value[k]
         if (type === 'boolean') cfg[k] = v === 'true'
         else if (type === 'number') cfg[k] = Number(v)
-        else if (type === 'array') cfg[k] = v.split(',').map((s) => s.trim())
+        else if (type === 'array') cfg[k] = v.split(',').map(s => s.trim())
         else cfg[k] = v || undefined
     })
     return cfg
@@ -64,7 +69,7 @@ async function save() {
         const newConfig = stringToConfig()
         await savePlugin({ id: props.plugin.id, config: newConfig })
 
-        //eslint-disable-next-line vue/no-mutating-props
+        // eslint-disable-next-line vue/no-mutating-props
         if (props.plugin) props.plugin.config = newConfig
 
         ElMessage.success('配置已保存')
@@ -80,12 +85,13 @@ async function save() {
     <el-drawer v-model="visible" :title="`配置插件：${props.plugin?.title ?? ''}`" direction="rtl" size="40%"
         @close="emit('closed')">
         <el-form v-if="strConfig" label-width="120px">
-            <el-form-item v-for="(val, key) in strConfig" :key="key" :label="String(key)">
+            <!-- 只渲染非 $path 的项 -->
+            <el-form-item v-for="([key]) in formItems" :key="key" :label="String(key)">
                 <!-- 布尔值 -->
                 <el-switch v-if="originalType[key] === 'boolean'" v-model="strConfig[key]" active-value="true"
                     inactive-value="false" />
                 <!-- 其它类型 -->
-                <el-input v-else v-model="strConfig[key]" :key="key" :disabled="key === '$path'" />
+                <el-input v-else v-model="strConfig[key]" />
             </el-form-item>
 
             <el-form-item>

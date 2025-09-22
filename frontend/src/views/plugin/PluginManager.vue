@@ -172,7 +172,6 @@ interface LocalPluginItem extends PluginItem {
   max-width: 960px;
   margin: 0 auto;
   background: var(--pm-page-bg);
-  transition: background 0.3s;
 }
 
 h1 {
@@ -192,14 +191,14 @@ section {
   background: var(--pm-card-bg);
   border: 1px solid var(--pm-card-border);
   box-shadow: 0 4px 12px var(--pm-card-shadow);
-  transition: background 0.3s, border-color 0.3s, box-shadow 0.3s;
+  transition: border-color 0.3s, box-shadow 0.3s;
 }
 
 /* 表格 */
 :deep(.el-table) {
   background: var(--pm-table-bg);
   color: var(--pm-section-text);
-  transition: background 0.3s, color 0.3s;
+  transition: color 0.3s;
 }
 
 :deep(.el-table th) {
@@ -220,14 +219,14 @@ section {
   background: var(--pm-input-bg);
   border-color: var(--pm-input-border);
   color: var(--pm-input-text);
-  transition: background 0.3s, border-color 0.3s, color 0.3s;
+  transition: border-color 0.3s, color 0.3s;
 }
 
 :deep(.el-button--primary) {
   background: var(--pm-btn-primary-bg);
   border-color: var(--pm-btn-primary-bg);
   color: var(--pm-btn-primary-text);
-  transition: background 0.3s, border-color 0.3s, color 0.3s;
+  transition: border-color 0.3s, color 0.3s;
 }
 
 :deep(.el-button--primary:hover) {

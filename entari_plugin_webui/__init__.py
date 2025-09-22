@@ -59,7 +59,11 @@ UPLOAD_DIR = "configs"
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_FILE = EntariConfig.instance.path
 RUNTIME_CONF = Path(__file__).with_name('frontend') / 'runtime.json'
+PLUGIN_CONF = Path(__file__).with_name('frontend') / 'plugins.json'
 START_TIME = datetime.utcnow()
+
+with PLUGIN_CONF.open(encoding='utf-8') as f:
+    _PLUGINS_META: list[dict] = json.load(f)
 
 # # ---------- 设置静态目录 ----------
 server.mount("/assets", Path(os.path.join(BASE_DIR, 'entari_plugin_webui/frontend')))
@@ -389,36 +393,34 @@ async def list_plugins():
 
 @add_route("/api/market/plugins", methods=["GET"])
 async def market_plugins():
+    # 已安装插件集合
     pip_list = subprocess.run(
         [sys.executable, "-m", "pip", "list", "--format=json"],
-        stdout=subprocess.PIPE,
-        text=True,
-        check=True
+        stdout=subprocess.PIPE, text=True, check=True
     ).stdout
+    installed = {pkg["name"] for pkg in json.loads(pip_list)}
 
-    installed_packages = json.loads(pip_list)
-    installed_plugins = {
-        pkg["name"]: True for pkg in installed_packages
-        if pkg["name"].startswith("entari-plugin-") or pkg["name"].startswith("entari_plugin_")
-    }
+    # 合并状态
+    for item in _PLUGINS_META:
+        item["installed"] = item["name"] in installed
 
-    market_plugins_list = []
-    for plugin in MARKET_PLUGINS:
-        installed = False
-        if plugin in installed_plugins or f"entari_plugin_{plugin}" in installed_plugins:
-            installed = True
+    return JSONResponse(_PLUGINS_META)
 
-        market_plugins_list.append({
-            "name": plugin,
-            "fullName": plugin,
-            "desc": plugin,
-            "author": "unknown",
-            "stars": 0,
-            "updated": "",
-            "tags": [],
-            "installed": installed
-        })
-    return JSONResponse(market_plugins_list)
+@add_route("/api/market/plugin/{name}", methods=["GET"])
+async def market_plugin_detail(name: str):
+    item = next((p for p in _PLUGINS_META if p["name"] == name), None)
+    if not item:
+        return JSONResponse({"error": "插件不存在"}, status_code=404)
+
+    # 实时安装状态
+    pip_list = subprocess.run(
+        [sys.executable, "-m", "pip", "list", "--format=json"],
+        stdout=subprocess.PIPE, text=True, check=True
+    ).stdout
+    installed = {pkg["name"] for pkg in json.loads(pip_list)}
+    item["installed"] = item["name"] in installed
+
+    return JSONResponse(item)
 
 @add_route("/api/plugins/toggle", methods=["POST"])
 async def toggle_plugin(request: Request):

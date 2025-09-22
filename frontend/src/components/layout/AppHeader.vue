@@ -200,6 +200,7 @@ const saveUserInfo = async () => {
         align-items: center;
         cursor: pointer;
         transition: all 0.3s;
+        outline: none;
 
         &:hover {
             .el-avatar {
