@@ -35,7 +35,7 @@ plugins:
     host: 127.0.0.1
     port: 5150
     adapters:
-      - $path: nekobox.main:NekoBoxAdapter
+      - $path: nekobox.main:NekoBoxAdapt
         uin: 1192007819
         sign_url: https://sign.lagrangecore.org/api/sign/30366
         protocol: remote
