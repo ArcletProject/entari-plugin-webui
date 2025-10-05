@@ -16,7 +16,7 @@ interface PluginInfo {
     description: string
     homepage: string
     depend_services: string[]
-    readme?: string
+    readme: string
 }
 function parseAuthor(raw?: RawAuthor): string {
     if (!raw) return '-'
@@ -51,7 +51,7 @@ function normalizeMeta(p: MarketItem): PluginInfo {
         description: p.desc ?? '-',
         homepage: p?.homepage ?? '',
         depend_services: [],
-        readme: ''
+        readme: p.readme ?? ''
     }
 }
 const PluginDetailDialog = defineComponent({

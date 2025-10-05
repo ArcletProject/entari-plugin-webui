@@ -55,7 +55,7 @@ function normalizeMeta(p: PluginItem): PluginInfo {
         description: p.desc ?? '-',
         homepage: p.urls?.homepage ?? '',
         depend_services: [],
-        readme: ''
+        readme: p.readme ?? '-',
     }
 }
 

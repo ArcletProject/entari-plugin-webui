@@ -4,7 +4,7 @@ version = "0.1.1"
 description = "基于 Vue3 + entari_plugin_server + entari_plugin_database 的可视化面板"
 authors = [{name = "Utopia", email = "utopia@qq.com"}]
 dependencies = [
-    "arclet-entari>=0.15.1",
+    "arclet-entari>=0.16.3",
     "entari-plugin-database>=0.1.1",
     "entari-plugin-server>=0.2.3",
     "sqlalchemy>=2.0.43",

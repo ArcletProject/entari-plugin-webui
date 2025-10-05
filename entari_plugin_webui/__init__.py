@@ -221,6 +221,7 @@ async def init_db():
         await session.commit()
     host = server.host or '127.0.0.1'
     port = server.port
+    enrich_plugins_json()
     RUNTIME_CONF.write_text(
         json.dumps({'baseURL': f'http://{host}:{port}/api'}, ensure_ascii=False),
         encoding='utf-8'
@@ -346,14 +347,6 @@ async def create_instance(request: Request):
     })
 
 # ---------- 插件 ----------
-MARKET_PLUGINS = {
-    "entari-plugin-browser",
-    "entari-plugin-database",
-    "entari-plugin-arkgacha",
-    "entari-plugin-server",
-    "entari-plugin-webui",
-}
-
 @add_route("/api/plugins", methods=["GET"])
 async def list_plugins():
     def _serial(p):
@@ -386,6 +379,7 @@ async def list_plugins():
             "urls": getattr(m, 'urls', None) or {},
             "configurable": m and getattr(m, 'config', None) is not None,
             "config": cfg,
+            "readme": getattr(m, 'readme', '') or ''
         }
 
     plugins = get_plugins()
@@ -500,6 +494,29 @@ async def plugin_save(request: Request):
     plg.config.update(plugin_config)
 
     return JSONResponse({"success": True})
+
+def _key(s: str) -> str:
+    """统一把 _ 换成 - 再做比对"""
+    return s.replace('_', '-')
+
+def enrich_plugins_json():
+    """
+    把已安装插件的 metadata.readme 回写到 plugins.json
+    """
+    with PLUGIN_CONF.open(encoding="utf-8") as f:
+        data = json.load(f)
+
+    key_map: dict[str, dict] = {_key(p["name"]): p for p in data}
+
+    for plg in get_plugins():
+        normalized = _key(plg.id)
+        if normalized not in key_map:
+            continue
+        readme = getattr(plg.metadata, "readme", "") or ""
+        key_map[normalized]["readme"] = readme   # 修改的是原 dict，key 名保持不变
+
+    with PLUGIN_CONF.open("w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
 # ---------- 实时日志 WebSocket ----------
 fake_io = StringIO()

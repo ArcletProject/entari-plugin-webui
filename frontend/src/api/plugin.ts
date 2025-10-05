@@ -32,6 +32,7 @@ export interface Plugin {
   urls?: { homepage?: string }
   installed: boolean
   meta?: PluginMeta | null | 'None'
+  readme?: string
 }
 
 /* ---------- 前端业务层插件类型（在 Plugin 基础上扩展） ---------- */

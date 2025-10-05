@@ -110,5 +110,3 @@ entari run
 : [Entari Releases](https://github.com/ArcletProject/Entari/releases)  
 : [entari-plugin-server · PyPI](https://pypi.org/project/entari-plugin-server/)
 ```
-
-把文件保存为 `README.md` 放到仓库根目录即可；logo 替换为你自己的路径或 CDN 链接。祝项目顺利上线！
