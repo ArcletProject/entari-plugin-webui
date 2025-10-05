@@ -72,7 +72,7 @@ entari run
 | 后端 | Python 3.10+ · Entari · FastAPI |
 | 前端 | Vue 3 · Vite · TypeScript · Element-Plus · SCSS |
 | 实时通信 | WebSocket (原生) |
-| 包管理 | pnpm |
+| 包管理 | npm |
 | 代码规范 | ESLint · Prettier · Husky · lint-staged |
 
 ---
