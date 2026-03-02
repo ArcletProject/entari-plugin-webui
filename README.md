@@ -1,112 +1,162 @@
-<!-- markdownlint-disable MD033 MD041 -->
-<h1 align="center">Entari Plugin WebUI</h1>
+# Entari Plugin WebUI
 
-<p align="center">
-  <strong>图形化 Entari 实例管理面板 | Graphical Entari Instance Manager</strong>
-</p>
+基于 **Nuxt 3 + Naive UI** 的 Entari 可视化管理面板。
 
-<p align="center">
-  <a href="https://github.com/ArcletProject/entari-plugin-webui/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"/>
-  </a>
-  <a href="https://github.com/ArcletProject/Entari">
-    <img src="https://img.shields.io/badge/Powered%20by-Entari-ff2072.svg" alt="Powered by Entari"/>
-  </a>
-</p>
+## 功能特性
 
-🌟 特性一览 Feature Matrix
+- 🎛️ **仪表盘** - 实时统计数据展示，包括消息量、运行时长、插件状态
+- 🧩 **插件管理** - 启用/禁用插件、配置编辑、热重载
+- 🛒 **插件市场** - 浏览和安装社区插件
+- ⚙️ **配置管理** - 可视化编辑 entari.yml 配置文件
+- 📜 **实时日志** - WebSocket 推送的实时日志查看
+- 🔐 **安全认证** - 本地部署免认证，远程部署 JWT 认证
+- 🔌 **扩展接口** - 允许其他插件注册路由和菜单
 
-| 模块 | 状态 | 说明 |
-| ---- | :--: | ---- |
-| 用户认证 | ✅ | 登录 / 登出 / Token 鉴权，默认管理员账号自动初始化 |
-| 实例管理 | ✅ | 创建、删除、启动、停止；支持 JSON 配置实时编辑与热重载 |
-| 插件系统 | ✅ | 本地 & 远程插件列表；加载、卸载、热重载；在线代码编辑器 |
-| 控制台日志 | ✅ | WebSocket 实时推送，ANSI 高亮，自动滚动，清空 / 重连 |
-| 系统配置 | ✅ | 可视化编辑 YAML（基础配置 + 插件配置），一键保存生效 |
-| 社区扩展 | ✅ | 社区项目展示、贡献者头像墙、插件市场入口 |
-| UI/UX | ✅ | 暗黑模式、响应式布局、表单校验、操作反馈、空状态提示 |
-| 协议支持 | ✅ | 已接入 Satori、Console、GitHub、OneBot 等主流协议 |
+## 安装
 
----
-
-## 🚀 快速开始 Quick Start
-
-### 1. 安装插件
 ```bash
-# 在 Entari 项目根目录执行
 pip install entari-plugin-webui
 ```
 
-### 2. 启用插件
-`config.yaml` 中追加：
+或使用 PDM：
+
+```bash
+pdm add entari-plugin-webui
+```
+
+## 配置
+
+在 `entari.yml` 中添加：
+
 ```yaml
+plugins:
+  # WebUI 依赖的插件
   database:
     type: sqlite
-    name: database.db
-    driver: aiosqlite
+    name: data/entari.db
+  
   server:
-    host: 127.0.0.1
-    port: 8080
-    adapters:
-      - $path: nekobox.main:NekoBoxAdapt
-        uin: 自己的账号
-        sign_url: https://sign.lagrangecore.org/api/sign/30366
-        protocol: remote
-        log_level: INFO
-        use_png: false
+    host: 127.0.0.1  # 本地部署无需认证
+    # host: 0.0.0.0  # 远程部署需要认证
+    port: 5150
+  
+  # 启用 WebUI
   webui: {}
 ```
 
-### 3. 启动 Entari
+## 认证说明
+
+- **本地部署** (`host: 127.0.0.1` 或 `localhost`)：无需认证，直接访问
+- **远程部署** (`host: 0.0.0.0` 或其他 IP)：
+  - 首次启动自动生成随机密码
+  - 密码会输出到日志并保存到配置文件
+  - 支持 JWT 双 token 机制
+
+## Docker 部署
+
 ```bash
-entari run
+# 构建镜像
+docker build -t entari-webui .
+
+# 运行
+docker run -d \
+  -p 5150:5150 \
+  -v $(pwd)/entari.yml:/app/entari.yml:ro \
+  -v $(pwd)/data:/app/data \
+  entari-webui
 ```
-浏览器访问 [http://localhost:8080](http://localhost:8080) 即可。
 
----
+或使用 docker-compose：
 
-## 🛠️ 技术栈 Tech Stack
-
-| 方向 | 技术 |
-| ---- | ---- |
-| 后端 | Python 3.10+ · Entari · FastAPI |
-| 前端 | Vue 3 · Vite · TypeScript · Element-Plus · SCSS |
-| 实时通信 | WebSocket (原生) |
-| 包管理 | npm |
-| 代码规范 | ESLint · Prettier · Husky · lint-staged |
-
----
-
-## 📝 代码规范
-
-- 前端：遵守 `@vue/eslint-config-typescript` + `prettier`
-- 后端：遵守 `black` 格式化 + `ruff` 静态检查
-- 提交前自动触发 `lint-staged`，不合规无法提交
-
----
-
-## 🤝 贡献指南
-
-1. Fork 本仓库
-2. 新建分支 (`git checkout -b feat/xxx`)
-3. 提交合规 Commit (`git commit -m 'feat: add xxx'`)
-4. 推送分支 (`git push origin feat/xxx`)
-5. 提交 Pull Request
-
----
-
-## 📄 开源协议
-
-[MIT](./LICENSE) © 2025 ArcletProject
-
----
-
-## 🔗 相关链接
-
-- [Entari 主仓库](https://github.com/ArcletProject/Entari) 
-- [Entari 文档](https://github.com/ArcletProject/Entari/tree/main/docs)
-- [Satori 协议](https://satori.js.org/)
-
-: [Entari Releases](https://github.com/ArcletProject/Entari/releases)  
-: [entari-plugin-server · PyPI](https://pypi.org/project/entari-plugin-server/)
+```bash
+docker-compose up -d
 ```
+
+## 开发
+
+### 前置要求
+
+- Python >= 3.10
+- Node.js >= 18
+- PDM
+
+### 本地开发
+
+```bash
+# 安装 Python 依赖
+pdm install
+
+# 安装前端依赖
+cd frontend && npm install
+
+# 启动前端开发服务器
+npm run dev
+
+# 另一个终端启动后端
+pdm run python -m arclet.entari
+```
+
+### 构建
+
+```bash
+# 构建前端
+pdm run build-frontend
+
+# 构建 Python wheel
+pdm build
+
+# 或一键构建
+pdm run build-all
+```
+
+## 插件扩展
+
+其他插件可以向 WebUI 注册路由和菜单：
+
+```python
+from entari_plugin_webui import webui_extend, MenuItem
+
+# 获取扩展实例
+ext = webui_extend("my-plugin")
+
+# 注册菜单
+ext.add_menu(
+    label="我的功能",
+    icon="mdi:star",
+    path="/my-plugin",
+    order=50
+)
+
+# 注册路由
+@ext.add_route("/api/my-plugin/data", ["GET"])
+async def my_handler(request):
+    return {"data": "hello"}
+```
+
+## 项目结构
+
+```
+entari-plugin-webui/
+├── frontend/                    # Nuxt 3 前端项目
+│   ├── pages/                   # 页面组件
+│   ├── components/              # 通用组件
+│   ├── composables/             # 组合式函数
+│   ├── layouts/                 # 布局组件
+│   └── middleware/              # 路由中间件
+│
+├── src/entari_plugin_webui/     # Python 后端
+│   ├── api/                     # API 路由
+│   ├── core/                    # 核心逻辑
+│   ├── models/                  # 数据库模型
+│   ├── utils/                   # 工具函数
+│   ├── static/                  # 静态资源
+│   └── frontend/                # 前端构建产物
+│
+├── Dockerfile
+├── docker-compose.yml
+└── pyproject.toml
+```
+
+## 许可证
+
+MIT License

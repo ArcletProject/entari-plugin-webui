@@ -1,28 +1,55 @@
 [project]
 name = "entari-plugin-webui"
-version = "0.1.1"
-description = "基于 Vue3 + entari_plugin_server + entari_plugin_database 的可视化面板"
-authors = [{name = "Utopia", email = "utopia@qq.com"}]
-dependencies = [
-    "arclet-entari>=0.16.3",
-    "entari-plugin-database>=0.1.1",
-    "entari-plugin-server>=0.2.3",
-    "sqlalchemy>=2.0.43",
-    "fastapi>=0.116.1",
-    "starlette>=0.47.2",
-    "uvicorn>=0.35.0",
-    "ansi2html>=1.9.2",
-    "loguru>=0.7.3",
-    "pyyaml>=6.0.2",
+version = "0.2.0"
+description = "基于 Nuxt 3 + Naive UI 的 Entari 可视化管理面板"
+authors = [
+    {name = "RF-Tar-Railt", email = "rf_tar_railt@qq.com"},
 ]
-requires-python = ">=3.9"
+dependencies = [
+    "arclet-entari[dotenv,reload,yaml]>=0.17.0",
+    "entari-plugin-server>=0.6.1",
+    "entari-plugin-database>=0.2.3",
+    "ansi2html>=1.9.2",
+    "fastapi>=0.135.1",
+]
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+keywords = ["entari", "webui", "dashboard", "plugin"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+[project.urls]
+Homepage = "https://github.com/ArcletProject/entari-plugin-webui"
+Repository = "https://github.com/ArcletProject/entari-plugin-webui"
 
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
+[tool.pdm]
+distribution = true
+
 [tool.pdm.build]
 includes = [
-    "entari_plugin_webui/",
-    "entari_plugin_webui/frontend/",
+    "src/entari_plugin_webui/",
+]
+
+[tool.pdm.scripts]
+# 构建前端
+build-frontend = { shell = "cd frontend && npm ci && npm run generate" }
+# 完整构建
+build-all = { composite = ["build-frontend", "pdm build"] }
+# 开发模式
+dev = { shell = "cd frontend && npm run dev" }
+
+[dependency-groups]
+dev = [
+    "satori-python-adapter-onebot11>=0.4.1",
 ]

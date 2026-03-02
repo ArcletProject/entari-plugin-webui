@@ -1,44 +1,40 @@
+# Entari WebUI 示例配置
+
 basic:
+  # 命令前缀
+  prefix:
+    - "/"
+
+  # 忽略自身消息
+  ignore_self_message: true
+
+  # 网络配置
   network:
     - type: ws
-      host: 127.0.0.1
-      port: 7777
-      token: 你的token
-  ignore_self_message: true
-  prefix:
-    - /
+      host: localhost
+      port: 9555
+      path: /satori
+
+  # 日志配置
   log:
     level: INFO
-  apiDomain: http://localhost:5100
+
 plugins:
-  .record_message:
-    record_send: true
-  .scheduler: {}
-  ::echo: {}
-  ::inspect: {}
-  ::auto_reload:
-    watch_dirs: ''
-    watch_config: true
-  .commands:
-    need_notice_me: true
-    need_reply_me: false
-    use_config_prefix: true
-  ::help:
-    help_command: help
-    help_alias: 帮助,命令帮助
-    page_size: 10
+  # 数据库插件
   database:
     type: sqlite
     name: database.db
     driver: aiosqlite
   server:
-    host: 127.0.0.1
-    port: 5150
-    adapters:
-      - $path: nekobox.main:NekoBoxAdapt
-        uin: 你的账号
-        sign_url: https://sign.lagrangecore.org/api/sign/30366
-        protocol: remote
-        log_level: INFO
-        use_png: false
+    host: localhost
+    port: 9555
+    path: /satori
   webui: {}
+  ::echo: {}
+  ::inspect: {}
+  ::help: {}
+adapters:
+  - $path: '@onebot11.reverse'
+  # 密码会在首次启动时自动生成
+  # webui:
+  #   password: "hashed_password_here"

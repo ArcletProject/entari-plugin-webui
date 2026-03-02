@@ -1,0 +1,38 @@
+[
+  {
+    "name": "entari-plugin-alconna",
+    "description": "Alconna 命令解析插件",
+    "version": "0.1.0",
+    "author": "RF-Tar-Railt",
+    "tags": ["命令", "解析"],
+    "homepage": "https://github.com/ArcletProject/Alconna",
+    "installed": false
+  },
+  {
+    "name": "entari-plugin-server",
+    "description": "HTTP/WebSocket 服务器插件",
+    "version": "0.6.1",
+    "author": "RF-Tar-Railt",
+    "tags": ["服务器", "HTTP", "WebSocket"],
+    "homepage": "https://github.com/ArcletProject/entari-plugin-server",
+    "installed": false
+  },
+  {
+    "name": "entari-plugin-database",
+    "description": "数据库插件（SQLAlchemy）",
+    "version": "0.2.3",
+    "author": "RF-Tar-Railt",
+    "tags": ["数据库", "SQLAlchemy"],
+    "homepage": "https://github.com/ArcletProject/entari-plugin-database",
+    "installed": false
+  },
+  {
+    "name": "entari-plugin-scheduler",
+    "description": "定时任务调度插件",
+    "version": "0.1.0",
+    "author": "RF-Tar-Railt",
+    "tags": ["定时任务", "调度"],
+    "homepage": "https://github.com/ArcletProject/entari-plugin-scheduler",
+    "installed": false
+  }
+]

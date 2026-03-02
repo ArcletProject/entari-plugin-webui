@@ -1,4 +1,4 @@
 from arclet.entari import Entari
 
-app = Entari.load("entari.yml")
+app = Entari.load("")
 app.run()
