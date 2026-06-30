@@ -1,33 +1,29 @@
 [project]
 name = "entari-plugin-webui"
-version = "0.2.0"
-description = "基于 Nuxt 3 + Naive UI 的 Entari 可视化管理面板"
-authors = [
-    {name = "RF-Tar-Railt", email = "rf_tar_railt@qq.com"},
-]
+version = "0.1.0"
+description = "WebUI Plugin for Entari"
+authors = [{name = "RF-Tar-Railt", email = "rf_tar_railt@qq.com"}]
 dependencies = [
-    "arclet-entari[dotenv,reload,yaml]>=0.17.0",
-    "entari-plugin-server>=0.6.1",
-    "entari-plugin-database>=0.2.3",
-    "ansi2html>=1.9.2",
+    "arclet-entari[dotenv,yaml]>=0.18.0",
+    "entari-plugin-server>=0.7.1",
+    "entari-plugin-database>=0.3.2",
     "fastapi>=0.135.1",
+    "httpx>=0.27",
+    "ansi2html>=1.9.2",
 ]
 requires-python = ">=3.10"
 readme = "README.md"
 license = {text = "MIT"}
-keywords = ["entari", "webui", "dashboard", "plugin"]
-classifiers = [
-    "Development Status :: 4 - Beta",
-    "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
-    "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
-]
 
-[project.urls]
-Homepage = "https://github.com/ArcletProject/entari-plugin-webui"
-Repository = "https://github.com/ArcletProject/entari-plugin-webui"
+[dependency-groups]
+dev = [
+    "arclet-entari[reload]>=0.18.0",
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.15",
+    "pyright>=1.1",
+    "anyio>=4",
+]
 
 [build-system]
 requires = ["pdm-backend"]
@@ -37,19 +33,35 @@ build-backend = "pdm.backend"
 distribution = true
 
 [tool.pdm.build]
-includes = [
-    "src/entari_plugin_webui/",
-]
+includes = ["src/entari_plugin_webui"]
 
 [tool.pdm.scripts]
-# 构建前端
-build-frontend = { shell = "cd frontend && npm ci && npm run generate" }
-# 完整构建
+build-frontend = "cd frontend && npm ci && npm run build"
 build-all = { composite = ["build-frontend", "pdm build"] }
-# 开发模式
-dev = { shell = "cd frontend && npm run dev" }
+dev = "cd frontend && npm run dev"
+format = "ruff format src/ tests/"
+lint = "ruff check src/ tests/"
+typecheck = "pyright src/entari_plugin_webui"
+test = "pytest -q"
 
-[dependency-groups]
-dev = [
-    "satori-python-adapter-onebot11>=0.4.1",
-]
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+include = ["src/**.py", "tests/**.py"]
+respect-gitignore = true
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "W", "C", "T", "PYI", "PT", "Q"]
+ignore = ["C901", "T201", "E731", "E402", "PYI055"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = false
+extra-standard-library = ["typing_extensions"]
+
+[tool.pyright]
+pythonVersion = "3.10"
+pythonPlatform = "All"
+typeCheckingMode = "basic"
+venvPath = "."
+venv = ".venv"
+reportMissingImports = true
