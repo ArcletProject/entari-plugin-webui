@@ -4,8 +4,6 @@ from datetime import datetime
 
 from fastapi import APIRouter
 
-from entari_plugin_webui import __version__
-
 router = APIRouter(prefix="/api", tags=["health"])
 
 _START = datetime.utcnow()
