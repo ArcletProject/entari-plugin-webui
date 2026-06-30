@@ -1,10 +1,9 @@
-from arclet.entari.config import BasicConfModel
-from arclet.entari.plugin import plugin_config
+from arclet.entari.config.models.default import BasicConfModel
 
 
 class Config(BasicConfModel):
-    """WebUI 插件配置模型"""
-    password: str = ""  # 管理员密码（哈希值）
-
-
-webui_config = plugin_config(Config, bind=True)
+    password: str = ""
+    registry_url: str = ""
+    session_ttl: int = 43200
+    log_buffer_lines: int = 5000
+    login_rate_limit: str = "5/60s"
