@@ -47,7 +47,7 @@ def test_list_sections(monkeypatch):
         {"basic": {"prefix": ["/"]}, "plugins": {"webui": {}}, "adapters": []})))
     out = cs.list_sections()
     assert "basic" in out["sections"]
-    assert "plugins.webui" in out["plugin_sections"]
+    assert "plugins:webui" in out["plugin_sections"]
 
 
 def test_get_section_basic(monkeypatch):
@@ -58,7 +58,7 @@ def test_get_section_basic(monkeypatch):
 
 def test_get_section_plugin(monkeypatch):
     monkeypatch.setattr(cs, "EntariConfig", MagicMock(instance=_cfg({"plugins": {"webui": {"password": "x"}}})))
-    out = cs.get_section("plugins.webui")
+    out = cs.get_section("plugins:webui")
     assert out == {"password": "x"}
 
 
@@ -75,7 +75,7 @@ def test_inject_meta_properties(monkeypatch):
     SchemaModel = types.SimpleNamespace
     monkeypatch.setattr(cs, "config_model_schema", lambda m, ref_root=None: {"type": "object", "properties": {}})
     out = cs.get_schema_for_section("basic")
-    for key in ("$disable", "$priority", "$filter", "$prefix", "$static", "$optional"):
+    for key in ("$disable", "$priority", "$filter", "$prefix", "$optional"):
         assert key in out["schema"]["properties"]
 ```
 
@@ -84,36 +84,36 @@ def test_inject_meta_properties(monkeypatch):
 ```python
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, TypedDict
 
 from arclet.entari import find_plugin
+from arclet.entari.plugin import get_plugins
 from arclet.entari.config import EntariConfig, config_model_schema
-
-META_PROPS = {
-    "$disable": {"type": ["boolean", "string", "null"], "title": "禁用", "default": None},
-    "$priority": {"type": ["integer", "null"], "title": "加载优先级", "default": None},
-    "$filter": {"type": ["string", "null"], "title": "条件过滤", "default": None},
-    "$prefix": {"type": ["string", "null"], "title": "前缀覆盖", "default": None},
-    "$static": {"type": ["boolean", "null"], "title": "静态", "default": None},
-    "$optional": {"type": ["boolean", "null"], "title": "可选", "default": None},
-}
+from ruamel.yaml import CommentedMap
+from tarina.tools import nest_dict_update, nest_list_update
 
 
 def _unwrap(obj: Any) -> Any:
-    if hasattr(obj, "items") and callable(obj.items):
-        out: dict[str, Any] = {}
-        for k, v in obj.items():
-            out[k] = _unwrap(v)
-        return out
+    """序列化配置数据，处理 CommentedMap 等特殊类型"""
+    if isinstance(obj, CommentedMap):
+        return dict(obj)
+    if isinstance(obj, dict):
+        return {k: _unwrap(v) for k, v in obj.items()}
     if isinstance(obj, list):
-        return [_unwrap(v) for v in obj]
+        return [_unwrap(item) for item in obj]
     return obj
+
+
+class Sections(TypedDict):
+    sections: list[str]
+    plugin_sections: dict[str, str]
+    data: dict[str, Any]
 
 
 def list_sections() -> dict[str, Any]:
     cfg = EntariConfig.instance
     data = _unwrap(cfg.data)
-    plugin_sections = [f"plugins.{k}" for k in (cfg.plugin or {})]
+    plugin_sections = {f"plugins:{plg._config_key}": plg.id for plg in get_plugins()}
     return {
         "sections": ["basic", "plugins", "adapters"],
         "plugin_sections": plugin_sections,
@@ -129,8 +129,8 @@ def get_section(section: str) -> Any:
         return _unwrap(cfg.data.get("adapters", []))
     if section == "plugins":
         return _unwrap(cfg.plugin)
-    if section.startswith("plugins."):
-        key = section[len("plugins.") :]
+    if section.startswith("plugins:"):
+        key = section[len("plugins:") :]
         return _unwrap((cfg.plugin or {}).get(key, {}))
     raise KeyError(section)
 
@@ -142,48 +142,104 @@ class ConfigSectionNotFound(Exception):
 def update_section(section: str, data: Any) -> None:
     cfg = EntariConfig.instance
     if section == "basic":
-        cfg.data["basic"] = data
+        nest_dict_update(cfg.data["basic"], data)
     elif section == "adapters":
-        cfg.data["adapters"] = data
+        nest_list_update(cfg.data["adapters"], data)
     elif section == "plugins":
-        cfg.data["plugins"] = data
-    elif section.startswith("plugins."):
-        key = section[len("plugins.") :]
-        cfg.data.setdefault("plugins", {})[key] = data
+        nest_dict_update(cfg.data["plugins"], data)
+    elif section.startswith("plugins:"):
+        key = section[len("plugins:") :]
+        target = cfg.data.setdefault("plugins", {}).setdefault(key, {})
+        nest_dict_update(target, data)
     else:
         raise ConfigSectionNotFound(section)
     cfg.save()
 
+PLUGIN_META_PROPERTIES = {
+    "$disable": {"type": "string", "description": "Expression for whether disable this plugin"},
+    "$priority": {"type": "integer", "description": "Plugin loading priority, lower value means higher priority (default: 16)"},
+    "$filter": {"type": "string", "description": "Plugin filter expression, which will be evaluated in the context of the plugin"},
+    "$optional": {"type": "boolean", "description": "Whether this plugin is optional"}
+}
 
-def _with_meta_properties(schema: dict[str, Any]) -> dict[str, Any]:
-    imports = schema.setdefault("properties", {})
-    for k, v in META_PROPS.items():
-        imports.setdefault(k, v)
-    required = schema.setdefault("required", [])
-    return schema
+ADAPTER_SCHEMA = {
+    "type": "array",
+    "description": "Adapter configurations",
+    "items": {
+        "type": "object",
+        "description": "Adapter configuration",
+        "properties": {
+            "$path": {"type": "string", "description": "Adapter Module Path"}
+        },
+        "required": ["$path"],
+        "additionalProperties": True
+    }
+}
+
+PLUGINS_SCHEMA = {
+    "type": "object",
+    "description": "Plugin configurations",
+    "properties": {
+        "$prefix": {
+            "description": "List of prefix config",
+            "items": {
+                "properties": {
+                    "key": {"description": "Prefix key", "title": "Key", "type": "string"},
+                    "plugins": {
+                        "anyOf": [
+                            {"type": "string"},
+                            {"items": {"type": "string", "description": "Plugin name"}, "type": "array", "uniqueItems": True}
+                        ],
+                        "description": "List of plugins under the prefix, or select an item of $files to apply plugins",
+                        "title": "Plugins"
+                    }
+                },
+                "required": ["key"],
+                "title": "Prefix Config",
+                "type": "object"
+            },
+            "type": "array"
+        },
+        "$prelude": {
+            "type": "array",
+            "items": {"type": "string", "description": "Plugin name"},
+            "description": "List of prelude plugins to load",
+            "default": [],
+            "uniqueItems": True
+        },
+        "$files": {
+            "type": "array",
+            "items": {"type": "string", "description": "File path"},
+            "description": "List of configuration files to load",
+            "default": [],
+            "uniqueItems": True
+        }
+    }
+}
 
 
 def get_schema_for_section(section: str) -> dict[str, Any]:
     if section == "basic":
         from arclet.entari.config import BasicConfig  # type: ignore  # noqa: PLC0415
 
-        schema = config_model_schema(BasicConfig, ref_root="/properties/basic/")
+        schema = config_model_schema(BasicConfig, ref_root="/")
     elif section == "adapters":
-        schema = {"type": "array", "items": {"type": "object", "additionalProperties": True}}
+        schema = ADAPTER_SCHEMA
     elif section == "plugins":
-        schema = {"type": "object", "additionalProperties": True}
-    elif section.startswith("plugins."):
-        plugin_id = section[len("plugins.") :]
-        if plugin_id.startswith("::"):
-            plugin_id = "arclet.entari.builtins." + plugin_id[2:]
-        plug = find_plugin(plugin_id)
-        meta = getattr(plug, "metadata", None) if plug else None
-        model = getattr(meta, "config", None) if meta else None
-        if model is not None:
-            base = config_model_schema(model)
-            schema = _with_meta_properties(base)
+        schema = PLUGINS_SCHEMA
+    elif section.startswith("plugins:"):
+        plugin_sections = {f"plugins:{plg._config_key}": plg.id for plg in get_plugins()}
+        plugin_id = plugin_sections.get(section)
+        plug = find_plugin(plugin_id or "")
+        if not plug:
+            raise ConfigSectionNotFound(section)
+        if plug.metadata and plug.metadata.config:
+            schema = config_model_schema(plug.metadata.config, ref_root=f"/")
+            schema["properties"].update(PLUGIN_META_PROPERTIES)
+        elif plug.metadata is not None:
+            schema = {"type": "object", "description": f"{plug.metadata.description or plug.metadata.name}; no configuration required", "additionalProperties": True, "properties": PLUGIN_META_PROPERTIES}
         else:
-            schema = _with_meta_properties({"type": "object", "additionalProperties": True})
+            schema = {"type": "object", "description": "No configuration required", "additionalProperties": True, "properties": PLUGIN_META_PROPERTIES}
     else:
         raise ConfigSectionNotFound(section)
     return {"schema": schema}

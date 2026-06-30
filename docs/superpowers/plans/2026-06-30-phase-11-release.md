@@ -73,7 +73,7 @@ async def _error_middleware(request: Request, call_next):
 
 > Retry-After 头：`TooManyRequests` 携带 `headers`——在中间件中按 `e` 属性输出：为 `TooManyRequests` 添加类属性 `retry_after: int | None`；中间件 `headers={"Retry-After": str(e.retry_after)} if e.retry_after else None`。
 
-- [ ] **Step 4:** `pdm run pytest -q` 通过；`pdm run format && pdm run lint && pdm run typecheck`。提交 `git commit -m "refactor(api): unified AppError middleware"`。
+- [ ] **Step 4:** `pdm run test` 通过；`pdm run format && pdm run lint && pdm run typecheck`。提交 `git commit -m "refactor(api): unified AppError middleware"`。
 
 ---
 
@@ -141,7 +141,7 @@ jobs:
         with: { python-version: '3.11' }
       - run: cd frontend && npm ci && npm run build
       - run: pdm install
-      - run: pdm run pytest -q
+      - run: pdm run test
 ```
 
 - [ ] **Step 2:** 提交 `git commit -m "ci: lint + build + test matrix"`.
@@ -216,7 +216,7 @@ services:
 Run:
 ```bash
 pdm run format && pdm run lint && pdm run typecheck
-pdm run pytest -q
+pdm run test
 cd frontend && npm run lint && npm run build
 ```
 

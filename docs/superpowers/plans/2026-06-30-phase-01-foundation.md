@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: superpowers:subagent-driven-development or superpowers:executing-plans. Steps use `- [ ]` for tracking.
 
-**Goal:** 建立可在 `pdm run pytest` 下运行（即便空测试）的 Python 包骨架，含依赖、配置模型、插件入口的 `/api/health` 与 SPA fallback 占位、CORS、lint（ruff + pyright）与构建脚本。
+**Goal:** 建立可在 `pdm run test` 下运行（即便空测试）的 Python 包骨架，含依赖、配置模型、插件入口的 `/api/health` 与 SPA fallback 占位、CORS、lint（ruff + pyright）与构建脚本。
 
 **Architecture:** 包 `entari_plugin_webui`；`api/router.py` 用 `FastAPI` 聚合后 `entari_plugin_server.replace_asgi(app)` 替换 server app；扩展路由仍以 `add_route` 在 startup 挂到 `server.app`。配置模型 `Config` 用 `BasicConfModel`。
 

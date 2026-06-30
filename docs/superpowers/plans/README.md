@@ -22,4 +22,4 @@
 
 ## 执行后交接
 
-全部 phase 完成后，运行 `pdm run format && pdm run lint && pdm run typecheck && pdm run pytest -q && cd frontend && npm run lint && npm run build`，全绿即视为完成。
+全部 phase 完成后，运行 `pdm run format && pdm run lint && pdm run typecheck && pdm run test && cd frontend && npm run lint && npm run build`，全绿即视为完成。
