@@ -8,20 +8,19 @@ from arclet.entari import plugin
 from arclet.entari.event.lifespan import Startup
 from arclet.entari.logger import log
 from arclet.entari.plugin import PluginRole
+from entari_plugin_server import add_route, replace_asgi, server
 from starlette.responses import FileResponse, Response
 
+from .api import create_app as _create_app
 from .config import Config
 
 __version__ = "0.1.0"
 __all__ = []
-
+logger = log.wrapper("[webui]", color="green")
 _STATIC_DIR = Path(__file__).parent / "static"
 _FRONTEND_DIR = _STATIC_DIR / "frontend"
 
-_lazy_wired = False
 
-
-# ---------- 插件元数据 ----------
 plugin.metadata(
     "WebUI 服务",
     PluginRole.NORMAL,
@@ -63,34 +62,23 @@ async def _root() -> Response:
     return Response(status_code=404)
 
 
-# ---------- 延迟装配 ----------
-def _wire_server() -> None:
-    global _lazy_wired
-    if _lazy_wired:
-        return
-    _lazy_wired = True
+replace_asgi(_create_app())
 
-    from entari_plugin_server import add_route, replace_asgi, server
+if _FRONTEND_DIR.exists():
+    if (_FRONTEND_DIR / "assets").exists():
+        server.mount("/assets", _FRONTEND_DIR / "assets")
+    if (_FRONTEND_DIR / "_nuxt").exists():
+        server.mount("/_nuxt", _FRONTEND_DIR / "_nuxt")
 
-    from .api import create_app as _create_app
-
-    replace_asgi(_create_app())
-
-    if _FRONTEND_DIR.exists():
-        if (_FRONTEND_DIR / "assets").exists():
-            server.mount("/assets", _FRONTEND_DIR / "assets")
-        if (_FRONTEND_DIR / "_nuxt").exists():
-            server.mount("/_nuxt", _FRONTEND_DIR / "_nuxt")
-
-    add_route("/{path:path}", methods=["GET"])(_spa_fallback)
-    add_route("/", methods=["GET"])(_root)
+add_route("/{path:path}", methods=["GET"])(_spa_fallback)
+add_route("/", methods=["GET"])(_root)
 
 
+# ---------- Startup listener ----------
 @plugin.listen(Startup)
 async def _on_startup() -> None:
-    _wire_server()
-    from entari_plugin_server import server
 
     host = server.host or "127.0.0.1"
     port = server.port
-    log.plugin.info(f"[WebUI] 管理面板已启动: http://{host}:{port}/")
+
+    logger.info(f"管理面板已启动: http://{host}:{port}/")

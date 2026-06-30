@@ -40,9 +40,9 @@ build-frontend = "cd frontend && npm ci && npm run build"
 build-all = { composite = ["build-frontend", "pdm build"] }
 dev = "cd frontend && npm run dev"
 format = "ruff format src/ tests/"
-lint = "ruff check src/ tests/"
+lint = "ruff check src/ tests/ --fix"
 typecheck = "pyright src/entari_plugin_webui"
-test = "pytest -q"
+test = "pytest -v -s -W ignore"
 
 [tool.ruff]
 line-length = 120
