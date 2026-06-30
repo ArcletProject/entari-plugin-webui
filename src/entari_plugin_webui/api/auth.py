@@ -1,231 +1,110 @@
-"""认证相关 API"""
+from __future__ import annotations
 
-from typing import Optional
-from pydantic import BaseModel
-from fastapi import Request
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, Depends, HTTPException, Request, status
+from pydantic import BaseModel, Field
+from starlette.responses import JSONResponse
 
-from entari_plugin_server import add_route
+from entari_plugin_webui import webui_config
 
-from ..core.auth import (
-    create_tokens,
-    verify_token,
-    verify_password,
+from ..core.audit import audit
+from ..core.security import (
     hash_password,
-    require_auth,
-    generate_random_password,
+    is_local_mode,
+    verify_password,
 )
-from ..core.security import is_local_deployment
-from ..config import webui_config
+from ..core.session import SessionStore
+from .deps import get_session_store, require_auth
+
+router = APIRouter(prefix="/api/auth", tags=["auth"])
+
+_COOKIE = "webui_sid"
 
 
 class LoginRequest(BaseModel):
-    password: str = ""
+    password: str = Field(min_length=1)
 
 
-class RefreshTokenRequest(BaseModel):
-    refresh_token: str = ""
+class PasswordRequest(BaseModel):
+    old_password: str
+    new_password: str = Field(min_length=6)
 
 
-class ChangePasswordRequest(BaseModel):
-    old_password: str = ""
-    new_password: str = ""
+def _client_ip(request: Request) -> str:
+    return request.client.host if request.client else "unknown"
 
 
-def register_auth_routes():
-    """注册认证相关路由"""
-    pass  # 路由通过装饰器注册
+@router.get("/check")
+async def check_auth():
+    return {"local_mode": is_local_mode(), "initialized": bool(webui_config.password)}
 
 
-@add_route("/api/auth/check", methods=["GET"])
-async def check_auth_mode(request: Request) -> JSONResponse:
-    """
-    检查认证模式
-    
-    Returns:
-        {
-            "local_mode": true/false,  # 是否本地模式（无需认证）
-            "initialized": true/false  # 是否已初始化管理员密码
-        }
-    """
-    from entari_plugin_server import server
-    
-    # 检查请求来源是否为本地
-    client_host = request.client.host if request.client else None
-    local_mode = is_local_deployment(server.host) and (
-        client_host in ("127.0.0.1", "localhost", "::1", None)
+@router.post("/login")
+async def login(body: LoginRequest, request: Request, store: SessionStore = Depends(get_session_store)):
+    ip = _client_ip(request)
+    from .. import _login_throttle  # type: ignore  # noqa: PLC0415
+
+    if is_local_mode():
+        sid = store.create(ip=ip)
+        return _json_with_cookie({"success": True, "local_mode": True}, sid)
+
+    if _login_throttle.is_limited(ip):
+        audit("login.failed", ip=ip, reason="rate_limited")
+        raise HTTPException(
+            status.HTTP_429_TOO_MANY_REQUESTS,
+            "尝试过于频繁，请稍后再试",
+            headers={"Retry-After": str(_login_throttle.retry_after(ip))},
+        )
+
+    if not webui_config.password:
+        raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "管理员密码尚未初始化")
+
+    if not verify_password(body.password, webui_config.password):
+        _login_throttle.record_failure(ip)
+        audit("login.failed", ip=ip, reason="wrong_password")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "密码错误")
+
+    _login_throttle.reset(ip)
+    sid = store.create(ip=ip)
+    audit("login.success", ip=ip)
+    return _json_with_cookie({"success": True, "local_mode": False}, sid)
+
+
+@router.post("/logout")
+async def logout(request: Request, store: SessionStore = Depends(get_session_store)):
+    sid = request.cookies.get(_COOKIE)
+    if sid:
+        store.destroy(sid)
+    if not is_local_mode():
+        audit("logout", ip=_client_ip(request))
+    resp = JSONResponse({"success": True})
+    resp.delete_cookie(_COOKIE, path="/")
+    return resp
+
+
+@router.put("/password")
+async def change_password(
+    body: PasswordRequest,
+    request: Request,
+    _sess=Depends(require_auth),
+):
+    if not is_local_mode() and not verify_password(body.old_password, webui_config.password):
+        audit("password.change.failed", ip=_client_ip(request), reason="wrong_old")
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "旧密码错误")
+    webui_config.password = hash_password(body.new_password)
+    audit("password.change", ip=_client_ip(request))
+    return {"success": True}
+
+
+def _json_with_cookie(payload: dict, sid: str) -> JSONResponse:
+    resp = JSONResponse(payload)
+    secure = True
+    resp.set_cookie(
+        _COOKIE,
+        sid,
+        httponly=True,
+        samesite="lax",
+        secure=secure,
+        max_age=webui_config.session_ttl,
+        path="/",
     )
-    
-    # 检查是否已初始化密码
-    initialized = bool(webui_config.password)
-    
-    return JSONResponse({
-        "success": True,
-        "local_mode": local_mode,
-        "initialized": initialized
-    })
-
-
-@add_route("/api/auth/login", methods=["POST"])
-async def login(request: Request, body: LoginRequest) -> JSONResponse:
-    """
-    登录接口
-    
-    Request:
-        {"password": "xxx"}
-    
-    Returns:
-        {
-            "success": true,
-            "access_token": "...",
-            "refresh_token": "...",
-            "expires_in": 900
-        }
-    """
-    from entari_plugin_server import server
-    
-    # 检查是否本地访问
-    client_host = request.client.host if request.client else None
-    is_local = is_local_deployment(server.host) and (
-        client_host in ("127.0.0.1", "localhost", "::1", None)
-    )
-    
-    # 本地模式直接返回 token
-    if is_local:
-        tokens = create_tokens()
-        return JSONResponse({
-            "success": True,
-            **tokens
-        })
-    
-    # 验证密码
-    password = body.password
-    
-    if not password:
-        return JSONResponse({
-            "success": False,
-            "message": "请输入密码"
-        }, status_code=400)
-    
-    # 获取存储的密码哈希
-    stored_hash = webui_config.password
-    
-    if not stored_hash:
-        return JSONResponse({
-            "success": False,
-            "message": "管理员密码未初始化"
-        }, status_code=500)
-    
-    if not verify_password(password, stored_hash):
-        return JSONResponse({
-            "success": False,
-            "message": "密码错误"
-        }, status_code=401)
-    
-    # 生成 token
-    tokens = create_tokens()
-    return JSONResponse({
-        "success": True,
-        **tokens
-    })
-
-
-@add_route("/api/auth/refresh", methods=["POST"])
-async def refresh_token(body: RefreshTokenRequest) -> JSONResponse:
-    """
-    刷新访问令牌
-    
-    Request:
-        {"refresh_token": "xxx"}
-    
-    Returns:
-        {
-            "success": true,
-            "access_token": "...",
-            "refresh_token": "...",
-            "expires_in": 900
-        }
-    """
-    refresh = body.refresh_token
-    
-    if not refresh:
-        return JSONResponse({
-            "success": False,
-            "message": "未提供刷新令牌"
-        }, status_code=400)
-    
-    # 验证 refresh token
-    payload = verify_token(refresh, "refresh")
-    if payload is None:
-        return JSONResponse({
-            "success": False,
-            "message": "刷新令牌无效或已过期"
-        }, status_code=401)
-    
-    # 生成新 token
-    tokens = create_tokens()
-    return JSONResponse({
-        "success": True,
-        **tokens
-    })
-
-
-@add_route("/api/auth/password", methods=["PUT"])
-@require_auth
-async def change_password(body: ChangePasswordRequest) -> JSONResponse:
-    """
-    修改管理员密码
-    
-    Request:
-        {"old_password": "xxx", "new_password": "xxx"}
-    """
-    from entari_plugin_server import server
-    
-    old_password = body.old_password
-    new_password = body.new_password
-    
-    if not new_password:
-        return JSONResponse({
-            "success": False,
-            "message": "新密码不能为空"
-        }, status_code=400)
-    
-    if len(new_password) < 6:
-        return JSONResponse({
-            "success": False,
-            "message": "密码长度至少 6 位"
-        }, status_code=400)
-    
-    
-    # 非本地模式需要验证旧密码
-    if not is_local_deployment(server.host):
-        stored_hash = webui_config.password
-        
-        if stored_hash and not verify_password(old_password, stored_hash):
-            return JSONResponse({
-                "success": False,
-                "message": "原密码错误"
-            }, status_code=401)
-    
-    # 更新密码
-    new_hash = hash_password(new_password)
-    
-    webui_config.password = new_hash
-    # config_manager.save_config()
-    
-    if webui_config.password != new_hash:
-        return JSONResponse({
-            "success": False,
-            "message": "配置写入失败"
-        }, status_code=500)
-
-    return JSONResponse({
-        "success": True,
-        "message": "密码修改成功"
-    })
-
-
-@add_route("/api/auth/logout", methods=["POST"])
-async def logout() -> JSONResponse:
-    """登出（前端清除 token 即可）"""
-    return JSONResponse({"success": True})
+    return resp

@@ -85,3 +85,17 @@ def app(after_entari_init: None) -> FastAPI:
 @pytest.fixture
 def client(app):
     return TestClient(app)
+
+
+@pytest.fixture(autouse=True)
+def _reset_global_state():
+    from entari_plugin_webui import webui_config
+    from entari_plugin_webui.core.security import set_local_mode
+
+    set_local_mode(True)
+    webui_config.password = ""
+    webui_config.registry_url = ""
+    yield
+    set_local_mode(True)
+    webui_config.password = ""
+    webui_config.registry_url = ""

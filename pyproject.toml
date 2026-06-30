@@ -52,7 +52,7 @@ respect-gitignore = true
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B", "SIM", "W", "C", "T", "PYI", "PT", "Q"]
-ignore = ["C901", "T201", "E731", "E402", "PYI055"]
+ignore = ["C901", "T201", "E731", "E402", "PYI055", "B008"]
 
 [tool.ruff.lint.isort]
 force-sort-within-sections = false
