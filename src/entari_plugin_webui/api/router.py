@@ -7,6 +7,8 @@ from starlette.responses import JSONResponse
 
 from .auth import router as auth_router
 from .health import router as health_router
+from .menus import router as menu_router
+from .plugins import router as plugins_router
 
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 _SECURITY_HEADERS = {
@@ -63,4 +65,6 @@ def create_app() -> FastAPI:
     app.middleware("http")(_security_headers_middleware)
     app.include_router(auth_router)
     app.include_router(health_router)
+    app.include_router(menu_router)
+    app.include_router(plugins_router)
     return app

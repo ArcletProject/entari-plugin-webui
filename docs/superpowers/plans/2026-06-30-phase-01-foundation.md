@@ -237,6 +237,7 @@ from datetime import datetime
 from starlette.responses import FileResponse, Response
 
 from arclet.entari import plugin
+from arclet.entari.log import log
 from arclet.entari.event.lifespan import Startup
 from entari_plugin_server import add_route, replace_asgi, server
 
@@ -245,6 +246,7 @@ from .config import Config
 __version__ = "0.1.0"
 __all__ = ["webui_extend", "MenuItem", "WebUIExtension"]
 
+logger = log.wrapper("[webui]", color="green")
 _STATIC_DIR = Path(__file__).parent / "static"
 _FRONTEND_DIR = _STATIC_DIR / "frontend"
 
@@ -311,10 +313,10 @@ async def _root() -> Response:
 async def _on_startup() -> None:
     host = server.host or "127.0.0.1"
     port = server.port
-    plugin.logger.info(f"[WebUI] 管理面板已启动: http://{host}:{port}/")
+    logger.info(f"管理面板已启动: http://{host}:{port}/")
 ```
 
-> 注：`replace_asgi` 替换 server.app 并保留旧路由；`add_route` 注册到当前 `server.app`。`plugin.logger` 为 entari logger 别名（若不可用则回退 `from loguru import logger`）。
+> 注：`replace_asgi` 替换 server.app 并保留旧路由；`add_route` 注册到当前 `server.app`。
 >
 > **导入副作用提醒**：`__init__.py` 在 import 时即调用 `replace_asgi(...)`，会触碰 entari-plugin-server 的全局 `server` 单例。若测试 `from entari_plugin_webui.api import create_app` 因 global server 未初始化而报错，改为延迟装配：把 `replace_asgi(_create_app())` 移入 `_wire_server()` 函数，仅在 `Startup` listener 中调用一次；`add_route` 装饰的静态/SPA fallback 也迁入 `_wire_server` 之后。同时在 `__init__.py` 顶部加懒初始化标志避免重复 wiring。最终保持 `create_app()` 可被 TestClient 独立导入、不受全局 server 影响。
 
