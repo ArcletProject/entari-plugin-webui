@@ -1,13 +1,13 @@
 <template>
   <div class="oneof-field">
-    <div v-if="isSimple">
-      <el-select v-model="selectedIndex" @change="onTypeChange" style="width:100%;margin-bottom:8px">
+    <div v-if="isSimple" class="simple-row">
+      <el-select v-model="selectedIndex" @change="onTypeChange" class="type-select">
         <el-option v-for="(o, i) in simpleOptions" :key="i" :label="labelOf(o)" :value="i" />
       </el-select>
-      <el-input v-if="curType==='string'" v-model="model" />
-      <el-input-number v-else-if="curType==='number'||curType==='integer'" v-model="model" :step="curType==='integer'?1:0.1" style="width:100%" />
+      <el-input v-if="curType==='string'" v-model="model" class="value-input" />
+      <el-input-number v-else-if="curType==='number'||curType==='integer'" v-model="model" :step="curType==='integer'?1:0.1" class="value-input" />
       <el-switch v-else-if="curType==='boolean'" v-model="model" />
-      <el-input v-else-if="curType==='null'" model-value="null" disabled />
+      <el-input v-else-if="curType==='null'" model-value="null" disabled class="value-input" />
     </div>
     <div v-else>
       <el-select v-model="selectedIndex" @change="onTypeChange" style="width:100%;margin-bottom:8px">
@@ -76,5 +76,18 @@ watch(() => props.modelValue, () => {
 <style scoped>
 .oneof-field {
   width: 100%;
+}
+.simple-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.type-select {
+  width: 140px;
+  flex-shrink: 0;
+}
+.value-input {
+  flex: 1;
+  min-width: 0;
 }
 </style>

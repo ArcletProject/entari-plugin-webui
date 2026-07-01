@@ -1,5 +1,9 @@
 <template>
   <div class="dashboard-page">
+    <div class="page-header">
+      <h2>仪表盘</h2>
+      <el-tag :type="modeTag.type as any" size="large">{{ modeTag.label }}</el-tag>
+    </div>
     <div class="stats-row">
       <StatCard v-for="s in stats" :key="s.label" :value="s.value" :label="s.label" />
     </div>
@@ -18,7 +22,9 @@
 import { ref, onMounted, computed } from "vue";
 import api from "@/api/client";
 import StatCard from "@/components/common/StatCard.vue";
+import { useAuthStore } from "@/stores/auth";
 
+const auth = useAuthStore();
 const data = ref<any>({});
 const stats = computed(() => [
   { value: data.value.today_messages ?? 0, label: "今日消息" },
@@ -26,6 +32,10 @@ const stats = computed(() => [
   { value: `${data.value.plugins_enabled ?? 0}/${data.value.plugins_total ?? 0}`, label: "启用/插件" },
   { value: data.value.runtime_minutes ?? 0, label: "运行分钟" },
 ]);
+const modeTag = computed(() => ({
+  type: auth.localMode ? "success" : "primary",
+  label: auth.localMode ? "本地模式" : "远程模式",
+}));
 const chartOption = computed(() => ({
   xAxis: { type: "category", data: ["周一", "周二", "周三", "周四", "周五", "周六", "周日"] },
   yAxis: { type: "value" },
@@ -40,6 +50,8 @@ onMounted(async () => {
 </script>
 <style scoped>
 .dashboard-page { padding: 16px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+.page-header h2 { margin: 0; }
 .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
 .chart-card { margin-bottom: 16px; }
 .chart { height: 360px; }
