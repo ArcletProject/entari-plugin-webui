@@ -6,6 +6,7 @@ from pathlib import Path
 
 from arclet.entari import plugin
 from arclet.entari.event.lifespan import Startup
+from arclet.entari.event.send import SendResponse
 from arclet.entari.logger import log
 from arclet.entari.plugin import PluginRole, plugin_config
 from entari_plugin_server import add_route, replace_asgi, server
@@ -31,6 +32,8 @@ logger = log.wrapper("[webui]", color="green")
 webui_config = plugin_config(Config)
 
 from .api import create_app as _create_app  # noqa: E402
+from .models.stats import MessageStat  # noqa: F401
+from .services.stats_service import increment  # noqa: PLC0415
 
 _session_store: SessionStore = SessionStore(ttl=webui_config.session_ttl)
 _login_throttle = LoginThrottle(*parse_rate_limit(webui_config.login_rate_limit))
@@ -87,6 +90,16 @@ if _FRONTEND_DIR.exists():
 
 add_route("/{path:path}", methods=["GET"])(_spa_fallback)
 add_route("/", methods=["GET"])(_root)
+
+
+# ---------- SendResponse listener (message counting) ----------
+@plugin.listen(SendResponse)
+async def _on_message_sent(event: SendResponse) -> None:
+    platform = event.account.platform
+    try:
+        await increment(platform)
+    except Exception:  # noqa: BLE001
+        logger.debug("消息计数失败")
 
 
 # ---------- Startup listener ----------

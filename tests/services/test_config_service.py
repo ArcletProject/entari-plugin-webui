@@ -37,9 +37,7 @@ def test_get_section_basic(monkeypatch):
 def test_get_section_plugin(monkeypatch):
     from entari_plugin_webui.services import config_service as cs
 
-    monkeypatch.setattr(
-        cs, "EntariConfig", MagicMock(instance=_cfg({"plugins": {"webui": {"password": "x"}}}))
-    )
+    monkeypatch.setattr(cs, "EntariConfig", MagicMock(instance=_cfg({"plugins": {"webui": {"password": "x"}}})))
     out = cs.get_section("plugins:webui")
     assert out == {"password": "x"}
 
@@ -52,7 +50,6 @@ def test_update_section(monkeypatch):
     cs.update_section("basic", {"prefix": ["/a"]})
     assert cfg.data["basic"]["prefix"] == ["/a"]
     cfg.save.assert_called_once()
-
 
 
 def test_inject_meta_properties(monkeypatch):

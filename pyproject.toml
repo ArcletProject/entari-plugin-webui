@@ -44,6 +44,9 @@ lint = "ruff check src/ tests/ --fix"
 typecheck = "pyright src/entari_plugin_webui"
 test = "pytest -v -s -W ignore"
 
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
 [tool.ruff]
 line-length = 120
 target-version = "py310"

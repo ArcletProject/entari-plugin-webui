@@ -22,6 +22,9 @@ def pytest_configure(config: pytest.Config):
 basic:
   log:
     level: debug
+    ignores:
+      - "aiosqlite.core"
+      - "asyncio.selector_events"
 """
     config.stash[ENTARI_WEBUI_CONFIG] = {}
 
@@ -49,18 +52,22 @@ def _entari_init(request: pytest.FixtureRequest, entari_yml_text: Path):
 def after_entari_init(_entari_init: None, request: pytest.FixtureRequest):
     from arclet.entari import load_plugin
 
+    load_plugin("entari_plugin_server", {"port": 9555})
+    load_plugin("entari_plugin_database", {"name": ":memory:"})
     load_plugin("entari_plugin_webui", config=request.config.stash[ENTARI_WEBUI_CONFIG])
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def entari_init(_entari_init, after_entari_init: None):
     from arclet.letoderea.utils import set_event_loop
+    from entari_plugin_database import service as db_service
 
     set_event_loop(asyncio.get_running_loop())
     manager = it(Launart)
     task = asyncio.create_task(_entari_init.run_async())
 
     await manager.status.wait_for_blocking()
+    await db_service.status.wait_for("blocking")
 
     yield _entari_init
 
@@ -88,7 +95,7 @@ def client(app):
 
 
 @pytest.fixture(autouse=True)
-def _reset_global_state():
+def _reset_global_state(after_entari_init: None):
     from entari_plugin_webui import webui_config
     from entari_plugin_webui.core.security import set_local_mode
 

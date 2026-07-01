@@ -46,7 +46,7 @@ def get_section(section: str) -> Any:
     if section == "plugins":
         return _unwrap(cfg.plugin)
     if section.startswith("plugins:"):
-        key = section[len("plugins:"):]
+        key = section[len("plugins:") :]
         return _unwrap((cfg.plugin or {}).get(key, {}))
     raise KeyError(section)
 
@@ -64,7 +64,7 @@ def update_section(section: str, data: Any) -> None:
     elif section == "plugins":
         nest_dict_update(cfg.data["plugins"], data)
     elif section.startswith("plugins:"):
-        key = section[len("plugins:"):]
+        key = section[len("plugins:") :]
         target = cfg.data.setdefault("plugins", {}).setdefault(key, {})
         nest_dict_update(target, data)
     else:
