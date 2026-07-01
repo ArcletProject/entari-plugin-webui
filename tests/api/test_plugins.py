@@ -20,4 +20,4 @@ def test_toggle(client, monkeypatch):
 def test_menus(client):
     r = client.get("/api/menus")
     labels = [m["label_key"] for m in r.json()["menus"]]
-    assert labels == ["menu.dashboard", "menu.plugins", "menu.market", "menu.config", "menu.logs"]
+    assert labels == ["menu.dashboard", "menu.plugins", "menu.market", "menu.config", "menu.logs", "menu.chat"]
