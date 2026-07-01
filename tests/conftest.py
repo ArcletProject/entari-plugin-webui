@@ -105,7 +105,6 @@ def _reset_global_state(after_entari_init: None):
     webui_config.registry_url = ""
     webui_config.package_manager = ""
 
-
     _ms._PM = None
     _ms._loaded_cache = None
     _ms._loaded_at = 0.0

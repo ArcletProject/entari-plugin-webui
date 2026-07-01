@@ -1,40 +1,16 @@
-# Entari WebUI 示例配置
+# yaml-language-server: $schema=./entari.schema.json
 
 basic:
-  # 命令前缀
-  prefix:
-    - "/"
-
-  # 忽略自身消息
-  ignore_self_message: true
-
-  # 网络配置
-  network:
-    - type: ws
-      host: localhost
-      port: 9555
-      path: /satori
-
-  # 日志配置
   log:
-    level: INFO
-
+    level: debug
+    ignores:
+      - "aiosqlite.core"
+      - "asyncio.selector_events"
+  schema: true
 plugins:
-  # 数据库插件
-  database:
-    type: sqlite
-    name: database.db
-    driver: aiosqlite
   server:
-    host: localhost
-    port: 9555
-    path: /satori
+    port: 8765
+    path: ""
+  database:
+    name: ":memory:"
   webui: {}
-  ::echo: {}
-  ::inspect: {}
-  ::help: {}
-adapters:
-  - $path: '@onebot11.reverse'
-  # 密码会在首次启动时自动生成
-  # webui:
-  #   password: "hashed_password_here"

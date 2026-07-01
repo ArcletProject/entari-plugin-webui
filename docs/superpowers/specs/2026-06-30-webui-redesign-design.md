@@ -456,7 +456,7 @@ digraph {
 
 ## 14. 构建与部署
 
-- `pyproject.toml`：依赖 `arclet-entari[dotenv,reload,yaml]>=0.17.0`、`entari-plugin-server>=0.6.1`、`entari-plugin-database>=0.2.3`、`fastapi>=0.135.1`、`httpx>=0.27`（拉 registry）、`ansi2html>=1.9.2`。
+- `pyproject.toml`：依赖 `arclet-entari[dotenv,reload,yaml]>=0.17.0`、`entari-plugin-server>=0.6.1`、`entari-plugin-database>=0.2.3`、`fastapi>=0.135.1`、`ansi2html>=1.9.2`。
 - PDM scripts：`build-frontend`=`cd frontend && npm ci && npm run build`；`build-all`=`build-frontend` + `pdm build`；`dev`=`cd frontend && npm run dev`。
 - `Dockerfile`（多阶段）：node 构建前端 → 复制到 `static/frontend/` → python 构建运行时跑 `python -m arclet.entari`。
 - `docker-compose.yml`：端口 5150，挂 `entari.yml` 与 `data/`。

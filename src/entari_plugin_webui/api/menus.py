@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
+from ..core.extension import get_all_menus
 from .deps import require_auth
 
 router = APIRouter(prefix="/api", tags=["menus"], dependencies=[Depends(require_auth)])
@@ -17,8 +18,6 @@ BUILTIN_MENUS = [
 
 @router.get("/menus")
 async def menus():
-    from ..core.extension import get_all_menus
-
     extension = get_all_menus()
     merged = sorted(BUILTIN_MENUS + extension, key=lambda m: m.get("order", 100))
     return {"success": True, "menus": merged}

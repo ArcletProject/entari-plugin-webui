@@ -9,8 +9,10 @@ from pathlib import Path
 from typing import Any
 
 import aiohttp
+from arclet.entari import Entari
 
-from .. import webui_config
+from entari_plugin_webui import webui_config
+
 from . import package_manager as _pm
 
 _CACHE_PATH = Path(__file__).resolve().parent.parent / "static" / "marketplace.json"
@@ -61,12 +63,20 @@ _loaded_at: float = 0.0
 
 async def _fetch_remote(url: str) -> dict[str, Any] | None:
     try:
-        async with (
-            aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session,
-            session.get(url) as response,
-        ):
+        app = Entari.current()
+        async with app.http.get(url, timeout=aiohttp.ClientTimeout(total=10)) as response:
             response.raise_for_status()
             return await response.json()
+    except (LookupError, RuntimeError, ValueError):
+        try:
+            async with (
+                aiohttp.ClientSession(timeout=aiohttp.ClientTimeout(total=10)) as session,
+                session.get(url) as response,
+            ):
+                response.raise_for_status()
+                return await response.json()
+        except Exception:  # noqa: BLE001
+            return None
     except Exception:  # noqa: BLE001
         return None
 

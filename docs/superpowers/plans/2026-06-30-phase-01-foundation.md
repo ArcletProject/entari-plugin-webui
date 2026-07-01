@@ -6,7 +6,7 @@
 
 **Architecture:** 包 `entari_plugin_webui`；`api/router.py` 用 `FastAPI` 聚合后 `entari_plugin_server.replace_asgi(app)` 替换 server app；扩展路由仍以 `add_route` 在 startup 挂到 `server.app`。配置模型 `Config` 用 `BasicConfModel`。
 
-**Tech Stack:** Python ≥3.10、pdm-backend、arclet-entari、entari-plugin-server、entari-plugin-database、fastapi、starlette、httpx、ruff、pyright、pytest。
+**Tech Stack:** Python ≥3.10、pdm-backend、arclet-entari、entari-plugin-server、entari-plugin-database、fastapi、starlette、ruff、pyright、pytest。
 
 ---
 
@@ -45,7 +45,6 @@ dependencies = [
     "entari-plugin-server>=0.7.1",
     "entari-plugin-database>=0.3.2",
     "fastapi>=0.135.1",
-    "httpx>=0.27",
     "ansi2html>=1.9.2",
 ]
 requires-python = ">=3.10"

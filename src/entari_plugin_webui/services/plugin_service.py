@@ -88,7 +88,7 @@ async def reload_plugin(plugin_id: str) -> bool:
     await unload_plugin_async(plugin_id)
     new = load_plugin(plugin_id)
     if new is not None:
-        await enable_plugin(plugin_id)
+        _ = await enable_plugin(plugin_id)
         return True
     return False
 
