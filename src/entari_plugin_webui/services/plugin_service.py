@@ -13,13 +13,14 @@ from arclet.entari.plugin import (
     load_plugin,
     unload_plugin_async,
 )
+from arclet.entari.plugin.model import Plugin, PluginMetadata
 
 
 class PluginNotFound(Exception):
     pass
 
 
-def _authors(meta) -> list[str]:
+def _authors(meta: PluginMetadata) -> list[str]:
     out = []
     for a in meta.author or []:
         if isinstance(a, dict):
@@ -29,7 +30,7 @@ def _authors(meta) -> list[str]:
     return out
 
 
-def serialize_plugin(plug) -> dict[str, Any]:
+def serialize_plugin(plug: Plugin) -> dict[str, Any]:
     meta = plug.metadata
     configurable = bool(meta and getattr(meta, "config", None))
     return {
@@ -54,6 +55,7 @@ def serialize_plugin(plug) -> dict[str, Any]:
         "configurable": configurable,
         "references": sorted(get_plugin_references(plug)),
         "referents": sorted(get_plugin_referents(plug)),
+        "readme": meta.readme if meta else None,
     }
 
 

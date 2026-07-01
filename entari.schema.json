@@ -368,6 +368,25 @@
           "default": [],
           "uniqueItems": true
         },
+        "::echo": {
+          "type": "object",
+          "description": "Echo the content; no configuration required",
+          "additionalProperties": true,
+          "properties": {
+            "$disable": {
+              "type": "string",
+              "description": "Expression for whether disable this plugin"
+            },
+            "$priority": {
+              "type": "integer",
+              "description": "Plugin loading priority, lower value means higher priority (default: 16)"
+            },
+            "$filter": {
+              "type": "string",
+              "description": "Plugin filter expression, which will be evaluated in the context of the plugin"
+            }
+          }
+        },
         "server": {
           "type": "object",
           "title": "Config",

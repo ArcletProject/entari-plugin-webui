@@ -24,6 +24,7 @@
 </template>
 <script setup lang="ts">
 import { computed } from "vue";
+import MarkdownViewer from "@/components/common/MarkdownViewer.vue";
 const props = defineProps<{ plugin: any }>();
 const authors = computed(() => {
   const a = props.plugin.authors;
@@ -38,3 +39,9 @@ const urlEntries = computed(() => {
   return [];
 });
 </script>
+<style scoped>
+.plugin-detail {
+  max-height: 70vh;
+  overflow: auto;
+}
+</style>

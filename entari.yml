@@ -8,6 +8,7 @@ basic:
       - "asyncio.selector_events"
   schema: true
 plugins:
+  ::echo: {}
   server:
     port: 8765
     path: "satori"
