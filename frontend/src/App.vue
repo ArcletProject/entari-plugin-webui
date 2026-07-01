@@ -1,6 +1,10 @@
 <template>
   <OfflineOverlay />
-  <component :is="layout"><RouterView /></component>
+  <component :is="layout">
+    <keep-alive include="Chat,Logs">
+      <RouterView />
+    </keep-alive>
+  </component>
 </template>
 <script setup lang="ts">
 import { computed } from "vue";

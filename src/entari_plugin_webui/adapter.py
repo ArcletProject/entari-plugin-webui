@@ -15,6 +15,7 @@ from yarl import URL
 from satori import Api, Event, EventType, LoginStatus
 from satori.exception import ActionFailed
 from satori.model import Login, User, MessageObject, Channel, ChannelType
+from satori.parser import Element, parse
 from satori.server import Request
 from satori.server.route import MessageParam
 from satori.server.adapter import Adapter as BaseAdapter
@@ -23,10 +24,31 @@ from satori.utils import decode, encode
 from .core.security import is_local_mode
 
 
+def serialize_element(element: Element):
+    return {
+        "type": element.type,
+        "attrs": element.attrs,
+        "children": [serialize_element(child) for child in element.children],
+    }
+
+def deserialize_element(data: dict) -> Element:
+    return Element(
+        data["type"],
+        data.get("attrs", {}),
+        *(deserialize_element(child) for child in data.get("children", [])),
+    )
+
+
+def elements_to_content(elements: list[dict] | None) -> str:
+    if not elements:
+        return ""
+    return "".join(str(deserialize_element(e)) for e in elements)
+
+
 async def message_receive(raw: dict, conn: WebsocketConnection):
     user_id = raw["user_id"]
     message_id = raw["message_id"]
-    message_content = raw["message_content"]
+    message_content = raw.get("message_content") or elements_to_content(raw.get("elements"))
     return Event(
         EventType.MESSAGE_CREATED,
         datetime.now(),
@@ -101,8 +123,15 @@ def apply(adapter: WebUIAdapter):
     @adapter.route(Api.MESSAGE_CREATE)
     async def _message_create(request: Request[MessageParam]):
         conn = adapter.connections[request.self_id]
-        result = await conn.call_api("message_create", {**request.params})
-        return [MessageObject(result["id"], request.params["content"])]
+        channel_id = request.params["channel_id"]
+        if "elements" in request.params:
+            elements = request.params["elements"]
+            content = elements_to_content(elements)
+        else:
+            content = request.params["content"]
+            elements = [serialize_element(e) for e in parse(content)]
+        result = await conn.call_api("message_create", {"channel_id": channel_id, "elements": elements})
+        return [MessageObject(result["id"], content)]
 
 
 class WebUIAdapter(BaseAdapter):

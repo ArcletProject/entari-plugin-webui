@@ -1,9 +1,12 @@
-import { ref, onUnmounted } from "vue";
+import { defineStore } from "pinia";
+import { ref, computed } from "vue";
+import { renderSatori, buildTextElement, type SatoriElement } from "@/utils/satori";
 
 export interface ChatMessage {
   id: string;
   role: "user" | "bot" | "system";
   content: string;
+  elements?: SatoriElement[];
   time: Date;
 }
 
@@ -20,7 +23,20 @@ function uuid() {
   });
 }
 
-export function useChat() {
+function elementsToText(elements: SatoriElement[] | undefined): string {
+  if (!elements) return "";
+  return elements
+    .map((el) => {
+      if (el.type === "text") return String(el.attrs?.text ?? "");
+      if (el.type === "img" || el.type === "image") return "[图片]";
+      if (el.type === "at") return `@${el.attrs?.name ?? el.attrs?.id ?? ""}`;
+      if (el.children) return elementsToText(el.children);
+      return "";
+    })
+    .join("");
+}
+
+export const useChatStore = defineStore("chat", () => {
   const connected = ref(false);
   const messages = ref<ChatMessage[]>([]);
   const error = ref<string>("");
@@ -30,7 +46,6 @@ export function useChat() {
 
   function connect() {
     if (!shouldReconnect) return;
-    // 避免重复创建连接
     if (ws && (ws.readyState === WebSocket.CONNECTING || ws.readyState === WebSocket.OPEN)) return;
 
     ws = new WebSocket(buildUrl());
@@ -64,17 +79,22 @@ export function useChat() {
     // 响应 adapter 的 API 调用（带 token）
     if (data.action && data.token) {
       ws?.send(JSON.stringify({ token: data.token, status: "ok", data: { id: uuid() } }));
-      if (data.action === "message_create" && data.data?.content) {
-        messages.value.push({ id: uuid(), role: "bot", content: data.data.content, time: new Date() });
+      if (data.action === "message_create") {
+        const elements: SatoriElement[] | undefined = data.data?.elements;
+        const content = elementsToText(elements);
+        messages.value.push({ id: uuid(), role: "bot", content, elements, time: new Date() });
       }
       return;
     }
-    // 普通事件
-    if (data.type === "message_create" && data.data?.message_content) {
+    // 普通事件：用户消息回显
+    if (data.type === "message_create") {
+      const elements: SatoriElement[] | undefined = data.data?.elements;
+      const content = elementsToText(elements);
       messages.value.push({
-        id: data.data.message_id || uuid(),
+        id: data.data?.message_id || uuid(),
         role: "user",
-        content: data.data.message_content,
+        content,
+        elements,
         time: new Date(),
       });
     }
@@ -83,17 +103,22 @@ export function useChat() {
   function sendText(text: string) {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     const id = uuid();
-    messages.value.push({ id, role: "user", content: text, time: new Date() });
+    const elements = [buildTextElement(text)];
+    messages.value.push({ id, role: "user", content: text, elements, time: new Date() });
     ws.send(
       JSON.stringify({
         type: "message_create",
         data: {
           user_id: "user",
           message_id: id,
-          message_content: text,
+          elements,
         },
       }),
     );
+  }
+
+  function ensureConnection() {
+    connect();
   }
 
   function disconnect() {
@@ -106,8 +131,15 @@ export function useChat() {
     ws = null;
   }
 
-  connect();
-  onUnmounted(disconnect);
+  // 页面加载后自动连接一次
+  if (!ws && shouldReconnect) connect();
 
-  return { connected, messages, error, sendText };
-}
+  return {
+    connected,
+    messages,
+    error,
+    sendText,
+    ensureConnection,
+    disconnect,
+  };
+});

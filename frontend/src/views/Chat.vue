@@ -2,63 +2,89 @@
   <div class="chat-page">
     <div class="chat-header">
       <h3>{{ t("menu.chat") }}</h3>
-      <el-tag :type="connected ? 'success' : 'danger'" size="small">
-        {{ connected ? "已连接" : "未连接" }}
+      <el-tag :type="chat.connected ? 'success' : 'danger'" size="small">
+        {{ chat.connected ? t("chat.connected") : t("chat.disconnected") }}
       </el-tag>
     </div>
+
     <div class="chat-messages" ref="msgHost">
-      <div
-        v-for="m in messages"
-        :key="m.id"
-        :class="['message-row', m.role]"
-      >
-        <div class="bubble">
-          <div class="content">{{ m.content }}</div>
-          <div class="time">{{ formatTime(m.time) }}</div>
-        </div>
+      <el-empty v-if="!chat.messages.length" :description="t('chat.empty')" />
+      <template v-else>
+        <ChatMessage v-for="m in chat.messages" :key="m.id" :data="m" />
+      </template>
+    </div>
+
+    <div class="chat-footer">
+      <div v-if="quote" class="quote-bar">
+        <span>{{ t("chat.replyTo") }} {{ quote.content.slice(0, 30) }}</span>
+        <el-icon class="close" @click="quote = null"><Close /></el-icon>
+      </div>
+      <div class="chat-input">
+        <el-input
+          v-model="input"
+          type="textarea"
+          :rows="1"
+          :autosize="{ minRows: 1, maxRows: 6 }"
+          resize="none"
+          :placeholder="t('chat.placeholder')"
+          :disabled="!chat.connected"
+          @keydown="onKeydown"
+        />
+        <el-button
+          type="primary"
+          :disabled="!chat.connected || !input.trim()"
+          @click="send"
+        >
+          {{ t("chat.send") }}
+        </el-button>
       </div>
     </div>
-    <div class="chat-input">
-      <el-input
-        v-model="input"
-        placeholder="输入消息..."
-        :disabled="!connected"
-        @keyup.enter="send"
-      />
-      <el-button type="primary" :disabled="!connected || !input.trim()" @click="send">
-        发送
-      </el-button>
-    </div>
-    <el-alert v-if="error" :title="error" type="error" :closable="false" />
+
+    <el-alert v-if="chat.error" :title="chat.error" type="error" :closable="false" class="chat-error" />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from "vue";
+import { ref, watch, nextTick, onMounted } from "vue";
 import { useI18n } from "vue-i18n";
-import { useChat } from "@/composables/useChat";
+import { Close } from "@element-plus/icons-vue";
+import { useChatStore, type ChatMessage as ChatMessageData } from "@/stores/chat";
+import ChatMessage from "@/components/chat/ChatMessage.vue";
+
+defineOptions({ name: "Chat" });
 
 const { t } = useI18n();
-const { connected, messages, error, sendText } = useChat();
+const chat = useChatStore();
 const input = ref("");
 const msgHost = ref<HTMLElement>();
+const quote = ref<ChatMessageData | null>(null);
+
+onMounted(() => {
+  chat.ensureConnection();
+});
 
 function send() {
   const text = input.value.trim();
   if (!text) return;
-  sendText(text);
+  chat.sendText(text);
   input.value = "";
+  quote.value = null;
 }
 
-function formatTime(d: Date) {
-  return d.toLocaleTimeString("zh-CN", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+function onKeydown(e: KeyboardEvent) {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    send();
+  }
 }
 
 watch(
-  () => messages.value.length,
+  () => chat.messages.length,
   async () => {
     await nextTick();
-    if (msgHost.value) msgHost.value.scrollTop = msgHost.value.scrollHeight;
+    if (msgHost.value) {
+      msgHost.value.scrollTo({ top: msgHost.value.scrollHeight, behavior: "smooth" });
+    }
   },
 );
 </script>
@@ -88,48 +114,35 @@ watch(
   background: var(--el-fill-color-light);
   margin-bottom: 12px;
 }
-.message-row {
-  display: flex;
-  margin-bottom: 12px;
-}
-.message-row.user {
-  justify-content: flex-end;
-}
-.message-row.bot {
-  justify-content: flex-start;
-}
-.message-row.system {
-  justify-content: center;
-}
-.bubble {
-  max-width: 70%;
-  padding: 10px 14px;
-  border-radius: 12px;
+.chat-footer {
+  border: 1px solid var(--el-border-color);
+  border-radius: 8px;
+  padding: 12px;
   background: var(--el-bg-color);
-  box-shadow: var(--el-box-shadow-light);
 }
-.message-row.user .bubble {
-  background: var(--el-color-primary);
-  color: #fff;
-}
-.message-row.system .bubble {
+.quote-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding: 6px 10px;
+  border-radius: 6px;
   background: var(--el-fill-color);
+  font-size: 13px;
   color: var(--el-text-color-secondary);
-  font-size: 12px;
-  padding: 4px 10px;
 }
-.content {
-  word-break: break-word;
-  white-space: pre-wrap;
-}
-.time {
-  font-size: 11px;
-  margin-top: 4px;
-  opacity: 0.7;
-  text-align: right;
+.quote-bar .close {
+  cursor: pointer;
 }
 .chat-input {
   display: flex;
   gap: 8px;
+  align-items: flex-end;
+}
+.chat-input .el-textarea {
+  flex: 1;
+}
+.chat-error {
+  margin-top: 12px;
 }
 </style>

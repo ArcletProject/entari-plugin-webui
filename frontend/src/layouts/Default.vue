@@ -23,7 +23,7 @@
           </template>
         </el-dropdown>
       </el-header>
-      <el-main><RouterView /></el-main>
+      <el-main><slot /></el-main>
     </el-container>
   </el-container>
 </template>
