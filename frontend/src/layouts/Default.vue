@@ -1,0 +1,65 @@
+<template>
+  <el-container style="height:100vh">
+    <el-aside :width="collapsed ? '64px' : '220px'">
+      <div class="logo">{{ collapsed ? "E" : "Entari" }}</div>
+      <el-menu :default-active="route.path" :collapse="collapsed" router>
+        <el-menu-item v-for="m in menu.items" :key="m.path" :index="m.path">
+          <el-icon><Icon :icon="m.icon" /></el-icon>
+          <template #title>{{ t(m.label_key) }}</template>
+        </el-menu-item>
+      </el-menu>
+    </el-aside>
+    <el-container>
+      <el-header class="header">
+        <el-button text @click="collapsed = !collapsed"><el-icon><Fold /></el-icon></el-button>
+        <div class="spacer"></div>
+        <ThemeToggle />
+        <el-dropdown v-if="!auth.localMode">
+          <el-button text>{{ t("auth.logout") }}</el-button>
+          <template #dropdown>
+            <el-dropdown-menu>
+              <el-dropdown-item @click="doLogout">{{ t("auth.logout") }}</el-dropdown-item>
+            </el-dropdown-menu>
+          </template>
+        </el-dropdown>
+      </el-header>
+      <el-main><RouterView /></el-main>
+    </el-container>
+  </el-container>
+</template>
+<script setup lang="ts">
+import { ref, onMounted } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useI18n } from "vue-i18n";
+import { Fold } from "@element-plus/icons-vue";
+import Icon from "@/components/AppIcon.vue";
+import ThemeToggle from "@/components/ThemeToggle.vue";
+import { useMenuStore } from "@/stores/menu";
+import { useAuthStore } from "@/stores/auth";
+
+const menu = useMenuStore();
+const auth = useAuthStore();
+const route = useRoute();
+const router = useRouter();
+const { t } = useI18n();
+const collapsed = ref(false);
+onMounted(() => { menu.load(); });
+async function doLogout() { await auth.logout(); router.push("/login"); }
+</script>
+<style scoped>
+.logo {
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  font-size: 20px;
+  border-bottom: 1px solid var(--el-border-color);
+}
+.header {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--el-border-color);
+}
+.spacer { flex: 1; }
+</style>
