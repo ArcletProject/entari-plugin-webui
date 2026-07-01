@@ -1,8 +1,16 @@
 <template>
   <div class="plugins-page">
     <div class="toolbar">
-      <el-input v-model="search" placeholder="搜索" style="width:240px" clearable />
-      <el-switch v-model="caseSensitive" active-text="大小写敏感" />
+      <el-input v-model="search" placeholder="搜索" style="width:260px" clearable>
+        <template #suffix>
+          <el-button
+            text
+            :class="['case-btn', { active: caseSensitive }]"
+            @click="caseSensitive = !caseSensitive"
+            title="大小写敏感"
+          >Aa</el-button>
+        </template>
+      </el-input>
     </div>
     <el-table :data="filtered" v-loading="loading">
       <el-table-column prop="name" label="名称" width="180" />
@@ -80,4 +88,15 @@ onMounted(load);
 <style scoped>
 .plugins-page { padding: 16px; }
 .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
+.case-btn {
+  padding: 0 4px;
+  min-height: auto;
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  font-weight: bold;
+}
+.case-btn.active {
+  color: var(--el-color-primary);
+  background: var(--el-color-primary-light-9);
+}
 </style>
