@@ -1,24 +1,24 @@
 <template>
   <div class="schema-field">
     <div class="field-header">
-      <label class="field-label">
-        {{ displayTitle }}
-        <span v-if="required" class="required">*</span>
-      </label>
-      <el-tooltip v-if="resolved.description" :content="String(resolved.description)" placement="top">
-        <el-icon size="14"><InfoFilled /></el-icon>
-      </el-tooltip>
-      <div class="field-actions">
-        <el-dropdown trigger="click" @command="onCmd">
-          <el-icon size="14" class="more"><MoreFilled /></el-icon>
-          <template #dropdown>
-            <el-dropdown-menu>
-              <el-dropdown-item command="json">编辑 JSON</el-dropdown-item>
-              <el-dropdown-item command="reset">恢复默认值</el-dropdown-item>
-            </el-dropdown-menu>
-          </template>
-        </el-dropdown>
+      <div class="field-title-row">
+        <label class="field-label">
+          {{ displayTitle }}
+          <span v-if="required" class="required">*</span>
+        </label>
+        <div class="field-actions">
+          <el-dropdown trigger="click" @command="onCmd">
+            <el-icon size="14" class="more"><MoreFilled /></el-icon>
+            <template #dropdown>
+              <el-dropdown-menu>
+                <el-dropdown-item command="json">编辑 JSON</el-dropdown-item>
+                <el-dropdown-item command="reset">恢复默认值</el-dropdown-item>
+              </el-dropdown-menu>
+            </template>
+          </el-dropdown>
+        </div>
       </div>
+      <div v-if="resolved.description" class="field-desc">{{ resolved.description }}</div>
     </div>
 
     <div class="field-control">
@@ -68,7 +68,7 @@
 
 <script setup lang="ts">
 import { computed, ref } from "vue";
-import { InfoFilled, MoreFilled } from "@element-plus/icons-vue";
+import { MoreFilled } from "@element-plus/icons-vue";
 import ArrayField from "./ArrayField.vue";
 import ObjectField from "./ObjectField.vue";
 import OneOfField from "./OneOfField.vue";
@@ -166,10 +166,12 @@ function applyJson() {
   margin-bottom: 16px;
 }
 .field-header {
+  margin-bottom: 6px;
+}
+.field-title-row {
   display: flex;
   align-items: center;
   gap: 6px;
-  margin-bottom: 6px;
 }
 .field-label {
   font-weight: 500;
@@ -178,6 +180,12 @@ function applyJson() {
 .required {
   color: var(--el-color-danger);
   margin-left: 2px;
+}
+.field-desc {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
+  margin-top: 2px;
+  line-height: 1.4;
 }
 .field-actions {
   margin-left: auto;
