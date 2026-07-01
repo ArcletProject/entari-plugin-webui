@@ -1,6 +1,9 @@
 <template>
   <div class="plugins-page">
-    <el-input v-model="search" placeholder="搜索" style="width:240px;float:right" />
+    <div class="toolbar">
+      <el-input v-model="search" placeholder="搜索" style="width:240px" clearable />
+      <el-switch v-model="caseSensitive" active-text="大小写敏感" />
+    </div>
     <el-table :data="filtered" v-loading="loading">
       <el-table-column prop="name" label="名称" width="180" />
       <el-table-column prop="description" label="描述" show-overflow-tooltip />
@@ -39,7 +42,15 @@ import DualConfigEditor from "@/components/config/DualConfigEditor.vue";
 import PluginDetailModal from "@/components/plugins/PluginDetailModal.vue";
 
 const loading = ref(false); const list = ref<any[]>([]); const search = ref("");
-const filtered = computed(() => list.value.filter(p => p.name.includes(search.value)));
+const caseSensitive = ref(false);
+const filtered = computed(() => {
+  if (!search.value) return list.value;
+  const q = caseSensitive.value ? search.value : search.value.toLowerCase();
+  return list.value.filter((p) => {
+    const name = caseSensitive.value ? p.name : String(p.name || "").toLowerCase();
+    return name.includes(q);
+  });
+});
 const detail = ref<any>(null);
 const detailVisible = computed({ get: () => !!detail.value, set: (v) => { if (!v) detail.value = null; } });
 
@@ -68,4 +79,5 @@ onMounted(load);
 </script>
 <style scoped>
 .plugins-page { padding: 16px; }
+.toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 12px; }
 </style>
