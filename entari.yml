@@ -1,6 +1,8 @@
 # yaml-language-server: $schema=./entari.schema.json
 
 basic:
+  prefix:
+    - /
   log:
     level: debug
     ignores:
@@ -9,9 +11,13 @@ basic:
   schema: true
 plugins:
   ::echo: {}
+  ::inspect: {}
+  ::help: {}
+  ::norris: {}
   server:
     port: 8765
     path: "satori"
+    direct_adapter: true
   database:
-    name: ":memory:"
+    name: .entari/database.db
   webui: {}

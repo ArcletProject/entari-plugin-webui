@@ -13,6 +13,7 @@ BUILTIN_MENUS = [
     {"label_key": "menu.market", "icon": "mdi:store", "path": "/market", "order": 20},
     {"label_key": "menu.config", "icon": "mdi:cog", "path": "/config", "order": 30},
     {"label_key": "menu.logs", "icon": "mdi:console", "path": "/logs", "order": 40},
+    {"label_key": "menu.chat", "icon": "mdi:chat", "path": "/chat", "order": 50},
 ]
 
 

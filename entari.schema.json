@@ -387,6 +387,72 @@
             }
           }
         },
+        "::inspect": {
+          "type": "object",
+          "description": "Inspect on any user, group or channel; no configuration required",
+          "additionalProperties": true,
+          "properties": {
+            "$disable": {
+              "type": "string",
+              "description": "Expression for whether disable this plugin"
+            },
+            "$priority": {
+              "type": "integer",
+              "description": "Plugin loading priority, lower value means higher priority (default: 16)"
+            },
+            "$filter": {
+              "type": "string",
+              "description": "Plugin filter expression, which will be evaluated in the context of the plugin"
+            }
+          }
+        },
+        "::help": {
+          "type": "object",
+          "title": "Config",
+          "properties": {
+            "help_command": {
+              "type": "string",
+              "default": "help",
+              "description": "帮助指令的指令名",
+              "title": "Help Command"
+            },
+            "help_alias": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "帮助指令的别名",
+              "title": "Help Alias"
+            },
+            "help_all_alias": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "description": "帮助指令的'所有帮助'别名",
+              "title": "Help All Alias"
+            },
+            "page_size": {
+              "type": "integer",
+              "description": "帮助结果每页显示的命令数量",
+              "title": "Page Size"
+            },
+            "$disable": {
+              "type": "string",
+              "description": "Expression for whether disable this plugin"
+            },
+            "$priority": {
+              "type": "integer",
+              "description": "Plugin loading priority, lower value means higher priority (default: 16)"
+            },
+            "$filter": {
+              "type": "string",
+              "description": "Plugin filter expression, which will be evaluated in the context of the plugin"
+            }
+          },
+          "additionalProperties": false,
+          "description": "展示所有命令的帮助(菜单)"
+        },
         "server": {
           "type": "object",
           "title": "Config",

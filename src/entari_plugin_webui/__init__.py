@@ -40,6 +40,7 @@ from .api import create_app as _create_app  # noqa: E402
 from .api import logs  # noqa: F401
 from .models.stats import MessageStat  # noqa: F401
 from .services.stats_service import increment  # noqa: PLC0415
+from .adapter import WebUIAdapter
 
 _session_store: SessionStore = SessionStore(ttl=webui_config.session_ttl)
 _login_throttle = LoginThrottle(*parse_rate_limit(webui_config.login_rate_limit))
@@ -48,6 +49,8 @@ if not server.path:
     logger.warning("未检测到 Server 插件的 path 配置，WebUI 可能无法正常工作")
     logger.warning("已自动设置 Server 插件的 path 为 /satori")
     server.path = "/satori"
+
+server.apply(WebUIAdapter())
 
 
 plugin.metadata(
