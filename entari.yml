@@ -10,7 +10,7 @@ basic:
 plugins:
   server:
     port: 8765
-    path: ""
+    path: "satori"
   database:
     name: ":memory:"
   webui: {}

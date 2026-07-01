@@ -47,7 +47,9 @@ def get_section(section: str) -> Any:
         return _unwrap(cfg.plugin)
     if section.startswith("plugins:"):
         key = section[len("plugins:") :]
-        return _unwrap((cfg.plugin or {}).get(key, {}))
+        plugin_keys = {plg.id: plg._config_key for plg in get_plugins()}
+        config_key = plugin_keys.get(key, key)
+        return _unwrap((cfg.plugin or {}).get(config_key, {}))
     raise KeyError(section)
 
 
@@ -65,7 +67,9 @@ def update_section(section: str, data: Any) -> None:
         nest_dict_update(cfg.data["plugins"], data)
     elif section.startswith("plugins:"):
         key = section[len("plugins:") :]
-        target = cfg.data.setdefault("plugins", {}).setdefault(key, {})
+        plugin_keys = {plg.id: plg._config_key for plg in get_plugins()}
+        config_key = plugin_keys.get(key, key)
+        target = cfg.data.setdefault("plugins", {}).setdefault(config_key, {})
         nest_dict_update(target, data)
     else:
         raise ConfigSectionNotFound(section)
@@ -152,8 +156,8 @@ def get_schema_for_section(section: str) -> dict[str, Any]:
         schema = PLUGINS_SCHEMA
     elif section.startswith("plugins:"):
         plugin_sections = {f"plugins:{plg._config_key}": plg.id for plg in get_plugins()}
-        plugin_id = plugin_sections.get(section)
-        plug = find_plugin(plugin_id or "")
+        plugin_id = plugin_sections.get(section, section[len("plugins:") :])
+        plug = find_plugin(plugin_id)
         if not plug:
             raise ConfigSectionNotFound(section)
         if plug.metadata and plug.metadata.config:

@@ -56,7 +56,7 @@ const drawerSchema = ref<any>(null); const drawerData = ref<any>({});
 async function openConfig(row: any) {
   current.value = row;
   drawerData.value = { ...row.config };
-  const r = await api.get(`/api/config/plugins.${row.id}/schema`);
+  const r = await api.get(`/api/config/plugins:${row.id}/schema`);
   drawerSchema.value = r.data.schema;
   drawerOpen.value = true;
 }

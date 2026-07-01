@@ -4,10 +4,11 @@ import { useAuthStore } from "@/stores/auth";
 const routes: RouteRecordRaw[] = [
   { path: "/", component: () => import("@/views/Dashboard.vue"), meta: { layout: "default" } },
   { path: "/login", component: () => import("@/views/Login.vue"), meta: { layout: "blank" } },
-  { path: "/plugins", component: () => import("@/views/Placeholder.vue"), meta: { layout: "default", label_key: "menu.plugins" } },
-  { path: "/market", component: () => import("@/views/Placeholder.vue"), meta: { layout: "default" } },
-  { path: "/config", component: () => import("@/views/Placeholder.vue"), meta: { layout: "default" } },
-  { path: "/logs", component: () => import("@/views/Placeholder.vue"), meta: { layout: "default" } },
+  { path: "/plugins", component: () => import("@/views/Plugins.vue"), meta: { layout: "default", label_key: "menu.plugins" } },
+  { path: "/market", component: () => import("@/views/Market.vue"), meta: { layout: "default", label_key: "menu.market" } },
+  { path: "/config", component: () => import("@/views/Config.vue"), meta: { layout: "default", label_key: "menu.config" } },
+  { path: "/logs", component: () => import("@/views/Logs.vue"), meta: { layout: "default", label_key: "menu.logs" } },
+  { path: "/extension/:key", component: () => import("@/views/ExtensionPage.vue"), meta: { layout: "default" } },
 ];
 
 const router = createRouter({ history: createWebHistory(), routes });
