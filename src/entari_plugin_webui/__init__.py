@@ -9,11 +9,15 @@ from arclet.entari.event.lifespan import Startup
 from arclet.entari.event.send import SendResponse
 from arclet.entari.logger import log
 from arclet.entari.plugin import PluginRole, plugin_config
-from entari_plugin_server import add_route, replace_asgi, server
+from entari_plugin_server import add_route, add_websocket_route, replace_asgi, server
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import FileResponse, JSONResponse, Response
 
 from .config import Config
+from .core.extension import MenuItem as MenuItem
+from .core.extension import WebUIExtension as WebUIExtension
+from .core.extension import get_all_extension_routes
+from .core.extension import webui_extend as webui_extend
 from .core.security import (
     LoginThrottle,
     generate_random_password,
@@ -25,12 +29,11 @@ from .core.security import (
 from .core.session import SessionStore
 
 __version__ = "0.1.0"
-__all__ = []
 _STATIC_DIR = Path(__file__).parent / "static"
 _FRONTEND_DIR = _STATIC_DIR / "frontend"
 
 logger = log.wrapper("[webui]", color="green")
-webui_config = plugin_config(Config)
+webui_config = plugin_config(Config, bind=True)
 
 from .api import create_app as _create_app  # noqa: E402
 from .api import logs  # noqa: F401
@@ -133,6 +136,12 @@ async def _on_startup() -> None:
     loguru_logger.add(
         LogWriter(log_buffer), level=0, diagnose=True, backtrace=True, colorize=True, filter=entari_log.default_filter
     )  # type: ignore[call-overload]
+
+    routes, ws_routes = get_all_extension_routes()
+    for r in routes:
+        add_route(r.path, methods=r.methods)(r.handler)
+    for w in ws_routes:
+        add_websocket_route(w.path)(w.handler)
 
     host = server.host or "127.0.0.1"
     logger.info(f"管理面板已启动: http://{host}:{server.port}/")

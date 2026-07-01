@@ -14,7 +14,6 @@ from fastapi.testclient import TestClient
 from launart import Launart
 
 ENTARI_YML_TEXT = pytest.StashKey[str]()
-ENTARI_WEBUI_CONFIG = pytest.StashKey[dict[str, Any]]()
 
 
 def pytest_configure(config: pytest.Config):
@@ -25,8 +24,13 @@ basic:
     ignores:
       - "aiosqlite.core"
       - "asyncio.selector_events"
+plugins:
+  server:
+    port: 9555
+  database:
+    name: ':memory:'
+  webui: {}
 """
-    config.stash[ENTARI_WEBUI_CONFIG] = {}
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -50,11 +54,7 @@ def _entari_init(request: pytest.FixtureRequest, entari_yml_text: Path):
 
 @pytest.fixture(scope="session", autouse=True)
 def after_entari_init(_entari_init: None, request: pytest.FixtureRequest):
-    from arclet.entari import load_plugin
-
-    load_plugin("entari_plugin_server", {"port": 9555})
-    load_plugin("entari_plugin_database", {"name": ":memory:"})
-    load_plugin("entari_plugin_webui", config=request.config.stash[ENTARI_WEBUI_CONFIG])
+    pass
 
 
 @pytest_asyncio.fixture(scope="session", autouse=True)
