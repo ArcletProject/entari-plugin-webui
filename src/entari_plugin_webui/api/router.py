@@ -8,6 +8,7 @@ from starlette.responses import JSONResponse
 from .auth import router as auth_router
 from .config import router as config_router
 from .health import router as health_router
+from .market import router as market_router
 from .menus import router as menu_router
 from .plugins import router as plugins_router
 from .stats import router as stats_router
@@ -68,6 +69,7 @@ def create_app() -> FastAPI:
     app.include_router(auth_router)
     app.include_router(config_router)
     app.include_router(health_router)
+    app.include_router(market_router)
     app.include_router(menu_router)
     app.include_router(plugins_router)
     app.include_router(stats_router)

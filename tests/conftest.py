@@ -98,11 +98,25 @@ def client(app):
 def _reset_global_state(after_entari_init: None):
     from entari_plugin_webui import webui_config
     from entari_plugin_webui.core.security import set_local_mode
+    from entari_plugin_webui.services import market_service as _ms
 
     set_local_mode(True)
     webui_config.password = ""
     webui_config.registry_url = ""
+    webui_config.package_manager = ""
+
+
+    _ms._PM = None
+    _ms._loaded_cache = None
+    _ms._loaded_at = 0.0
+    _ms._TASKS.clear()
+
     yield
     set_local_mode(True)
     webui_config.password = ""
     webui_config.registry_url = ""
+    webui_config.package_manager = ""
+    _ms._PM = None
+    _ms._loaded_cache = None
+    _ms._loaded_at = 0.0
+    _ms._TASKS.clear()
