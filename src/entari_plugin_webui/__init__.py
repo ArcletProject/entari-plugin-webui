@@ -10,6 +10,7 @@ from arclet.entari.event.send import SendResponse
 from arclet.entari.logger import log
 from arclet.entari.plugin import PluginRole, plugin_config
 from entari_plugin_server import add_route, add_websocket_route, replace_asgi, server
+from fastapi.staticfiles import StaticFiles
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.responses import FileResponse, JSONResponse, Response
 
@@ -77,9 +78,7 @@ replace_asgi(app := _create_app())
 
 if _FRONTEND_DIR.exists():
     if (_FRONTEND_DIR / "assets").exists():
-        server.mount("/assets", _FRONTEND_DIR / "assets")
-    if (_FRONTEND_DIR / "_nuxt").exists():
-        server.mount("/_nuxt", _FRONTEND_DIR / "_nuxt")
+        app.mount("/assets", StaticFiles(directory=_FRONTEND_DIR / "assets", html=True))
 
 add_route("/", methods=["GET"], include_in_schema=False)(_root)
 

@@ -4,4 +4,4 @@ def test_health(client):
     body = r.json()
     assert body["status"] == "ok"
     assert isinstance(body["uptime_seconds"], int)
-    assert body["frontend_built"] is False
+    assert body["frontend_built"] is True
