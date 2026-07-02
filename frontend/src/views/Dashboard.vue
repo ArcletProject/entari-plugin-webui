@@ -12,8 +12,7 @@
       <v-chart class="chart" :option="chartOption" autoresize />
     </el-card>
     <div class="quick-actions">
-      <el-button @click="$router.push('/plugins')">插件管理</el-button>
-      <el-button @click="$router.push('/config')">配置管理</el-button>
+      <el-button @click="$router.push('/settings')">设置</el-button>
       <el-button @click="$router.push('/logs')">实时日志</el-button>
     </div>
   </div>
