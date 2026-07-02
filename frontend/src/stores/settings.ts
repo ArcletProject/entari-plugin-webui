@@ -81,6 +81,9 @@ export const useSettingsStore = defineStore("settings", () => {
   const savePending = ref(false);
   const error = ref<string>("");
 
+  interface SchemaCacheEntry { rawSchema: any; metaSchema: any; configSchema: any }
+  const schemaCache = ref<Record<string, SchemaCacheEntry>>({});
+
   const isPluginSection = computed(() => currentSection.value.startsWith("plugins:"));
   const pluginId = computed(() => (isPluginSection.value ? currentSection.value.slice(8) : ""));
   const currentPlugin = computed(() => pluginList.value.find((p) => p.id === pluginId.value));
@@ -112,15 +115,22 @@ export const useSettingsStore = defineStore("settings", () => {
     error.value = "";
     currentSection.value = section;
     try {
-      const [schemaR, dataR] = await Promise.all([
-        api.get(`/api/config/${section}/schema`),
-        api.get(`/api/config/${section}`),
-      ]);
-      rawSchema.value = schemaR.data.schema;
       const split = section.startsWith("plugins:");
-      const { metaSchema: ms, configSchema: cs } = splitSchema(rawSchema.value, split);
-      metaSchema.value = ms;
-      configSchema.value = cs;
+      let schemas: SchemaCacheEntry;
+      const cached = schemaCache.value[section];
+      if (cached) {
+        schemas = cached;
+      } else {
+        const schemaR = await api.get(`/api/config/${section}/schema`);
+        const { metaSchema: ms, configSchema: cs } = splitSchema(schemaR.data.schema, split);
+        schemas = { rawSchema: schemaR.data.schema, metaSchema: ms, configSchema: cs };
+        schemaCache.value[section] = schemas;
+      }
+      rawSchema.value = schemas.rawSchema;
+      metaSchema.value = schemas.metaSchema;
+      configSchema.value = schemas.configSchema;
+
+      const dataR = await api.get(`/api/config/${section}`);
       const rawData = dataR.data.data ?? {};
       const { metaData: md, configData: cd } = splitData(rawData, split);
       metaData.value = md;
