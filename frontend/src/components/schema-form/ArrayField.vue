@@ -60,9 +60,9 @@ const model = computed<any[]>({
   set: (v) => emit("update:modelValue", v),
 });
 
-const itemType = computed(() => props.itemsSchema?.type ?? "string");
+const itemType = computed(() => props.itemsSchema?.type);
 const isPrimitiveItems = computed(() => ["string", "number", "integer"].includes(itemType.value));
-const isObjectItems = computed(() => itemType.value === "object" && !props.itemsSchema?.oneOf && !props.itemsSchema?.anyOf);
+const isObjectItems = computed(() => itemType.value === "object");
 const isUnionItems = computed(() => !!(props.itemsSchema?.oneOf || props.itemsSchema?.anyOf));
 const resolvedOneOf = computed(() => (props.itemsSchema?.oneOf || props.itemsSchema?.anyOf || []).map((o: any) => resolveRef(o, props.defs)));
 

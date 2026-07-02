@@ -1,7 +1,9 @@
 <template>
   <el-container style="height:100vh">
-    <el-aside :width="collapsed ? '64px' : '220px'">
-      <div class="logo">{{ collapsed ? "E" : "Entari" }}</div>
+    <el-aside :width="collapsed ? '64px' : '220px'" class="sidebar">
+      <transition name="logo-fade" mode="out-in">
+        <div class="logo" :key="String(collapsed)">{{ collapsed ? "E" : "Entari" }}</div>
+      </transition>
       <el-menu :default-active="route.path" :collapse="collapsed" router>
         <el-menu-item v-for="m in menu.items" :key="m.path" :index="m.path">
           <el-icon><Icon :icon="m.icon" /></el-icon>
@@ -28,7 +30,7 @@
   </el-container>
 </template>
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, watch, onMounted } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { Fold } from "@element-plus/icons-vue";
@@ -42,11 +44,22 @@ const auth = useAuthStore();
 const route = useRoute();
 const router = useRouter();
 const { t } = useI18n();
-const collapsed = ref(false);
+const collapsed = ref(localStorage.getItem("webui_sidebar_collapsed") === "true");
+
+watch(collapsed, (val) => {
+  localStorage.setItem("webui_sidebar_collapsed", String(val));
+});
+
 onMounted(() => { menu.load(); });
 async function doLogout() { await auth.logout(); router.push("/login"); }
 </script>
 <style scoped>
+.sidebar {
+  border-right: 1px solid var(--el-border-color);
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
 .logo {
   height: 60px;
   display: flex;
@@ -62,4 +75,12 @@ async function doLogout() { await auth.logout(); router.push("/login"); }
   border-bottom: 1px solid var(--el-border-color);
 }
 .spacer { flex: 1; }
+.logo-fade-enter-active,
+.logo-fade-leave-active {
+  transition: opacity 200ms ease;
+}
+.logo-fade-enter-from,
+.logo-fade-leave-to {
+  opacity: 0;
+}
 </style>
