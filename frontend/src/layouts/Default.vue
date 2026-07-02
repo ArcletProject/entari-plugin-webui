@@ -2,7 +2,10 @@
   <el-container style="height:100vh">
     <el-aside :width="collapsed ? '64px' : '220px'" class="sidebar">
       <transition name="logo-fade" mode="out-in">
-        <div class="logo" :key="String(collapsed)">{{ collapsed ? "E" : "Entari" }}</div>
+        <div class="logo" :key="String(collapsed)">
+          <img src="@/assets/logo.svg" class="logo-img" />
+          <span v-if="!collapsed" class="logo-text">Entari</span>
+        </div>
       </transition>
       <el-menu :default-active="route.path" :collapse="collapsed" router>
         <el-menu-item v-for="m in menu.items" :key="m.path" :index="m.path">
@@ -65,9 +68,17 @@ async function doLogout() { await auth.logout(); router.push("/login"); }
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 10px;
   font-weight: bold;
   font-size: 20px;
   border-bottom: 1px solid var(--el-border-color);
+}
+.logo-img {
+  width: 32px;
+  height: 32px;
+}
+.logo-text {
+  white-space: nowrap;
 }
 .header {
   display: flex;
