@@ -124,9 +124,9 @@ const META_KEYS = [
 - `pluginList`：从 `/api/plugins` 加载的插件列表。
 - `currentSection`：当前选中的 section key，例如 `'basic'`、`'adapters'`、`'plugins'`、`'plugins:xxx'`。
 - `schema` / `data`：当前选中的 schema 与数据。
-- `metaData` / `configData`：拆分后的元数据与业务配置数据。
+- `metaData` / `configData`：拆分后的元数据与业务配置数据；`DualConfigEditor` 绑定 `configSchema` 和 `configData`，不包含元数据字段。
 - `loading`：加载状态。
-- `isDirty`：当前表单是否有未保存修改。
+- `isDirty`：当前表单是否有未保存修改；`metaData` 和 `configData` 的任意修改均置为 `true`。
 - `savePending`：保存中状态。
 
 #### 加载逻辑
@@ -138,6 +138,7 @@ const META_KEYS = [
    - `GET /api/config/{section}/schema`
    - `GET /api/config/{section}`
 4. 用 `META_KEYS` 拆分 schema 与 data，重置 `isDirty = false`。
+   - 对于 `basic` / `adapters`，`META_KEYS` 不在其 schema 中，`metaSchema` 为空对象，`MetaSettings.vue` 不渲染，右侧仅显示常规配置表单。
 
 #### 保存逻辑
 
