@@ -4,9 +4,10 @@ import { useAuthStore } from "@/stores/auth";
 const routes: RouteRecordRaw[] = [
   { path: "/", component: () => import("@/views/Dashboard.vue"), meta: { layout: "default" } },
   { path: "/login", component: () => import("@/views/Login.vue"), meta: { layout: "blank" } },
-  { path: "/plugins", component: () => import("@/views/Plugins.vue"), meta: { layout: "default", label_key: "menu.plugins" } },
+  { path: "/settings", component: () => import("@/views/Settings.vue"), meta: { layout: "default", label_key: "menu.settings" } },
+  { path: "/config", redirect: "/settings" },
+  { path: "/plugins", redirect: "/settings" },
   { path: "/market", component: () => import("@/views/Market.vue"), meta: { layout: "default", label_key: "menu.market" } },
-  { path: "/config", component: () => import("@/views/Config.vue"), meta: { layout: "default", label_key: "menu.config" } },
   { path: "/logs", component: () => import("@/views/Logs.vue"), meta: { layout: "default", label_key: "menu.logs" } },
   { path: "/chat", component: () => import("@/views/Chat.vue"), meta: { layout: "default", label_key: "menu.chat" } },
   { path: "/extension/:key", component: () => import("@/views/ExtensionPage.vue"), meta: { layout: "default" } },
