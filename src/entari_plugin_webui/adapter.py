@@ -6,11 +6,9 @@ from secrets import token_hex
 
 from launart import Launart, any_completed
 from launart.status import Phase
-from loguru import logger
 from starlette.responses import JSONResponse, Response
 from starlette.routing import WebSocketRoute
 from starlette.websockets import WebSocket
-from yarl import URL
 
 from satori import Api, Event, EventType, LoginStatus
 from satori.exception import ActionFailed
@@ -46,15 +44,20 @@ def elements_to_content(elements: list[dict] | None) -> str:
 
 
 async def message_receive(raw: dict, conn: WebsocketConnection):
-    user_id = raw["user_id"]
+    peer_type = raw.get("peer_type", "user")
+    if peer_type == "user":
+        peer_id = f"private:{conn.user_id}"
+    else:
+        peer_id = raw.get("peer_id") or f"channel:{token_hex(8)}"
     message_id = raw["message_id"]
     message_content = raw.get("message_content") or elements_to_content(raw.get("elements"))
+    channel = Channel(peer_id, ChannelType.DIRECT if peer_type == "user" else ChannelType.TEXT)
     return Event(
         EventType.MESSAGE_CREATED,
         datetime.now(),
         conn.adapter.logins[conn.session_id],
-        channel=Channel("chat", ChannelType.DIRECT),
-        user=User(user_id, user_id),
+        channel=channel,
+        user=User(conn.user_id, conn.user_id),
         message=MessageObject(id=message_id, content=message_content),
     )
 
@@ -66,6 +69,7 @@ class WebsocketConnection:
         self.adapter = adapter
         self.connection = connection
         self.session_id = session_id
+        self.user_id: str = f"user_{token_hex(8)}"
         self.close_signal: asyncio.Event = asyncio.Event()
         self.response_waiters: dict[str, asyncio.Future] = {}
 
@@ -85,7 +89,6 @@ class WebsocketConnection:
 
     async def message_handle(self):
         async for conn, data in self.message_receive():
-            print(f"Received message: {data}")
             if token := data.get("token"):
                 if token in self.response_waiters:
                     self.response_waiters[token].set_result(data)
@@ -174,7 +177,7 @@ class WebUIAdapter(BaseAdapter):
                 await ws.close(code=1008, reason="Invalid session")
                 return
 
-        sid = sid or "entari"
+        sid = sid or f"entari_{token_hex(8)}"
         if sid in self.connections:
             old = self.connections[sid]
             if old.alive:

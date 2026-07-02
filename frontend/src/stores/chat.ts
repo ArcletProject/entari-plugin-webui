@@ -100,7 +100,7 @@ export const useChatStore = defineStore("chat", () => {
     }
   }
 
-  function sendText(text: string) {
+  function sendText(text: string, peerType: "user" | "channel" = "user", peerId = "") {
     if (!ws || ws.readyState !== WebSocket.OPEN) return;
     const id = uuid();
     const elements = [buildTextElement(text)];
@@ -109,7 +109,8 @@ export const useChatStore = defineStore("chat", () => {
       JSON.stringify({
         type: "message_create",
         data: {
-          user_id: "user",
+          peer_type: peerType,
+          peer_id: peerId,
           message_id: id,
           elements,
         },
