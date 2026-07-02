@@ -18,7 +18,10 @@
         <el-alert v-if="store.error" :title="store.error" type="error" :closable="false" class="mb-4" />
 
         <div class="actions">
-          <el-button type="primary" :loading="store.savePending" @click="save">保存</el-button>
+          <el-button type="primary" :loading="store.savePending" @click="save">
+            <AppIcon icon="mdi:content-save" style="margin-right: 4px" />
+            保存
+          </el-button>
         </div>
 
         <MetaSettings
@@ -53,6 +56,7 @@ import PluginHeader from "@/components/settings/PluginHeader.vue";
 import MetaSettings from "@/components/settings/MetaSettings.vue";
 import DualConfigEditor from "@/components/config/DualConfigEditor.vue";
 import PluginDetailModal from "@/components/plugins/PluginDetailModal.vue";
+import AppIcon from "@/components/AppIcon.vue";
 
 defineOptions({ name: "Settings" });
 

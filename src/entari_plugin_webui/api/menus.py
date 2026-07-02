@@ -9,7 +9,7 @@ router = APIRouter(prefix="/api", tags=["menus"], dependencies=[Depends(require_
 
 BUILTIN_MENUS = [
     {"label_key": "menu.dashboard", "icon": "mdi:view-dashboard", "path": "/", "order": 0},
-    {"label_key": "menu.settings", "icon": "mdi:cog", "path": "/settings", "order": 10},
+    {"label_key": "menu.settings", "icon": "mdi:puzzle", "path": "/settings", "order": 10},
     {"label_key": "menu.market", "icon": "mdi:store", "path": "/market", "order": 20},
     {"label_key": "menu.logs", "icon": "mdi:console", "path": "/logs", "order": 30},
     {"label_key": "menu.chat", "icon": "mdi:chat", "path": "/chat", "order": 40},

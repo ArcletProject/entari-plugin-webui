@@ -38,7 +38,7 @@
             <el-button text type="danger" size="small" @click="remove(i)">删除</el-button>
           </div>
         </template>
-        <OneOfField :one-of="itemsSchema.oneOf || itemsSchema.anyOf" :defs="defs" :field-key="`${fieldKey}[${i}]`" v-model="model[i]" />
+        <OneOfField :one-of="resolvedOneOf" :defs="defs" :field-key="`${fieldKey}[${i}]`" v-model="model[i]" />
       </el-card>
       <el-button @click="addUnion">添加项目</el-button>
     </div>
@@ -64,6 +64,7 @@ const itemType = computed(() => props.itemsSchema?.type ?? "string");
 const isPrimitiveItems = computed(() => ["string", "number", "integer"].includes(itemType.value));
 const isObjectItems = computed(() => itemType.value === "object" && !props.itemsSchema?.oneOf && !props.itemsSchema?.anyOf);
 const isUnionItems = computed(() => !!(props.itemsSchema?.oneOf || props.itemsSchema?.anyOf));
+const resolvedOneOf = computed(() => (props.itemsSchema?.oneOf || props.itemsSchema?.anyOf || []).map((o: any) => resolveRef(o, props.defs)));
 
 const jsonText = ref(JSON.stringify(props.modelValue ?? [], null, 2));
 const newValue = ref("");
@@ -83,7 +84,48 @@ function addObject() {
   emit("update:modelValue", [...model.value, {}]);
 }
 function addUnion() {
-  emit("update:modelValue", [...model.value, null]);
+  const first = resolvedOneOf.value[0];
+  if (!first) {
+    emit("update:modelValue", [...model.value, {}]);
+    return;
+  }
+  const type = first.properties?.type?.enum?.[0];
+  emit("update:modelValue", [...model.value, type !== undefined ? { type } : defaultForSchema(first)]);
+}
+
+function resolveRef(schema: any, defs?: any): any {
+  if (!schema) return {};
+  if (schema.$ref) {
+    const m = schema.$ref.match(/#\/(?:\$defs|definitions)\/([^/]+)$/);
+    if (m && defs?.[m[1]]) {
+      return {
+        ...defs[m[1]],
+        description: schema.description ?? defs[m[1]].description,
+        title: schema.title ?? defs[m[1]].title,
+      };
+    }
+  }
+  return schema;
+}
+
+function defaultForSchema(schema: any): any {
+  if (schema.default !== undefined) return schema.default;
+  if (schema.const !== undefined) return schema.const;
+  if (schema.type === "object") {
+    const out: Record<string, any> = {};
+    for (const [k, v] of Object.entries<any>(schema.properties || {})) {
+      out[k] = v.default !== undefined ? v.default : defaultForSchema(v);
+    }
+    return out;
+  }
+  switch (schema.type) {
+    case "boolean": return false;
+    case "integer": return 0;
+    case "number": return 0;
+    case "string": return "";
+    case "array": return [];
+    default: return null;
+  }
 }
 </script>
 
