@@ -32,8 +32,15 @@
         />
 
         <el-card v-if="store.configSchema">
-          <template #header>配置</template>
-          <DualConfigEditor :key="store.currentSection" :schema="store.configSchema" v-model="store.configData" lang="json" @update:model-value="store.markDirty" />
+          <template #header>
+            <div class="card-header collapsible" @click="configOpen = !configOpen">
+              <span>配置</span>
+              <el-icon :class="{ 'is-reverse': configOpen }"><ArrowUpBold /></el-icon>
+            </div>
+          </template>
+          <div v-show="configOpen">
+            <DualConfigEditor :key="store.currentSection" :schema="store.configSchema" v-model="store.configData" lang="json" @update:model-value="store.markDirty" />
+          </div>
         </el-card>
 
         <el-empty v-if="!store.metaSchema && !store.configSchema && !store.loading" description="无配置项" />
@@ -64,6 +71,7 @@ const route = useRoute();
 const store = useSettingsStore();
 const detailPlugin = ref<any>(null);
 const detailVisible = computed({ get: () => !!detailPlugin.value, set: (v) => { if (!v) detailPlugin.value = null; } });
+const configOpen = ref(true);
 
 const sectionTitle = computed(() => {
   const map: Record<string, string> = { basic: "基础配置", adapters: "适配器", plugins: "插件全局" };
@@ -125,5 +133,17 @@ watch(() => route.query.section, async (section) => {
 }
 .mb-4 {
   margin-bottom: 16px;
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.collapsible {
+  cursor: pointer;
+  user-select: none;
+}
+.el-icon.is-reverse {
+  transform: rotate(180deg);
 }
 </style>
