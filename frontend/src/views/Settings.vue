@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
 import { useSettingsStore, type PluginInfo } from "@/stores/settings";
 import SettingsSidebar from "@/components/settings/SettingsSidebar.vue";
@@ -57,7 +57,6 @@ import PluginDetailModal from "@/components/plugins/PluginDetailModal.vue";
 defineOptions({ name: "Settings" });
 
 const route = useRoute();
-const router = useRouter();
 const store = useSettingsStore();
 const detailPlugin = ref<PluginInfo | null>(null);
 const detailVisible = computed({ get: () => !!detailPlugin.value, set: (v) => { if (!v) detailPlugin.value = null; } });

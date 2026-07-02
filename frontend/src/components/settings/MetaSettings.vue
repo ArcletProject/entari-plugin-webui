@@ -10,7 +10,7 @@ import { computed } from "vue";
 import SchemaForm from "@/components/schema-form/SchemaForm.vue";
 
 const props = defineProps<{ schema: any; modelValue: any }>();
-const emit = defineEmits<["update:modelValue"]>();
+const emit = defineEmits<{ "update:modelValue": [value: any] }>();
 
 const model = computed({
   get: () => props.modelValue,
