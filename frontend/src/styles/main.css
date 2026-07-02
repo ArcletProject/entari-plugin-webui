@@ -5,6 +5,26 @@ html, body, #app {
   font-family: var(--el-font-family);
 }
 
+:root {
+  --el-color-primary: #3a5ccc;
+  --el-color-primary-light-3: #5e7ad6;
+  --el-color-primary-light-5: #8298e0;
+  --el-color-primary-light-7: #a6b6ea;
+  --el-color-primary-light-8: #b8c5ef;
+  --el-color-primary-light-9: #dce3f7;
+  --el-color-primary-dark-2: #2e46a3;
+}
+
+html.dark {
+  --el-color-primary: #5c73e7;
+  --el-color-primary-light-3: #7d90ec;
+  --el-color-primary-light-5: #9eadf1;
+  --el-color-primary-light-7: #bfcaf6;
+  --el-color-primary-light-8: #cfd8f8;
+  --el-color-primary-light-9: #e7ebfb;
+  --el-color-primary-dark-2: #4a5cb9;
+}
+
 * {
   box-sizing: border-box;
 }

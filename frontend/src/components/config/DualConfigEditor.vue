@@ -1,8 +1,8 @@
 <template>
   <div class="dual-editor">
     <el-radio-group v-model="view">
-      <el-radio-button label="form">表单</el-radio-button>
-      <el-radio-button label="code">代码</el-radio-button>
+      <el-radio-button value="form">表单</el-radio-button>
+      <el-radio-button value="code">代码</el-radio-button>
     </el-radio-group>
     <el-alert v-if="codeInvalid && view==='form'" type="warning" :title="t('config.code_invalid_note')" :closable="false" />
     <SchemaForm v-show="view==='form'" :schema="schema" v-model="formData" />
