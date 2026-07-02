@@ -146,7 +146,7 @@ class WebUIAdapter(BaseAdapter):
         apply(self)
 
     def ensure(self, platform: str, self_id: str) -> bool:
-        return platform == "webui" and self_id == "entari"
+        return platform == "webui" and self_id in self.connections
     
     async def get_logins(self) -> list[Login]:
         logins = list(self.logins.values())

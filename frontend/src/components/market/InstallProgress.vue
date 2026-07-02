@@ -8,7 +8,7 @@
 import { ref, watch } from "vue";
 import api from "@/api/client";
 const props = defineProps<{ taskId?: string }>();
-const emit = defineEmits<{ done: [] }>();
+const emit = defineEmits<{ done: [success: boolean] }>();
 const percent = ref(0);
 const status = ref<"" | "success" | "exception">("");
 const message = ref("");
@@ -21,16 +21,17 @@ watch(() => props.taskId, (id) => {
   percent.value = 0; status.value = ""; message.value = ""; count = 0;
   timer = window.setInterval(async () => {
     count += 1;
-    if (count > 60) { clearInterval(timer!); timer = null; status.value = "exception"; message.value = "超时"; emit("done"); return; }
+    if (count > 60) { clearInterval(timer!); timer = null; status.value = "exception"; message.value = "超时"; emit("done", false); return; }
     try {
       const r = await api.get(`/api/market/tasks/${id}`);
       const t = r.data;
       percent.value = t.percent ?? 0;
       message.value = t.message || `${t.action} ${t.pip_name}`;
       if (t.status === "success" || t.status === "failed") {
-        status.value = t.status === "success" ? "success" : "exception";
+        const ok = t.status === "success";
+        status.value = ok ? "success" : "exception";
         clearInterval(timer!); timer = null;
-        setTimeout(() => emit("done"), 1000);
+        setTimeout(() => emit("done", ok), ok ? 1000 : 0);
       }
     } catch { /* ignore */ }
   }, 1000);

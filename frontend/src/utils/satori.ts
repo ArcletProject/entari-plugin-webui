@@ -32,6 +32,8 @@ export function renderSatori(elements: SatoriElement | SatoriElement[] | undefin
   return list.map(renderElement).join("");
 }
 
+const ALLOWED_TAGS = ["p", "b", "strong", "i", "em", "u", "ins", "s", "del", "spl", "code", "sup", "sub"];
+
 function renderElement(el: SatoriElement): string {
   const { type, attrs, children } = el;
 
@@ -79,7 +81,9 @@ function renderElement(el: SatoriElement): string {
     }
     default: {
       const childHtml = renderSatori(children);
-      if (!childHtml) return "";
+      if (ALLOWED_TAGS.includes(type)) {
+        return `<${type}>${childHtml}</${type}>`;
+      }
       return `<span class="satori-${escapeHtml(type)}">${childHtml}</span>`;
     }
   }

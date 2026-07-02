@@ -13,6 +13,7 @@
       </el-col>
     </el-row>
     <InstallProgress :task-id="taskId" @done="onDone" />
+    <el-button v-if="taskFailed" size="small" style="margin-top:8px" @click="dismissError">关闭</el-button>
   </div>
 </template>
 <script setup lang="ts">
@@ -27,6 +28,7 @@ const fallback = ref(false);
 const search = ref("");
 const tag = ref("");
 const taskId = ref<string | undefined>(undefined);
+const taskFailed = ref(false);
 
 const tags = computed(() => {
   const s = new Set<string>();
@@ -46,6 +48,7 @@ async function load() {
 }
 async function startInstall(p: any) {
   p._installing = true;
+  taskFailed.value = false;
   try {
     const r = await api.post("/api/market/install", { name: p.name });
     taskId.value = r.data.task_id;
@@ -57,7 +60,21 @@ async function startUninstall(p: any) {
     taskId.value = r.data.task_id;
   } catch (e: any) { ElMessage.error(e.message); }
 }
-function onDone() { taskId.value = undefined; list.value.forEach((p) => delete p._installing); load(); }
+function onDone(success: boolean) {
+  if (success) {
+    taskId.value = undefined;
+    taskFailed.value = false;
+    list.value.forEach((p) => delete p._installing);
+    load();
+  } else {
+    taskFailed.value = true;
+  }
+}
+function dismissError() {
+  taskId.value = undefined;
+  taskFailed.value = false;
+  list.value.forEach((p) => delete p._installing);
+}
 onMounted(load);
 </script>
 <style scoped>
