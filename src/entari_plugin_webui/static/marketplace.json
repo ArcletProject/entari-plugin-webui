@@ -1,1 +1,24 @@
-{"plugins": []}
+{
+  "plugins": [
+    {
+      "name": "entari-plugin-hello",
+      "pip_name": "entari-plugin-hello",
+      "version": "0.1.0",
+      "description": "A simple example Entari plugin that responds to hello messages. Demonstrates basic plugin structure, event handling, and message processing.",
+      "authors": ["Entari Team"],
+      "license": "MIT",
+      "homepage": "https://github.com/example/entari-plugin-hello",
+      "tags": ["example", "demo", "greeting"]
+    },
+    {
+      "name": "entari-plugin-admin",
+      "pip_name": "entari-plugin-admin",
+      "version": "0.2.0",
+      "description": "Administrative tools for managing Entari bot groups, permissions, and moderation features. Includes command-based admin panel.",
+      "authors": ["Entari Team"],
+      "license": "MIT",
+      "homepage": "https://github.com/example/entari-plugin-admin",
+      "tags": ["admin", "management", "moderation"]
+    }
+  ]
+}
