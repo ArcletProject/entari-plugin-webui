@@ -9,13 +9,17 @@
           :plugin="store.currentPlugin"
           @toggle="(v) => onToggle(v)"
           @reload="onReload"
-          @detail="detailPlugin = store.currentPlugin"
+          @detail="detailPlugin = store.pluginRawMap[store.pluginId]"
         />
         <div v-else class="section-header">
           <h3>{{ sectionTitle }}</h3>
         </div>
 
         <el-alert v-if="store.error" :title="store.error" type="error" :closable="false" class="mb-4" />
+
+        <div class="actions">
+          <el-button type="primary" :loading="store.savePending" @click="save">保存</el-button>
+        </div>
 
         <MetaSettings
           v-if="store.metaSchema"
@@ -30,10 +34,6 @@
         </el-card>
 
         <el-empty v-if="!store.metaSchema && !store.configSchema && !store.loading" description="无配置项" />
-
-        <div class="actions">
-          <el-button type="primary" :loading="store.savePending" @click="save">保存</el-button>
-        </div>
       </template>
     </div>
 
@@ -47,7 +47,7 @@
 import { computed, ref, onMounted, watch } from "vue";
 import { useRoute } from "vue-router";
 import { ElMessage } from "element-plus";
-import { useSettingsStore, type PluginInfo } from "@/stores/settings";
+import { useSettingsStore } from "@/stores/settings";
 import SettingsSidebar from "@/components/settings/SettingsSidebar.vue";
 import PluginHeader from "@/components/settings/PluginHeader.vue";
 import MetaSettings from "@/components/settings/MetaSettings.vue";
@@ -58,7 +58,7 @@ defineOptions({ name: "Settings" });
 
 const route = useRoute();
 const store = useSettingsStore();
-const detailPlugin = ref<PluginInfo | null>(null);
+const detailPlugin = ref<any>(null);
 const detailVisible = computed({ get: () => !!detailPlugin.value, set: (v) => { if (!v) detailPlugin.value = null; } });
 
 const sectionTitle = computed(() => {
@@ -115,7 +115,7 @@ watch(() => route.query.section, async (section) => {
   margin: 0;
 }
 .actions {
-  margin-top: 16px;
+  margin-bottom: 16px;
   display: flex;
   justify-content: flex-end;
 }

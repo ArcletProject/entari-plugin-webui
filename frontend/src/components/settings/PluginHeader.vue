@@ -5,6 +5,7 @@
       <div class="meta">
         <el-tag size="small" v-if="plugin.version">v{{ plugin.version }}</el-tag>
         <span v-if="plugin.description" class="description">{{ plugin.description }}</span>
+
       </div>
     </div>
     <div class="actions">
@@ -52,10 +53,9 @@ const emit = defineEmits<{
   font-size: 14px;
 }
 .description {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 400px;
+  white-space: normal;
+  word-break: break-word;
+  flex: 1;
 }
 .actions {
   display: flex;

@@ -8,6 +8,10 @@
           :class="['menu-item', { active: store.currentSection === 'basic' }]"
           @click="select('basic')"
         >基础配置</div>
+        <div
+          :class="['menu-item', { active: store.currentSection === 'plugins' }]"
+          @click="select('plugins')"
+        >插件全局</div>
       </div>
       <div class="group">
         <div class="group-title">适配器</div>
@@ -18,10 +22,6 @@
       </div>
       <div class="group">
         <div class="group-title">插件</div>
-        <div
-          :class="['menu-item', { active: store.currentSection === 'plugins' }]"
-          @click="select('plugins')"
-        >插件全局</div>
         <div
           v-for="p in filteredPlugins"
           :key="p.id"

@@ -7,6 +7,15 @@ export default {
   health: { reconnecting: "正在连接后端…", offline: "后端已断开", retry: "手动重连" },
   common: { save: "保存", cancel: "取消", refresh: "刷新", confirm: "确定" },
   config: { code_invalid_note: "代码视图内容非法，已禁用表单编辑" },
+  meta: {
+    "$prefix": "前缀配置",
+    "$files": "配置文件列表",
+    "$prelude": "预加载插件",
+    "$disable": "禁用条件",
+    "$priority": "加载优先级",
+    "$filter": "过滤表达式",
+    "$optional": "是否可选",
+  },
   chat: {
     connected: "已连接",
     disconnected: "未连接",

@@ -4,6 +4,16 @@ import api from "@/api/client";
 
 export const META_KEYS = ["$prefix", "$files", "$prelude", "$disable", "$priority", "$filter", "$optional"];
 
+const META_LABELS: Record<string, string> = {
+  "$prefix": "前缀配置",
+  "$files": "配置文件列表",
+  "$prelude": "预加载插件",
+  "$disable": "禁用条件",
+  "$priority": "加载优先级",
+  "$filter": "过滤表达式",
+  "$optional": "是否可选",
+};
+
 export interface PluginInfo {
   id: string;
   name: string;
@@ -14,9 +24,20 @@ export interface PluginInfo {
   configurable: boolean;
 }
 
+function patchTitles(properties: Record<string, any>) {
+  const out: Record<string, any> = {};
+  for (const [key, prop] of Object.entries(properties)) {
+    const label = META_LABELS[key];
+    out[key] = label ? { ...prop, title: label } : { ...prop };
+  }
+  return out;
+}
+
 function splitSchema(schema: any, splitMeta: boolean) {
-  if (!splitMeta) return { metaSchema: null, configSchema: schema ?? null };
   const properties = schema?.properties || {};
+  if (!splitMeta) {
+    return { metaSchema: null, configSchema: schema ? { ...schema, properties: patchTitles(properties) } : null };
+  }
   const metaProps: Record<string, any> = {};
   const configProps: Record<string, any> = {};
   for (const [key, value] of Object.entries(properties)) {
@@ -24,7 +45,7 @@ function splitSchema(schema: any, splitMeta: boolean) {
     else configProps[key] = value;
   }
   const metaSchema = Object.keys(metaProps).length
-    ? { ...schema, properties: metaProps, required: (schema.required || []).filter((k: string) => META_KEYS.includes(k)) }
+    ? { ...schema, properties: patchTitles(metaProps), required: (schema.required || []).filter((k: string) => META_KEYS.includes(k)) }
     : null;
   const configSchema = Object.keys(configProps).length
     ? { ...schema, properties: configProps, required: (schema.required || []).filter((k: string) => !META_KEYS.includes(k)) }
@@ -48,6 +69,7 @@ function splitData(data: any, splitMeta: boolean) {
 
 export const useSettingsStore = defineStore("settings", () => {
   const pluginList = ref<PluginInfo[]>([]);
+  const pluginRawMap = ref<Record<string, any>>({});
   const currentSection = ref<string>("basic");
   const rawSchema = ref<any>(null);
   const metaSchema = ref<any>(null);
@@ -66,7 +88,8 @@ export const useSettingsStore = defineStore("settings", () => {
   async function loadPlugins() {
     try {
       const r = await api.get("/api/plugins");
-      pluginList.value = (r.data.data || []).map((p: any) => ({
+      const raw = r.data.data || [];
+      pluginList.value = raw.map((p: any) => ({
         id: p.id,
         name: p.name,
         description: p.description,
@@ -75,6 +98,10 @@ export const useSettingsStore = defineStore("settings", () => {
         is_static: p.is_static,
         configurable: p.configurable,
       }));
+      pluginRawMap.value = {};
+      for (const p of raw) {
+        pluginRawMap.value[p.id] = p;
+      }
     } catch (e: any) {
       error.value = "加载插件列表失败";
     }
@@ -147,6 +174,7 @@ export const useSettingsStore = defineStore("settings", () => {
 
   return {
     pluginList,
+    pluginRawMap,
     currentSection,
     metaSchema,
     configSchema,
