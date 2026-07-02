@@ -41,12 +41,19 @@ def test_serialize(monkeypatch):
     assert s["configurable"] is False
 
 
-def test_toggle(monkeypatch):
+@pytest.mark.asyncio
+async def test_toggle(monkeypatch):
     from entari_plugin_webui.services import plugin_service as ps
 
     p = _mk()
-    monkeypatch.setattr(ps, "find_plugin", lambda i: p)
-    ps.toggle_plugin("p1", enable=True)
+
+    async def _enable(plugin_id: str) -> bool:
+        assert plugin_id == "p1"
+        _ = p.enable()
+        return True
+
+    monkeypatch.setattr(ps, "enable_plugin", _enable)
+    await ps.toggle_plugin("p1", enable=True)
     p.enable.assert_called_once()
 
 
@@ -62,7 +69,7 @@ async def test_reload(monkeypatch):
         return True
 
     monkeypatch.setattr(ps, "unload_plugin_async", _unload)
-    monkeypatch.setattr(ps, "load_plugin", lambda i: p)
+    monkeypatch.setattr(ps, "load_plugin", lambda i, c: p)
     assert await ps.reload_plugin("p1") is True
 
 

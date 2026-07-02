@@ -40,8 +40,8 @@ async def detail(plugin_id: str):
 @router.post("/{plugin_id}/toggle")
 async def toggle(plugin_id: str, body: ToggleBody):
     try:
-        toggle_plugin(plugin_id, enable=body.enable)
-        return {"success": True, "enabled": body.enable}
+        success = await toggle_plugin(plugin_id, enable=body.enable)
+        return {"success": success, "enabled": body.enable}
     except PluginNotFound:
         return {"success": False, "code": "plugin_not_found"}, 404
 

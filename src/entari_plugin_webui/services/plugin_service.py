@@ -6,6 +6,7 @@ from typing import Any
 from arclet.entari.config.file import EntariConfig
 from arclet.entari.plugin import (
     enable_plugin,
+    disable_plugin,
     find_plugin,
     get_plugin_references,
     get_plugin_referents,
@@ -70,27 +71,21 @@ def get_plugin(plugin_id: str) -> dict[str, Any]:
     return serialize_plugin(plug)
 
 
-def toggle_plugin(plugin_id: str, *, enable: bool) -> bool:
-    plug = find_plugin(plugin_id)
-    if plug is None:
-        raise PluginNotFound(plugin_id)
-    plug.enable() if enable else plug.disable()
-    return True
+async def toggle_plugin(plugin_id: str, *, enable: bool) -> bool:
+    return await (enable_plugin(plugin_id) if enable else disable_plugin(plugin_id))
 
 
 async def reload_plugin(plugin_id: str) -> bool:
     plug = find_plugin(plugin_id)
     if plug is None:
         raise PluginNotFound(plugin_id)
-    if hasattr(plug, "reload") and callable(plug.reload):  # type: ignore[attr-defined]
-        result = plug.reload()  # type: ignore[attr-defined]
-        if asyncio.iscoroutine(result):
-            await result
-        return True
-    await unload_plugin_async(plugin_id)
-    new = load_plugin(plugin_id)
+    pid = plug.id
+    _conf = plug.config.copy()
+    del plug
+    await unload_plugin_async(pid)
+    new = load_plugin(pid, _conf)
     if new is not None:
-        _ = await enable_plugin(plugin_id)
+        del new
         return True
     return False
 

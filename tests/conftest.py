@@ -26,7 +26,7 @@ basic:
       - "asyncio.selector_events"
 plugins:
   server:
-    port: 9555
+    port: 8765
   database:
     name: ':memory:'
   webui: {}
