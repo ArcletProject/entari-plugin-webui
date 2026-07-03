@@ -1,24 +1,74 @@
 {
   "plugins": [
     {
-      "name": "entari-plugin-hello",
-      "pip_name": "entari-plugin-hello",
-      "version": "0.1.0",
-      "description": "A simple example Entari plugin that responds to hello messages. Demonstrates basic plugin structure, event handling, and message processing.",
-      "authors": ["Entari Team"],
+      "name": "server",
+      "pip_name": "entari-plugin-server",
+      "version": "0.7.1",
+      "description": "Entari plugin for running Satori Server",
+      "authors": ["RF-Tar-Railt <rf_tar_railt@qq.com>"],
       "license": "MIT",
-      "homepage": "https://github.com/example/entari-plugin-hello",
-      "tags": ["example", "demo", "greeting"]
+      "homepage": "https://github.com/ArcletProject/entari-plugin-server",
+      "tags": ["server", "adapters", "satori"]
     },
     {
-      "name": "entari-plugin-admin",
-      "pip_name": "entari-plugin-admin",
-      "version": "0.2.0",
-      "description": "Administrative tools for managing Entari bot groups, permissions, and moderation features. Includes command-based admin panel.",
-      "authors": ["Entari Team"],
+      "name": "数据库服务",
+      "pip_name": "entari-plugin-database",
+      "version": "0.3.3",
+      "description": "Entari plugin for SQLAlchemy ORM  ",
+      "authors": ["RF-Tar-Railt <rf_tar_railt@qq.com>"],
       "license": "MIT",
-      "homepage": "https://github.com/example/entari-plugin-admin",
-      "tags": ["admin", "management", "moderation"]
+      "homepage": "https://github.com/ArcletProject/entari-plugin-database",
+      "tags": ["database", "sql", "sqlalchemy"]
+    },
+    {
+      "name": "浏览器服务",
+      "pip_name": "entari-plugin-browser",
+      "version": "0.6.0",
+      "description": "Browser API service for Entari using Playwright",
+      "authors": ["RF-Tar-Railt <rf_tar_railt@qq.com>"],
+      "license": "MIT",
+      "homepage": "https://github.com/ArcletProject/entari-plugin-browser",
+      "tags": ["browser", "render", "playwright"]
+    },
+    {
+      "name": "方舟抽卡",
+      "pip_name": "entari-plugin-arkgacha ",
+      "version": "0.5.3",
+      "description": "Entari plugin for arknights gacha",
+      "authors": ["RF-Tar-Railt <rf_tar_railt@qq.com>"],
+      "license": "MIT",
+      "homepage": "https://github.com/ArcletProject/entari-plugin-arkgacha",
+      "tags": ["arknights", "gacha", "game"]
+    },
+    {
+      "name": "用户服务",
+      "pip_name": "entari-plugin-user",
+      "version": "0.1.6",
+      "description": "Entari 用户插件，管理和绑定不同平台的用户",
+      "authors": ["KomoriDev <mute231010@gmail.com>"],
+      "license": "MIT",
+      "homepage": "https://github.com/netsora/entari-plugin-user",
+      "tags": ["user", "bind", "authority"]
+    },
+    {
+      "name": "权限系统",
+      "pip_name": "entari-plugin-permission",
+      "version": "0.1.0",
+      "description": "Permission system for Entari based on Cithun",
+      "authors": ["RF-Tar-Railt <rf_tar_railt@qq.com>"],
+      "license": "MIT",
+      "homepage": "https://github.com/ArcletProject/entari-plugin-permission",
+      "tags": ["permission", "Cithun"]
+    },
+    {
+      "name": "LLM 工具箱",
+      "pip_name": "entari-plugin-llm",
+      "version": "0.2.1",
+      "description": "An Entari Plugin for LLM Chat with Function Call ",
+      "authors": ["RF-Tar-Railt <rf_tar_railt@qq.com>", "KomoriDev <mute231010@gmail.com>"],
+      "license": "MIT",
+      "homepage": "https://github.com/ArcletProject/entari-plugin-llm",
+      "tags": ["llm", "ai-chat", "tools"]
     }
   ]
 }
