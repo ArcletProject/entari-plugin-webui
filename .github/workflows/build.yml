@@ -1,0 +1,38 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "frontend/**"
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/build.yml"
+      - "pyproject.toml"
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - "frontend/**"
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/build.yml"
+      - "pyproject.toml"
+
+jobs:
+  build:
+    name: Build and Upload Artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pdm-project/setup-pdm@v4
+        with: { python-version: '3.11' }
+      - run: pdm sync -G:all
+      - run: pdm run build-all
+      - uses: actions/upload-artifact@v7
+        name: build-artifacts
+        with:
+          name: plugin-webui-build
+          path: dist/
