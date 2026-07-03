@@ -6,18 +6,17 @@ from secrets import token_hex
 
 from launart import Launart, any_completed
 from launart.status import Phase
+from satori import Api, Event, EventType, LoginStatus
+from satori.exception import ActionFailed
+from satori.model import Channel, ChannelType, Login, MessageObject, User
+from satori.parser import Element, parse
+from satori.server import Request
+from satori.server.adapter import Adapter as BaseAdapter
+from satori.server.route import MessageParam
+from satori.utils import decode, encode
 from starlette.responses import JSONResponse, Response
 from starlette.routing import WebSocketRoute
 from starlette.websockets import WebSocket
-
-from satori import Api, Event, EventType, LoginStatus
-from satori.exception import ActionFailed
-from satori.model import Login, User, MessageObject, Channel, ChannelType
-from satori.parser import Element, parse
-from satori.server import Request
-from satori.server.route import MessageParam
-from satori.server.adapter import Adapter as BaseAdapter
-from satori.utils import decode, encode
 
 from .core.security import is_local_mode
 
@@ -28,6 +27,7 @@ def serialize_element(element: Element):
         "attrs": element.attrs,
         "children": [serialize_element(child) for child in element.children],
     }
+
 
 def deserialize_element(data: dict) -> Element:
     return Element(
@@ -45,10 +45,7 @@ def elements_to_content(elements: list[dict] | None) -> str:
 
 async def message_receive(raw: dict, conn: WebsocketConnection):
     peer_type = raw.get("peer_type", "user")
-    if peer_type == "user":
-        peer_id = f"private:{conn.user_id}"
-    else:
-        peer_id = raw.get("peer_id") or f"channel:{token_hex(8)}"
+    peer_id = f"private:{conn.user_id}" if peer_type == "user" else (raw.get("peer_id") or f"channel:{token_hex(8)}")
     message_id = raw["message_id"]
     message_content = raw.get("message_content") or elements_to_content(raw.get("elements"))
     channel = Channel(peer_id, ChannelType.DIRECT if peer_type == "user" else ChannelType.TEXT)
@@ -88,7 +85,7 @@ class WebsocketConnection:
         self.close_signal.set()
 
     async def message_handle(self):
-        async for conn, data in self.message_receive():
+        async for _, data in self.message_receive():
             if token := data.get("token"):
                 if token in self.response_waiters:
                     self.response_waiters[token].set_result(data)
@@ -147,7 +144,7 @@ class WebUIAdapter(BaseAdapter):
 
     def ensure(self, platform: str, self_id: str) -> bool:
         return platform == "webui" and self_id in self.connections
-    
+
     async def get_logins(self) -> list[Login]:
         logins = list(self.logins.values())
         for index, login in enumerate(logins):
@@ -166,7 +163,7 @@ class WebUIAdapter(BaseAdapter):
         return [
             WebSocketRoute("/api/chat", self.websocket_server_handler),
         ]
-    
+
     async def websocket_server_handler(self, ws: WebSocket):
         sid = None
         if not is_local_mode():
@@ -195,14 +192,10 @@ class WebUIAdapter(BaseAdapter):
                 user=User(id=sid, name="Entari"),
                 status=LoginStatus.ONLINE,
             )
-            await self.server.post(
-                Event(EventType.LOGIN_ADDED, datetime.now(), self.logins[sid])
-            )
+            await self.server.post(Event(EventType.LOGIN_ADDED, datetime.now(), self.logins[sid]))
         else:
             self.logins[sid].status = LoginStatus.ONLINE
-            await self.server.post(
-                Event(EventType.LOGIN_UPDATED, datetime.now(), self.logins[sid])
-            )
+            await self.server.post(Event(EventType.LOGIN_UPDATED, datetime.now(), self.logins[sid]))
 
         try:
             await any_completed(
@@ -216,9 +209,7 @@ class WebUIAdapter(BaseAdapter):
                 for future in conn.response_waiters.values():
                     future.cancel()
             self.logins[sid].status = LoginStatus.OFFLINE
-            await self.server.post(
-                Event(EventType.LOGIN_REMOVED, datetime.now(), self.logins[sid])
-            )
+            await self.server.post(Event(EventType.LOGIN_REMOVED, datetime.now(), self.logins[sid]))
 
     def get_platform(self) -> str:
         return "webui"

@@ -7,12 +7,10 @@ from pathlib import Path
 from arclet.entari import plugin
 from arclet.entari.event.lifespan import Startup
 from arclet.entari.event.send import SendResponse
-from arclet.entari.logger import log
 from arclet.entari.plugin import PluginRole, plugin_config
 from entari_plugin_server import add_route, add_websocket_route, replace_asgi, server
 from fastapi.staticfiles import StaticFiles
-from starlette.exceptions import HTTPException as StarletteHTTPException
-from starlette.responses import FileResponse, JSONResponse, Response
+from starlette.responses import FileResponse, Response
 
 from .config import Config
 from .core.extension import MenuItem as MenuItem
@@ -28,19 +26,19 @@ from .core.security import (
     set_local_mode,
 )
 from .core.session import SessionStore
+from .utils import logger
 
 __version__ = "0.1.0"
 _STATIC_DIR = Path(__file__).parent / "static"
 _FRONTEND_DIR = _STATIC_DIR / "frontend"
 
-logger = log.wrapper("[webui]", color="green")
 webui_config = plugin_config(Config, bind=True)
 
+from .adapter import WebUIAdapter
 from .api import create_app as _create_app  # noqa: E402
 from .api import logs  # noqa: F401
 from .models.stats import MessageStat  # noqa: F401
 from .services.stats_service import increment  # noqa: PLC0415
-from .adapter import WebUIAdapter
 
 _session_store: SessionStore = SessionStore(ttl=webui_config.session_ttl)
 _login_throttle = LoginThrottle(*parse_rate_limit(webui_config.login_rate_limit))
@@ -79,30 +77,10 @@ async def _root() -> Response:
 
 replace_asgi(app := _create_app())
 
-if _FRONTEND_DIR.exists():
-    if (_FRONTEND_DIR / "assets").exists():
-        app.mount("/assets", StaticFiles(directory=_FRONTEND_DIR / "assets", html=True))
+if _FRONTEND_DIR.exists() and (_FRONTEND_DIR / "assets").exists():
+    app.mount("/assets", StaticFiles(directory=_FRONTEND_DIR / "assets", html=True))
 
 add_route("/", methods=["GET"], include_in_schema=False)(_root)
-
-
-@app.exception_handler(StarletteHTTPException)
-async def _spa_fallback(req, exc: StarletteHTTPException) -> Response:
-    if exc.status_code != 404:
-        return JSONResponse({"detail": exc.detail}, status_code=exc.status_code, headers=exc.headers)
-    if req.url.path.startswith("api/") or req.url.path.startswith("ws/") or req.url.path.startswith(server.path):
-        return JSONResponse({"detail": exc.detail}, status_code=404, headers=exc.headers)
-    if not _FRONTEND_DIR.exists():
-        return Response(
-            content="Frontend not built. Run 'pdm run build-frontend'.", status_code=503, headers=exc.headers
-        )
-    file_path = _FRONTEND_DIR / req.url.path
-    if file_path.is_file():
-        return FileResponse(file_path)
-    index = _FRONTEND_DIR / "index.html"
-    if index.exists():
-        return FileResponse(index)
-    return JSONResponse({"detail": exc.detail}, status_code=404, headers=exc.headers)
 
 
 # ---------- SendResponse listener (message counting) ----------

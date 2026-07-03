@@ -9,6 +9,8 @@ from arclet.entari.plugin import find_plugin, get_plugins
 from ruamel.yaml import CommentedMap
 from tarina.tools import nest_dict_update, nest_list_update
 
+from ..core.error import ConfigSectionNotFound
+
 
 def _unwrap(obj: Any) -> Any:
     if isinstance(obj, CommentedMap):
@@ -50,11 +52,7 @@ def get_section(section: str) -> Any:
         plugin_keys = {plg.id: plg._config_key for plg in get_plugins()}
         config_key = plugin_keys.get(key, key)
         return _unwrap((cfg.plugin or {}).get(config_key, {}))
-    raise KeyError(section)
-
-
-class ConfigSectionNotFound(Exception):
-    pass
+    raise ConfigSectionNotFound(message=f"Section not found: {section}")
 
 
 def update_section(section: str, data: Any) -> None:
@@ -72,7 +70,7 @@ def update_section(section: str, data: Any) -> None:
         target = cfg.data.setdefault("plugins", {}).setdefault(config_key, {})
         nest_dict_update(target, data)
     else:
-        raise ConfigSectionNotFound(section)
+        raise ConfigSectionNotFound(message=f"Section not found: {section}")
     cfg.save()
 
 
@@ -159,7 +157,7 @@ def get_schema_for_section(section: str) -> dict[str, Any]:
         plugin_id = plugin_sections.get(section, section[len("plugins:") :])
         plug = find_plugin(plugin_id)
         if not plug:
-            raise ConfigSectionNotFound(section)
+            raise ConfigSectionNotFound(message=f"Plugin not found: {plugin_id}")
         if plug.metadata and plug.metadata.config:
             schema = config_model_schema(plug.metadata.config, ref_root="/")
             schema["properties"].update(PLUGIN_META_PROPERTIES)
@@ -178,5 +176,5 @@ def get_schema_for_section(section: str) -> dict[str, Any]:
                 "properties": PLUGIN_META_PROPERTIES,
             }
     else:
-        raise ConfigSectionNotFound(section)
+        raise ConfigSectionNotFound(message=f"Section not found: {section}")
     return {"schema": schema}

@@ -31,4 +31,4 @@ def test_install_unknown_400(client, monkeypatch):
     monkeypatch.setattr(M, "start_install", _i)
     r = client.post("/api/market/install", json={"name": "x"}, headers={"X-Requested-With": "XMLHttpRequest"})
     assert r.status_code == 400
-    assert r.json() == {"success": False, "code": "unknown_plugin"}
+    assert r.json() == {"success": False, "code": "unknown_plugin", "message": "x"}

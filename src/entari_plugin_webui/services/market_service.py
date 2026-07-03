@@ -13,6 +13,7 @@ from arclet.entari import Entari
 
 from entari_plugin_webui import webui_config
 
+from ..core.error import MarketError, UnknownPlugin
 from . import package_manager as _pm
 
 _CACHE_PATH = Path(__file__).resolve().parent.parent / "static" / "marketplace.json"
@@ -20,14 +21,6 @@ _CACHE_TTL = 3600
 _TASKS: dict[str, InstallTask] = {}
 
 _PM: _pm.PackageManager | None = None
-
-
-class MarketError(Exception):
-    pass
-
-
-class UnknownPlugin(MarketError):
-    pass
 
 
 @dataclass

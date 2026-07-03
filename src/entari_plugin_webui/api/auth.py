@@ -7,6 +7,7 @@ from starlette.responses import JSONResponse
 from entari_plugin_webui import webui_config
 
 from ..core.audit import audit
+from ..core.error import AuthRequired, TooManyRequests
 from ..core.security import (
     hash_password,
     is_local_mode,
@@ -49,11 +50,7 @@ async def login(body: LoginRequest, request: Request, store: SessionStore = Depe
 
     if _login_throttle.is_limited(ip):
         audit("login.failed", ip=ip, reason="rate_limited")
-        raise HTTPException(
-            status.HTTP_429_TOO_MANY_REQUESTS,
-            "尝试过于频繁，请稍后再试",
-            headers={"Retry-After": str(_login_throttle.retry_after(ip))},
-        )
+        raise TooManyRequests(retry_after=_login_throttle.retry_after(ip), message="尝试过于频繁，请稍后再试")
 
     if not webui_config.password:
         raise HTTPException(status.HTTP_500_INTERNAL_SERVER_ERROR, "管理员密码尚未初始化")
@@ -61,7 +58,7 @@ async def login(body: LoginRequest, request: Request, store: SessionStore = Depe
     if not verify_password(body.password, webui_config.password):
         _login_throttle.record_failure(ip)
         audit("login.failed", ip=ip, reason="wrong_password")
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "密码错误")
+        raise AuthRequired(message="密码错误")
 
     _login_throttle.reset(ip)
     sid = store.create(ip=ip)
@@ -89,7 +86,7 @@ async def change_password(
 ):
     if not is_local_mode() and not verify_password(body.old_password, webui_config.password):
         audit("password.change.failed", ip=_client_ip(request), reason="wrong_old")
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "旧密码错误")
+        raise AuthRequired(message="旧密码错误")
     webui_config.password = hash_password(body.new_password)
     audit("password.change", ip=_client_ip(request))
     return {"success": True}

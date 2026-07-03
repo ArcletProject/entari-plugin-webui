@@ -4,7 +4,6 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from ..services.config_service import (
-    ConfigSectionNotFound,
     get_schema_for_section,
     get_section,
     list_sections,
@@ -21,10 +20,7 @@ class SectionBody(BaseModel):
 
 @router.get("/{section}/schema")
 async def schema(section: str):
-    try:
-        return {"success": True, "section": section, **get_schema_for_section(section)}
-    except ConfigSectionNotFound:
-        return {"success": False, "code": "section_not_found"}, 404
+    return {"success": True, "section": section, **get_schema_for_section(section)}
 
 
 @router.get("")
@@ -34,16 +30,10 @@ async def list_():
 
 @router.get("/{section}")
 async def get_(section: str):
-    try:
-        return {"success": True, "section": section, "data": get_section(section)}
-    except KeyError:
-        return {"success": False, "code": "section_not_found"}, 404
+    return {"success": True, "section": section, "data": get_section(section)}
 
 
 @router.put("/{section}")
 async def put_(section: str, body: SectionBody):
-    try:
-        update_section(section, body.data)
-        return {"success": True, "message": "已保存"}
-    except ConfigSectionNotFound:
-        return {"success": False, "code": "section_not_found"}, 404
+    update_section(section, body.data)
+    return {"success": True, "message": "已保存"}

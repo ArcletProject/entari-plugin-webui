@@ -1,12 +1,11 @@
 from __future__ import annotations
 
-import asyncio
 from typing import Any
 
 from arclet.entari.config.file import EntariConfig
 from arclet.entari.plugin import (
-    enable_plugin,
     disable_plugin,
+    enable_plugin,
     find_plugin,
     get_plugin_references,
     get_plugin_referents,
@@ -16,9 +15,7 @@ from arclet.entari.plugin import (
 )
 from arclet.entari.plugin.model import Plugin, PluginMetadata
 
-
-class PluginNotFound(Exception):
-    pass
+from ..core.error import PluginNotFound
 
 
 def _authors(meta: PluginMetadata) -> list[str]:

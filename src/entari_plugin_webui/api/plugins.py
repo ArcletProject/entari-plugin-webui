@@ -5,7 +5,6 @@ from pydantic import BaseModel
 
 from ..api.deps import require_auth
 from ..services.plugin_service import (
-    PluginNotFound,
     get_plugin,
     list_plugins,
     reload_plugin,
@@ -31,34 +30,22 @@ async def list_():
 
 @router.get("/{plugin_id}")
 async def detail(plugin_id: str):
-    try:
-        return {"success": True, "data": get_plugin(plugin_id)}
-    except PluginNotFound:
-        return {"success": False, "code": "plugin_not_found"}, 404
+    return {"success": True, "data": get_plugin(plugin_id)}
 
 
 @router.post("/{plugin_id}/toggle")
 async def toggle(plugin_id: str, body: ToggleBody):
-    try:
-        success = await toggle_plugin(plugin_id, enable=body.enable)
-        return {"success": success, "enabled": body.enable}
-    except PluginNotFound:
-        return {"success": False, "code": "plugin_not_found"}, 404
+    success = await toggle_plugin(plugin_id, enable=body.enable)
+    return {"success": success, "enabled": body.enable}
 
 
 @router.post("/{plugin_id}/reload")
 async def reload(plugin_id: str):
-    try:
-        ok = await reload_plugin(plugin_id)
-        return {"success": ok}
-    except PluginNotFound:
-        return {"success": False, "code": "plugin_not_found"}, 404
+    ok = await reload_plugin(plugin_id)
+    return {"success": ok}
 
 
 @router.put("/{plugin_id}/config")
 async def put_config(plugin_id: str, body: ConfigBody):
-    try:
-        update_plugin_config(plugin_id, body.config)
-        return {"success": True}
-    except PluginNotFound:
-        return {"success": False, "code": "plugin_not_found"}, 404
+    update_plugin_config(plugin_id, body.config)
+    return {"success": True}

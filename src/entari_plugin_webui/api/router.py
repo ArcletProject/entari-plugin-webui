@@ -1,10 +1,12 @@
 from __future__ import annotations
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware import Middleware
 from starlette.responses import JSONResponse
 
+from ..core.error import AppError, TooManyRequests
+from ..utils import logger
 from .auth import router as auth_router
 from .config import router as config_router
 from .extensions import router as extensions_router
@@ -41,6 +43,26 @@ async def _security_headers_middleware(request: Request, call_next):
     return resp
 
 
+async def _error_middleware(request: Request, call_next):
+    try:
+        return await call_next(request)
+    except TooManyRequests as e:
+        return JSONResponse(
+            {"success": False, "code": e.code, "message": e.message},
+            status_code=e.status,
+            headers={"Retry-After": str(e.retry_after) if e.retry_after else "60"},
+        )
+    except AppError as e:
+        return JSONResponse({"success": False, "code": e.code, "message": e.message}, status_code=e.status)
+    except HTTPException as e:
+        return JSONResponse(
+            {"success": False, "code": "http_error", "message": e.detail}, status_code=e.status_code, headers=e.headers
+        )
+    except Exception as e:  # noqa: BLE001
+        logger.exception("unhandled exception", exc_info=e)
+        return JSONResponse({"success": False, "code": "internal_error", "message": str(e)}, status_code=500)
+
+
 def _same_origin(request: Request) -> bool:
     origin = request.headers.get("origin") or request.headers.get("referer")
     if not origin:
@@ -67,6 +89,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="Entari WebUI", middleware=middleware)
     app.middleware("http")(_csrf_middleware)
     app.middleware("http")(_security_headers_middleware)
+    app.middleware("http")(_error_middleware)
     app.include_router(auth_router)
     app.include_router(config_router)
     app.include_router(extensions_router)

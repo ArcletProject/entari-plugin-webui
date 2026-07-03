@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request
 
+from ..core.error import AuthRequired
 from ..core.security import is_local_mode
 from ..core.session import Session, SessionStore
 
@@ -18,6 +19,6 @@ def require_auth(request: Request, store: SessionStore = Depends(get_session_sto
     sid = request.cookies.get("webui_sid")
     sess = store.get(sid)
     if sess is None:
-        raise HTTPException(status.HTTP_401_UNAUTHORIZED, "未登录或会话已过期")
+        raise AuthRequired("未登录或会话已过期")
     store.refresh_if_needed(sess)
     return sess
