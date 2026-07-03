@@ -1,6 +1,6 @@
 import { defineStore } from "pinia";
-import { ref, computed } from "vue";
-import { renderSatori, buildTextElement, type SatoriElement } from "@/utils/satori";
+import { ref } from "vue";
+import { buildTextElement, type SatoriElement } from "@/utils/satori";
 
 export interface ChatMessage {
   id: string;
@@ -75,7 +75,7 @@ export const useChatStore = defineStore("chat", () => {
     };
   }
 
-  function handleMessage(data: any) {
+  function handleMessage(data: Record<string, unknown>) {
     // 响应 adapter 的 API 调用（带 token）
     if (data.action && data.token) {
       ws?.send(JSON.stringify({ token: data.token, status: "ok", data: { id: uuid() } }));

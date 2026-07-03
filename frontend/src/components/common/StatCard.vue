@@ -1,7 +1,14 @@
 <template>
-  <el-card shadow="hover" class="stat-card">
-    <div class="stat-value">{{ value }}</div>
-    <div class="stat-label">{{ label }}</div>
+  <el-card
+    shadow="hover"
+    class="stat-card"
+  >
+    <div class="stat-value">
+      {{ value }}
+    </div>
+    <div class="stat-label">
+      {{ label }}
+    </div>
   </el-card>
 </template>
 <script setup lang="ts">

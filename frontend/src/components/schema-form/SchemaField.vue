@@ -4,63 +4,178 @@
       <div class="field-title-row">
         <label class="field-label">
           {{ displayTitle }}
-          <span v-if="required" class="required">*</span>
+          <span
+            v-if="required"
+            class="required"
+          >*</span>
         </label>
         <div class="field-actions">
-          <el-dropdown trigger="click" @command="onCmd">
-            <el-icon size="14" class="more"><MoreFilled /></el-icon>
+          <el-dropdown
+            trigger="click"
+            @command="onCmd"
+          >
+            <el-icon
+              size="14"
+              class="more"
+            >
+              <MoreFilled />
+            </el-icon>
             <template #dropdown>
               <el-dropdown-menu>
-                <el-dropdown-item command="json">编辑 JSON</el-dropdown-item>
-                <el-dropdown-item command="reset">恢复默认值</el-dropdown-item>
+                <el-dropdown-item command="json">
+                  编辑 JSON
+                </el-dropdown-item>
+                <el-dropdown-item command="reset">
+                  恢复默认值
+                </el-dropdown-item>
               </el-dropdown-menu>
             </template>
           </el-dropdown>
         </div>
       </div>
-      <div v-if="resolved.description" class="field-desc">{{ resolved.description }}</div>
+      <div
+        v-if="resolved.description"
+        class="field-desc"
+      >
+        {{ resolved.description }}
+      </div>
     </div>
 
     <div class="field-control">
       <!-- const -->
-      <el-input v-if="resolved.const !== undefined" :model-value="String(resolved.const)" disabled />
+      <el-input
+        v-if="resolved.const !== undefined"
+        :model-value="String(resolved.const)"
+        disabled
+      />
       <!-- readOnly -->
-      <el-input v-else-if="resolved.readOnly" :model-value="String(modelValue ?? '')" disabled />
+      <el-input
+        v-else-if="resolved.readOnly"
+        :model-value="String(modelValue ?? '')"
+        disabled
+      />
       <!-- enum -->
-      <el-select v-else-if="enumOptions" v-model="model" style="width:100%">
-        <el-option v-for="o in enumOptions" :key="String(o)" :label="String(o)" :value="o" />
+      <el-select
+        v-else-if="enumOptions"
+        v-model="model"
+        style="width:100%"
+      >
+        <el-option
+          v-for="o in enumOptions"
+          :key="String(o)"
+          :label="String(o)"
+          :value="o"
+        />
       </el-select>
       <!-- boolean -->
-      <el-switch v-else-if="resolved.type === 'boolean'" v-model="model" />
+      <el-switch
+        v-else-if="resolved.type === 'boolean'"
+        v-model="model"
+      />
       <!-- integer -->
-      <el-input-number v-else-if="resolved.type === 'integer'" v-model="model" :step="1" style="width:100%" />
+      <el-input-number
+        v-else-if="resolved.type === 'integer'"
+        v-model="model"
+        :step="1"
+        style="width:100%"
+      />
       <!-- number -->
-      <el-input-number v-else-if="resolved.type === 'number'" v-model="model" :step="0.1" style="width:100%" />
+      <el-input-number
+        v-else-if="resolved.type === 'number'"
+        v-model="model"
+        :step="0.1"
+        style="width:100%"
+      />
       <!-- array -->
-      <ArrayField v-else-if="resolved.type === 'array'" :items-schema="resolved.items" :defs="defs" :field-key="fieldKey" v-model="model" />
+      <ArrayField
+        v-else-if="resolved.type === 'array'"
+        v-model="model"
+        :items-schema="resolved.items"
+        :defs="defs"
+        :field-key="fieldKey"
+      />
       <!-- object -->
-      <ObjectField v-else-if="resolved.type === 'object'" :object-schema="resolved" :defs="defs" :field-key="fieldKey" v-model="model" />
+      <ObjectField
+        v-else-if="resolved.type === 'object'"
+        v-model="model"
+        :object-schema="resolved"
+        :defs="defs"
+        :field-key="fieldKey"
+      />
       <!-- oneOf -->
-      <OneOfField v-else-if="resolved.oneOf" :one-of="resolved.oneOf" :defs="defs" :field-key="fieldKey" v-model="model" />
+      <OneOfField
+        v-else-if="resolved.oneOf"
+        v-model="model"
+        :one-of="resolved.oneOf"
+        :defs="defs"
+        :field-key="fieldKey"
+      />
       <!-- anyOf -->
-      <OneOfField v-else-if="resolved.anyOf" :one-of="resolved.anyOf" :defs="defs" :field-key="fieldKey" v-model="model" />
+      <OneOfField
+        v-else-if="resolved.anyOf"
+        v-model="model"
+        :one-of="resolved.anyOf"
+        :defs="defs"
+        :field-key="fieldKey"
+      />
       <!-- date -->
-      <el-date-picker v-else-if="resolved.format === 'date'" v-model="model" type="date" style="width:100%" />
+      <el-date-picker
+        v-else-if="resolved.format === 'date'"
+        v-model="model"
+        type="date"
+        style="width:100%"
+      />
       <!-- date-time -->
-      <el-date-picker v-else-if="resolved.format === 'date-time'" v-model="model" type="datetime" style="width:100%" />
+      <el-date-picker
+        v-else-if="resolved.format === 'date-time'"
+        v-model="model"
+        type="datetime"
+        style="width:100%"
+      />
       <!-- password -->
-      <el-input v-else-if="resolved.format === 'password'" v-model="model" type="password" show-password />
+      <el-input
+        v-else-if="resolved.format === 'password'"
+        v-model="model"
+        type="password"
+        show-password
+      />
       <!-- textarea for long strings -->
-      <el-input v-else-if="resolved.format === 'textarea' || resolved.maxLength && resolved.maxLength > 200" v-model="model" type="textarea" :rows="4" :placeholder="placeholder" />
+      <el-input
+        v-else-if="resolved.format === 'textarea' || resolved.maxLength && resolved.maxLength > 200"
+        v-model="model"
+        type="textarea"
+        :rows="4"
+        :placeholder="placeholder"
+      />
       <!-- string fallback -->
-      <el-input v-else v-model="model" :placeholder="placeholder" :type="inputType" />
+      <el-input
+        v-else
+        v-model="model"
+        :placeholder="placeholder"
+        :type="inputType"
+      />
     </div>
 
-    <el-dialog v-model="jsonEditing" title="编辑 JSON" width="500">
-      <el-input v-model="jsonText" type="textarea" :rows="10" />
+    <el-dialog
+      v-model="jsonEditing"
+      title="编辑 JSON"
+      width="500"
+    >
+      <el-input
+        v-model="jsonText"
+        type="textarea"
+        :rows="10"
+      />
       <template #footer>
-        <el-button @click="jsonEditing = false">取消</el-button>
-        <el-button type="primary" @click="applyJson">确定</el-button>
+        <el-button @click="jsonEditing = false">
+          取消
+        </el-button>
+        <el-button
+          type="primary"
+          @click="applyJson"
+        >
+          确定
+        </el-button>
       </template>
     </el-dialog>
   </div>
@@ -74,13 +189,13 @@ import ObjectField from "./ObjectField.vue";
 import OneOfField from "./OneOfField.vue";
 
 const props = defineProps<{
-  fieldSchema: any;
-  defs?: any;
+  fieldSchema: Record<string, unknown>;
+  defs?: Record<string, unknown>;
   fieldKey: string;
   required?: boolean;
-  modelValue?: any;
+  modelValue?: unknown;
 }>();
-const emit = defineEmits<{ "update:modelValue": [v: any] }>();
+const emit = defineEmits<{ "update:modelValue": [v: unknown] }>();
 
 const resolved = computed(() => resolveRef(props.fieldSchema, props.defs));
 const displayTitle = computed(() => resolved.value.title || props.fieldKey);
@@ -104,13 +219,13 @@ const model = computed({
 const enumOptions = computed(() => {
   if (Array.isArray(resolved.value.enum)) return resolved.value.enum;
   if (Array.isArray(resolved.value.oneOf)) {
-    const primitive = resolved.value.oneOf.filter((o: any) => o.const !== undefined);
-    if (primitive.length) return primitive.map((o: any) => o.const);
+    const primitive = resolved.value.oneOf.filter((o: Record<string, unknown>) => o.const !== undefined);
+    if (primitive.length) return primitive.map((o: Record<string, unknown>) => o.const);
   }
   return null;
 });
 
-function resolveRef(schema: any, defs: any): any {
+function resolveRef(schema: Record<string, unknown>, defs?: Record<string, unknown>): Record<string, unknown> {
   if (!schema) return {};
   if (!schema.$ref && !schema.oneOf && !schema.anyOf && !schema.$defs) return schema;
   if (schema.$ref) {
@@ -126,7 +241,7 @@ function resolveRef(schema: any, defs: any): any {
   return schema;
 }
 
-function defaultFor(schema: any): any {
+function defaultFor(schema: Record<string, unknown>): unknown {
   if (schema.default !== undefined) return schema.default;
   if (schema.const !== undefined) return schema.const;
   switch (schema.type) {

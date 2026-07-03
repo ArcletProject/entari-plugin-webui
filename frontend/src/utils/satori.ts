@@ -2,7 +2,7 @@ import DOMPurify from "dompurify";
 
 export interface SatoriElement {
   type: string;
-  attrs?: Record<string, any>;
+  attrs?: Record<string, unknown>;
   children?: SatoriElement[];
 }
 
@@ -13,12 +13,12 @@ function escapeHtml(text: string): string {
     .replace(/>/g, "&gt;");
 }
 
-function attrValue(value: any): string {
+function attrValue(value: unknown): string {
   if (value === null || value === undefined) return "";
   return String(value).replace(/"/g, "&quot;");
 }
 
-function renderAttrs(attrs: Record<string, any> | undefined, allowed: string[]): string {
+function renderAttrs(attrs: Record<string, unknown> | undefined, allowed: string[]): string {
   if (!attrs) return "";
   return allowed
     .filter((key) => attrs[key] !== undefined && attrs[key] !== null)

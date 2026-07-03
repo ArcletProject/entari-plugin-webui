@@ -1,31 +1,83 @@
 <template>
-  <el-card shadow="never" class="market-card">
+  <el-card
+    shadow="never"
+    class="market-card"
+  >
     <template #header>
       <div class="card-header">
-        <el-link v-if="item.homepage" :href="item.homepage" target="_blank" class="title-link">
+        <el-link
+          v-if="item.homepage"
+          :href="item.homepage"
+          target="_blank"
+          class="title-link"
+        >
           <span class="title">{{ item.name }}</span>
         </el-link>
-        <span v-else class="title">{{ item.name }}</span>
+        <span
+          v-else
+          class="title"
+        >{{ item.name }}</span>
       </div>
     </template>
-    <div class="tags" v-if="item.tags?.length">
-      <el-tag size="small" v-for="t in item.tags" :key="t">{{ t }}</el-tag>
+    <div
+      v-if="item.tags?.length"
+      class="tags"
+    >
+      <el-tag
+        v-for="t in item.tags"
+        :key="t"
+        size="small"
+      >
+        {{ t }}
+      </el-tag>
     </div>
-    <div class="desc">{{ item.description || "无描述" }}</div>
+    <div class="desc">
+      {{ item.description || "无描述" }}
+    </div>
     <div class="meta">
       <span>版本: {{ item.version || "-" }}</span>
       <span>作者: {{ authors }}</span>
     </div>
     <div class="actions">
-      <el-button size="small" @click="openHomepage" :disabled="!item.homepage">主页</el-button>
-      <el-button type="primary" size="small" :loading="installing" :disabled="item.installed" @click="install">{{ item.installed ? "已安装" : "安装" }}</el-button>
-      <el-button size="small" :disabled="!item.installed" @click="uninstall">卸载</el-button>
+      <el-button
+        size="small"
+        :disabled="!item.homepage"
+        @click="openHomepage"
+      >
+        主页
+      </el-button>
+      <el-button
+        type="primary"
+        size="small"
+        :loading="installing"
+        :disabled="item.installed"
+        @click="install"
+      >
+        {{ item.installed ? "已安装" : "安装" }}
+      </el-button>
+      <el-button
+        size="small"
+        :disabled="!item.installed"
+        @click="uninstall"
+      >
+        卸载
+      </el-button>
     </div>
   </el-card>
 </template>
 <script setup lang="ts">
 import { computed } from "vue";
-const props = defineProps<{ item: any }>();
+interface MarketItem {
+  name: string;
+  homepage?: string;
+  tags?: string[];
+  description?: string;
+  version?: string;
+  authors?: string | string[];
+  installed?: boolean;
+  _installing?: boolean;
+}
+const props = defineProps<{ item: MarketItem }>();
 const emit = defineEmits<{ install: []; uninstall: [] }>();
 const installing = computed(() => props.item._installing);
 const authors = computed(() => {

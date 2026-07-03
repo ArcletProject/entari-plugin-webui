@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref, watch } from "vue";
 
 export const useThemeStore = defineStore("theme", () => {
-  const mode = ref<"light" | "dark">((localStorage.getItem("webui_theme") as any) || "light");
+  const mode = ref<"light" | "dark">((localStorage.getItem("webui_theme") as "light" | "dark") || "light");
   function init() {
     watch(mode, (v) => {
       localStorage.setItem("webui_theme", v);

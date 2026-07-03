@@ -1,6 +1,13 @@
 <template>
-  <div class="ansi-log" ref="host">
-    <div v-for="(line, i) in lines" :key="i" v-html="render(line)"></div>
+  <div
+    ref="host"
+    class="ansi-log"
+  >
+    <div
+      v-for="(line, i) in lines"
+      :key="i"
+      v-html="render(line)"
+    />
   </div>
 </template>
 <script setup lang="ts">

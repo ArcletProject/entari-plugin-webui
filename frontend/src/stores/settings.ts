@@ -24,64 +24,64 @@ export interface PluginInfo {
   configurable: boolean;
 }
 
-function patchTitles(properties: Record<string, any>) {
-  const out: Record<string, any> = {};
+function patchTitles(properties: Record<string, unknown>) {
+  const out: Record<string, unknown> = {};
   for (const [key, prop] of Object.entries(properties)) {
     const label = META_LABELS[key];
-    out[key] = label ? { ...prop, title: label } : { ...prop };
+    out[key] = label ? { ...(prop as Record<string, unknown>), title: label } : { ...(prop as Record<string, unknown>) };
   }
   return out;
 }
 
-function splitSchema(schema: any, splitMeta: boolean) {
-  const properties = schema?.properties || {};
+function splitSchema(schema: Record<string, unknown> | null, splitMeta: boolean) {
+  const properties = ((schema?.properties as Record<string, unknown> | undefined) || {});
   if (!splitMeta) {
     return { metaSchema: null, configSchema: schema ? { ...schema, properties: patchTitles(properties) } : null };
   }
-  const metaProps: Record<string, any> = {};
-  const configProps: Record<string, any> = {};
+  const metaProps: Record<string, unknown> = {};
+  const configProps: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(properties)) {
     if (META_KEYS.includes(key)) metaProps[key] = value;
     else configProps[key] = value;
   }
   const metaSchema = Object.keys(metaProps).length
-    ? { ...schema, properties: patchTitles(metaProps), required: (schema.required || []).filter((k: string) => META_KEYS.includes(k)) }
+    ? { ...schema, properties: patchTitles(metaProps), required: ((schema?.required as string[] | undefined) || []).filter((k: string) => META_KEYS.includes(k)) }
     : null;
   const configSchema = Object.keys(configProps).length
-    ? { ...schema, properties: configProps, required: (schema.required || []).filter((k: string) => !META_KEYS.includes(k)) }
+    ? { ...schema, properties: configProps, required: ((schema?.required as string[] | undefined) || []).filter((k: string) => !META_KEYS.includes(k)) }
     : null;
   return { metaSchema, configSchema };
 }
 
-function splitData(data: any, splitMeta: boolean) {
-  const metaData: Record<string, any> = {};
-  const configData: Record<string, any> = {};
+function splitData(data: unknown, splitMeta: boolean) {
+  const metaData: Record<string, unknown> = {};
+  const configData: Record<string, unknown> = {};
   if (splitMeta && data && typeof data === "object" && !Array.isArray(data)) {
-    for (const [key, value] of Object.entries(data)) {
+    for (const [key, value] of Object.entries(data as Record<string, unknown>)) {
       if (META_KEYS.includes(key)) metaData[key] = value;
       else configData[key] = value;
     }
   } else {
-    Object.assign(configData, data ?? {});
+    Object.assign(configData, (data ?? {}) as Record<string, unknown>);
   }
   return { metaData, configData };
 }
 
 export const useSettingsStore = defineStore("settings", () => {
   const pluginList = ref<PluginInfo[]>([]);
-  const pluginRawMap = ref<Record<string, any>>({});
+  const pluginRawMap = ref<Record<string, unknown>>({});
   const currentSection = ref<string>("basic");
-  const rawSchema = ref<any>(null);
-  const metaSchema = ref<any>(null);
-  const configSchema = ref<any>(null);
-  const metaData = ref<Record<string, any>>({});
-  const configData = ref<any>({});
+  const rawSchema = ref<Record<string, unknown> | null>(null);
+  const metaSchema = ref<Record<string, unknown> | null>(null);
+  const configSchema = ref<Record<string, unknown> | null>(null);
+  const metaData = ref<Record<string, unknown>>({});
+  const configData = ref<Record<string, unknown>>({});
   const loading = ref(false);
   const isDirty = ref(false);
   const savePending = ref(false);
   const error = ref<string>("");
 
-  interface SchemaCacheEntry { rawSchema: any; metaSchema: any; configSchema: any }
+  interface SchemaCacheEntry { rawSchema: Record<string, unknown> | null; metaSchema: Record<string, unknown> | null; configSchema: Record<string, unknown> | null }
   const schemaCache = ref<Record<string, SchemaCacheEntry>>({});
 
   const isPluginSection = computed(() => currentSection.value.startsWith("plugins:"));
@@ -92,20 +92,20 @@ export const useSettingsStore = defineStore("settings", () => {
     try {
       const r = await api.get("/api/plugins");
       const raw = r.data.data || [];
-      pluginList.value = raw.map((p: any) => ({
-        id: p.id,
-        name: p.name,
-        description: p.description,
-        version: p.version,
-        enabled: p.enabled,
-        is_static: p.is_static,
-        configurable: p.configurable,
+      pluginList.value = raw.map((p: Record<string, unknown>) => ({
+        id: p.id as string,
+        name: p.name as string,
+        description: p.description as string | undefined,
+        version: p.version as string | undefined,
+        enabled: p.enabled as boolean,
+        is_static: p.is_static as boolean,
+        configurable: p.configurable as boolean,
       }));
       pluginRawMap.value = {};
       for (const p of raw) {
         pluginRawMap.value[p.id] = p;
       }
-    } catch (e: any) {
+    } catch {
       error.value = "加载插件列表失败";
     }
   }
@@ -136,7 +136,7 @@ export const useSettingsStore = defineStore("settings", () => {
       metaData.value = md;
       configData.value = cd;
       isDirty.value = false;
-    } catch (e: any) {
+    } catch {
       error.value = "加载配置失败";
       rawSchema.value = null;
       metaSchema.value = null;
@@ -164,7 +164,7 @@ export const useSettingsStore = defineStore("settings", () => {
       }
       isDirty.value = false;
       return true;
-    } catch (e: any) {
+    } catch {
       error.value = "保存失败";
       return false;
     } finally {

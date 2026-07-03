@@ -1,12 +1,25 @@
 <template>
-  <el-overlay v-if="state === 'offline'" :z-index="3000">
+  <el-overlay
+    v-if="state === 'offline'"
+    :z-index="3000"
+  >
     <div class="offline-box">
-      <el-icon size="48"><WarnTriangleFilled /></el-icon>
+      <el-icon size="48">
+        <WarnTriangleFilled />
+      </el-icon>
       <h2>{{ t("health.offline") }}</h2>
-      <el-button type="primary" @click="reconnectNow()">{{ t("health.retry") }}</el-button>
+      <el-button
+        type="primary"
+        @click="reconnectNow()"
+      >
+        {{ t("health.retry") }}
+      </el-button>
     </div>
   </el-overlay>
-  <div v-else-if="state === 'reconnecting'" class="reconnecting-banner">
+  <div
+    v-else-if="state === 'reconnecting'"
+    class="reconnecting-banner"
+  >
     {{ t("health.reconnecting") }}
   </div>
 </template>

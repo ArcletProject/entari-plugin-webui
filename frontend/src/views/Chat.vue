@@ -2,22 +2,43 @@
   <div class="chat-page">
     <div class="chat-header">
       <h3>{{ t("menu.chat") }}</h3>
-      <el-tag :type="chat.connected ? 'success' : 'danger'" size="small">
+      <el-tag
+        :type="chat.connected ? 'success' : 'danger'"
+        size="small"
+      >
         {{ chat.connected ? t("chat.connected") : t("chat.disconnected") }}
       </el-tag>
     </div>
 
-    <div class="chat-messages" ref="msgHost">
-      <el-empty v-if="!chat.messages.length" :description="t('chat.empty')" />
+    <div
+      ref="msgHost"
+      class="chat-messages"
+    >
+      <el-empty
+        v-if="!chat.messages.length"
+        :description="t('chat.empty')"
+      />
       <template v-else>
-        <ChatMessage v-for="m in chat.messages" :key="m.id" :data="m" />
+        <ChatMessage
+          v-for="m in chat.messages"
+          :key="m.id"
+          :data="m"
+        />
       </template>
     </div>
 
     <div class="chat-footer">
-      <div v-if="quote" class="quote-bar">
+      <div
+        v-if="quote"
+        class="quote-bar"
+      >
         <span>{{ t("chat.replyTo") }} {{ quote.content.slice(0, 30) }}</span>
-        <el-icon class="close" @click="quote = null"><Close /></el-icon>
+        <el-icon
+          class="close"
+          @click="quote = null"
+        >
+          <Close />
+        </el-icon>
       </div>
       <div class="chat-input">
         <el-input
@@ -40,7 +61,13 @@
       </div>
     </div>
 
-    <el-alert v-if="chat.error" :title="chat.error" type="error" :closable="false" class="chat-error" />
+    <el-alert
+      v-if="chat.error"
+      :title="chat.error"
+      type="error"
+      :closable="false"
+      class="chat-error"
+    />
   </div>
 </template>
 

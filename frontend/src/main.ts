@@ -12,7 +12,7 @@ import "echarts";
 import editorWorker from "monaco-editor/esm/vs/editor/editor.worker?worker";
 import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 
-(self as any).MonacoEnvironment = {
+(self as unknown as { MonacoEnvironment: { getWorker: (_moduleId: string, label: string) => Worker } }).MonacoEnvironment = {
   getWorker(_moduleId: string, label: string) {
     if (label === "json") {
       return new jsonWorker();
@@ -23,5 +23,5 @@ import jsonWorker from "monaco-editor/esm/vs/language/json/json.worker?worker";
 
 const app = createApp(App);
 app.use(createPinia()).use(router).use(i18n).use(ElementPlus);
-app.component("v-chart", ECharts);
+app.component("VChart", ECharts);
 app.mount("#app");

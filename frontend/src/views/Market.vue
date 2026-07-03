@@ -1,19 +1,58 @@
 <template>
   <div class="market-page">
     <div class="toolbar">
-      <el-input v-model="search" placeholder="搜索插件" style="width:240px" clearable />
-      <el-select v-model="tag" placeholder="标签" clearable style="width:160px">
-        <el-option v-for="t in tags" :key="t" :label="t" :value="t" />
+      <el-input
+        v-model="search"
+        placeholder="搜索插件"
+        style="width:240px"
+        clearable
+      />
+      <el-select
+        v-model="tag"
+        placeholder="标签"
+        clearable
+        style="width:160px"
+      >
+        <el-option
+          v-for="t in tags"
+          :key="t"
+          :label="t"
+          :value="t"
+        />
       </el-select>
-      <el-tag v-if="fallback" type="warning">本地缓存</el-tag>
+      <el-tag
+        v-if="fallback"
+        type="warning"
+      >
+        本地缓存
+      </el-tag>
     </div>
     <el-row :gutter="16">
-      <el-col :span="8" v-for="p in filtered" :key="p.name" style="margin-bottom:16px">
-        <MarketCard :item="p" @install="startInstall(p)" @uninstall="startUninstall(p)" />
+      <el-col
+        v-for="p in filtered"
+        :key="p.name"
+        :span="8"
+        style="margin-bottom:16px"
+      >
+        <MarketCard
+          :item="p"
+          @install="startInstall(p)"
+          @uninstall="startUninstall(p)"
+        />
       </el-col>
     </el-row>
-    <InstallProgress :task-id="taskId" @done="onDone" />
-    <el-button v-if="taskFailed" size="small" style="margin-top:8px" @click="dismissError">关闭</el-button>
+    <InstallProgress
+      :task-id="taskId"
+      @done="onDone"
+    />
+    <el-button
+      v-if="taskFailed"
+      size="small"
+      style="margin-top:8px"
+      @click="dismissError"
+    >
+      关闭
+    </el-button>
   </div>
 </template>
 <script setup lang="ts">
@@ -23,7 +62,18 @@ import api from "@/api/client";
 import MarketCard from "@/components/market/MarketCard.vue";
 import InstallProgress from "@/components/market/InstallProgress.vue";
 
-const list = ref<any[]>([]);
+interface MarketPluginItem {
+  name: string;
+  description?: string;
+  tags?: string[];
+  homepage?: string;
+  version?: string;
+  authors?: string | string[];
+  installed?: boolean;
+  _installing?: boolean;
+}
+
+const list = ref<MarketPluginItem[]>([]);
 const fallback = ref(false);
 const search = ref("");
 const tag = ref("");
@@ -46,19 +96,19 @@ async function load() {
   list.value = r.data.plugins || [];
   fallback.value = r.data.fallback || false;
 }
-async function startInstall(p: any) {
+async function startInstall(p: MarketPluginItem) {
   p._installing = true;
   taskFailed.value = false;
   try {
     const r = await api.post("/api/market/install", { name: p.name });
     taskId.value = r.data.task_id;
-  } catch (e: any) { ElMessage.error(e.message); p._installing = false; }
+  } catch (e: unknown) { ElMessage.error((e as { message: string }).message); p._installing = false; }
 }
-async function startUninstall(p: any) {
+async function startUninstall(p: MarketPluginItem) {
   try {
     const r = await api.post("/api/market/uninstall", { name: p.name });
     taskId.value = r.data.task_id;
-  } catch (e: any) { ElMessage.error(e.message); }
+  } catch (e: unknown) { ElMessage.error((e as { message: string }).message); }
 }
 function onDone(success: boolean) {
   if (success) {

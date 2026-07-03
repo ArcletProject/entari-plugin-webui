@@ -1,49 +1,100 @@
 <template>
   <div class="array-field">
     <!-- 简单字符串/数字数组 -->
-    <div v-if="isPrimitiveItems" class="primitive-array">
+    <div
+      v-if="isPrimitiveItems"
+      class="primitive-array"
+    >
       <el-tag
         v-for="(item, i) in model"
         :key="i"
         closable
-        @close="remove(i)"
         style="margin-right: 8px; margin-bottom: 8px"
+        @close="remove(i)"
       >
         {{ item }}
       </el-tag>
       <div class="add-row">
-        <el-input v-model="newValue" :placeholder="`添加 ${itemType}`" @keyup.enter="addPrimitive" style="width: 180px" />
-        <el-button @click="addPrimitive">添加</el-button>
+        <el-input
+          v-model="newValue"
+          :placeholder="`添加 ${itemType}`"
+          style="width: 180px"
+          @keyup.enter="addPrimitive"
+        />
+        <el-button @click="addPrimitive">
+          添加
+        </el-button>
       </div>
     </div>
     <!-- 对象数组 -->
     <div v-else-if="isObjectItems">
-      <el-card v-for="(_, i) in model" :key="i" style="margin-bottom: 8px">
+      <el-card
+        v-for="(_, i) in model"
+        :key="i"
+        style="margin-bottom: 8px"
+      >
         <template #header>
           <div class="card-header">
             <span>项目 {{ i + 1 }}</span>
-            <el-button text type="danger" size="small" @click="remove(i)">删除</el-button>
+            <el-button
+              text
+              type="danger"
+              size="small"
+              @click="remove(i)"
+            >
+              删除
+            </el-button>
           </div>
         </template>
-        <ObjectField :object-schema="itemsSchema" :defs="defs" :field-key="`${fieldKey}[${i}]`" v-model="model[i]" />
+        <ObjectField
+          v-model="model[i]"
+          :object-schema="itemsSchema"
+          :defs="defs"
+          :field-key="`${fieldKey}[${i}]`"
+        />
       </el-card>
-      <el-button @click="addObject">添加项目</el-button>
+      <el-button @click="addObject">
+        添加项目
+      </el-button>
     </div>
     <!-- oneOf/anyOf 数组 -->
     <div v-else-if="isUnionItems">
-      <el-card v-for="(_, i) in model" :key="i" style="margin-bottom: 8px">
+      <el-card
+        v-for="(_, i) in model"
+        :key="i"
+        style="margin-bottom: 8px"
+      >
         <template #header>
           <div class="card-header">
             <span>项目 {{ i + 1 }}</span>
-            <el-button text type="danger" size="small" @click="remove(i)">删除</el-button>
+            <el-button
+              text
+              type="danger"
+              size="small"
+              @click="remove(i)"
+            >
+              删除
+            </el-button>
           </div>
         </template>
-        <OneOfField :one-of="resolvedOneOf" :defs="defs" :field-key="`${fieldKey}[${i}]`" v-model="model[i]" />
+        <OneOfField
+          v-model="model[i]"
+          :one-of="resolvedOneOf"
+          :defs="defs"
+          :field-key="`${fieldKey}[${i}]`"
+        />
       </el-card>
-      <el-button @click="addUnion">添加项目</el-button>
+      <el-button @click="addUnion">
+        添加项目
+      </el-button>
     </div>
     <!-- fallback -->
-    <el-input v-else v-model="jsonText" type="textarea" :rows="4" />
+    <el-input
+      v-else
+      v-model="jsonText"
+      type="textarea"
+      :rows="4"
+    />
   </div>
 </template>
 
@@ -52,10 +103,10 @@ import { computed, ref } from "vue";
 import ObjectField from "./ObjectField.vue";
 import OneOfField from "./OneOfField.vue";
 
-const props = defineProps<{ itemsSchema?: any; defs?: any; fieldKey: string; modelValue?: any[] }>();
-const emit = defineEmits<{ "update:modelValue": [v: any[]] }>();
+const props = defineProps<{ itemsSchema?: Record<string, unknown>; defs?: Record<string, unknown>; fieldKey: string; modelValue?: unknown[] }>();
+const emit = defineEmits<{ "update:modelValue": [v: unknown[]] }>();
 
-const model = computed<any[]>({
+const model = computed<unknown[]>({
   get: () => props.modelValue ?? [],
   set: (v) => emit("update:modelValue", v),
 });
@@ -64,7 +115,7 @@ const itemType = computed(() => props.itemsSchema?.type);
 const isPrimitiveItems = computed(() => ["string", "number", "integer"].includes(itemType.value));
 const isObjectItems = computed(() => itemType.value === "object");
 const isUnionItems = computed(() => !!(props.itemsSchema?.oneOf || props.itemsSchema?.anyOf));
-const resolvedOneOf = computed(() => (props.itemsSchema?.oneOf || props.itemsSchema?.anyOf || []).map((o: any) => resolveRef(o, props.defs)));
+const resolvedOneOf = computed(() => (props.itemsSchema?.oneOf || props.itemsSchema?.anyOf || []).map((o: Record<string, unknown>) => resolveRef(o, props.defs)));
 
 const jsonText = ref(JSON.stringify(props.modelValue ?? [], null, 2));
 const newValue = ref("");
@@ -93,7 +144,7 @@ function addUnion() {
   emit("update:modelValue", [...model.value, type !== undefined ? { type } : defaultForSchema(first)]);
 }
 
-function resolveRef(schema: any, defs?: any): any {
+function resolveRef(schema: Record<string, unknown>, defs?: Record<string, unknown>): Record<string, unknown> {
   if (!schema) return {};
   if (schema.$ref) {
     const m = schema.$ref.match(/#\/(?:\$defs|definitions)\/([^/]+)$/);
@@ -108,12 +159,13 @@ function resolveRef(schema: any, defs?: any): any {
   return schema;
 }
 
-function defaultForSchema(schema: any): any {
+function defaultForSchema(schema: Record<string, unknown>): unknown {
   if (schema.default !== undefined) return schema.default;
   if (schema.const !== undefined) return schema.const;
   if (schema.type === "object") {
-    const out: Record<string, any> = {};
-    for (const [k, v] of Object.entries<any>(schema.properties || {})) {
+    const out: Record<string, unknown> = {};
+    const props = (schema.properties ?? {}) as Record<string, Record<string, unknown>>;
+    for (const [k, v] of Object.entries(props)) {
       out[k] = v.default !== undefined ? v.default : defaultForSchema(v);
     }
     return out;

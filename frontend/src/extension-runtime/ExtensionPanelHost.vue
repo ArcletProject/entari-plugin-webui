@@ -1,17 +1,22 @@
 <template>
   <div class="panel-host">
-    <iframe ref="frame" :src="page.component_url" sandbox="allow-scripts allow-forms" @load="onLoad"></iframe>
+    <iframe
+      ref="frame"
+      :src="page.component_url"
+      sandbox="allow-scripts allow-forms"
+      @load="onLoad"
+    />
   </div>
 </template>
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from "vue";
 import api from "@/api/client";
 
-const props = defineProps<{ page: any }>();
+defineProps<{ page: { component_url: string } }>();
 const frame = ref<HTMLIFrameElement>();
 let handler: ((e: MessageEvent) => void) | null = null;
 
-function postToChild(msg: any) {
+function postToChild(msg: unknown) {
   frame.value?.contentWindow?.postMessage(msg, "*");
 }
 
@@ -21,7 +26,7 @@ onMounted(() => {
     const { id, method, payload } = e.data || {};
     if (!id || !method) return;
     try {
-      let result: any;
+      let result: unknown;
       if (method === "api") {
         const r = await api.request(payload);
         result = r.data;
@@ -33,8 +38,8 @@ onMounted(() => {
         result = { error: "unknown_method" };
       }
       postToChild({ id, result });
-    } catch (err: any) {
-      postToChild({ id, error: err.message || "error" });
+    } catch (err: unknown) {
+      postToChild({ id, error: err instanceof Error ? err.message : "error" });
     }
   };
   window.addEventListener("message", handler);

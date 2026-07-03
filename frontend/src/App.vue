@@ -20,8 +20,8 @@ const route = useRoute();
 const layout = computed(() => (route.meta.layout === "blank" ? Blank : Default));
 useThemeStore().init();
 
-function expandFlatKeys(obj: Record<string, any>): Record<string, any> {
-  const result: Record<string, any> = {};
+function expandFlatKeys(obj: Record<string, unknown>): Record<string, unknown> {
+  const result: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(obj)) {
     const parts = key.split(".");
     let current = result;
@@ -40,7 +40,7 @@ onMounted(async () => {
     const extI18n = r.data.i18n;
     if (extI18n) {
       for (const [locale, messages] of Object.entries(extI18n)) {
-        i18n.global.mergeLocaleMessage(locale, expandFlatKeys(messages as Record<string, any>));
+        i18n.global.mergeLocaleMessage(locale, expandFlatKeys(messages as Record<string, unknown>));
       }
     }
   } catch {

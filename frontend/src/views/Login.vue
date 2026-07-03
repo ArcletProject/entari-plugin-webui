@@ -1,11 +1,28 @@
 <template>
   <div class="login-card">
     <h2>{{ t("auth.login") }}</h2>
-    <el-form @submit.prevent="onSubmit" v-loading="loading">
-      <el-form-item :label="t('auth.password')" v-if="!auth.localMode">
-        <el-input v-model="password" type="password" show-password @keyup.enter="onSubmit" />
+    <el-form
+      v-loading="loading"
+      @submit.prevent="onSubmit"
+    >
+      <el-form-item
+        v-if="!auth.localMode"
+        :label="t('auth.password')"
+      >
+        <el-input
+          v-model="password"
+          type="password"
+          show-password
+          @keyup.enter="onSubmit"
+        />
       </el-form-item>
-      <el-button type="primary" :loading="loading" @click="onSubmit">{{ t("auth.submit") }}</el-button>
+      <el-button
+        type="primary"
+        :loading="loading"
+        @click="onSubmit"
+      >
+        {{ t("auth.submit") }}
+      </el-button>
     </el-form>
   </div>
 </template>
@@ -24,9 +41,10 @@ onMounted(async () => { await auth.init(); if (auth.localMode) router.replace("/
 async function onSubmit() {
   loading.value = true;
   try { await auth.login(password.value); router.replace("/"); }
-  catch (e: any) {
-    const status = e.response?.status;
-    ElMessage.error(status === 429 ? t("auth.rate_limited") : status === 401 ? t("auth.wrong_password") : e.message);
+  catch (e: unknown) {
+    const err = e as { response?: { status: number }; message: string };
+    const status = err.response?.status;
+    ElMessage.error(status === 429 ? t("auth.rate_limited") : status === 401 ? t("auth.wrong_password") : err.message);
   } finally { loading.value = false; }
 }
 </script>

@@ -1,27 +1,43 @@
 <template>
   <div class="settings-sidebar">
-    <el-input v-model="keyword" placeholder="搜索插件" clearable />
+    <el-input
+      v-model="keyword"
+      placeholder="搜索插件"
+      clearable
+    />
     <el-scrollbar class="menu-scroll">
       <div class="group">
-        <div class="group-title">基础配置</div>
+        <div class="group-title">
+          基础配置
+        </div>
         <div
           :class="['menu-item', { active: store.currentSection === 'basic' }]"
           @click="select('basic')"
-        >基础配置</div>
+        >
+          基础配置
+        </div>
         <div
           :class="['menu-item', { active: store.currentSection === 'plugins' }]"
           @click="select('plugins')"
-        >插件全局</div>
+        >
+          插件全局
+        </div>
       </div>
       <div class="group">
-        <div class="group-title">适配器</div>
+        <div class="group-title">
+          适配器
+        </div>
         <div
           :class="['menu-item', { active: store.currentSection === 'adapters' }]"
           @click="select('adapters')"
-        >适配器</div>
+        >
+          适配器
+        </div>
       </div>
       <div class="group">
-        <div class="group-title">插件</div>
+        <div class="group-title">
+          插件
+        </div>
         <div
           v-for="p in filteredPlugins"
           :key="p.id"
@@ -29,7 +45,14 @@
           @click="select(`plugins:${p.id}`)"
         >
           <span class="name">{{ p.name }}</span>
-          <el-tag v-if="!p.enabled" type="info" size="small" class="status">已停用</el-tag>
+          <el-tag
+            v-if="!p.enabled"
+            type="info"
+            size="small"
+            class="status"
+          >
+            已停用
+          </el-tag>
         </div>
       </div>
     </el-scrollbar>

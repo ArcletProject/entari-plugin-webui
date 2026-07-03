@@ -1,29 +1,63 @@
 <template>
   <el-container style="height:100vh">
-    <el-aside :width="collapsed ? '64px' : '220px'" class="sidebar">
-      <transition name="logo-fade" mode="out-in">
-        <div class="logo" :key="String(collapsed)">
-          <img src="@/assets/logo.svg" class="logo-img" />
-          <span v-if="!collapsed" class="logo-text">Entari</span>
+    <el-aside
+      :width="collapsed ? '64px' : '220px'"
+      class="sidebar"
+    >
+      <transition
+        name="logo-fade"
+        mode="out-in"
+      >
+        <div
+          :key="String(collapsed)"
+          class="logo"
+        >
+          <img
+            src="@/assets/logo.svg"
+            class="logo-img"
+          >
+          <span
+            v-if="!collapsed"
+            class="logo-text"
+          >Entari</span>
         </div>
       </transition>
-      <el-menu :default-active="route.path" :collapse="collapsed" router>
-        <el-menu-item v-for="m in menu.items" :key="m.path" :index="m.path">
+      <el-menu
+        :default-active="route.path"
+        :collapse="collapsed"
+        router
+      >
+        <el-menu-item
+          v-for="m in menu.items"
+          :key="m.path"
+          :index="m.path"
+        >
           <el-icon><Icon :icon="m.icon" /></el-icon>
-          <template #title>{{ m.label || t(m.label_key) }}</template>
+          <template #title>
+            {{ m.label || t(m.label_key) }}
+          </template>
         </el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>
       <el-header class="header">
-        <el-button text @click="collapsed = !collapsed"><el-icon><Fold /></el-icon></el-button>
-        <div class="spacer"></div>
+        <el-button
+          text
+          @click="collapsed = !collapsed"
+        >
+          <el-icon><Fold /></el-icon>
+        </el-button>
+        <div class="spacer" />
         <ThemeToggle />
         <el-dropdown v-if="!auth.localMode">
-          <el-button text>{{ t("auth.logout") }}</el-button>
+          <el-button text>
+            {{ t("auth.logout") }}
+          </el-button>
           <template #dropdown>
             <el-dropdown-menu>
-              <el-dropdown-item @click="doLogout">{{ t("auth.logout") }}</el-dropdown-item>
+              <el-dropdown-item @click="doLogout">
+                {{ t("auth.logout") }}
+              </el-dropdown-item>
             </el-dropdown-menu>
           </template>
         </el-dropdown>

@@ -4,27 +4,30 @@
       <SchemaField
         v-for="(prop, key) in schema.properties"
         :key="key"
+        v-model="model[key]"
         :field-schema="prop"
         :defs="resolvedDefs"
         :field-key="String(key)"
         :required="schema.required?.includes(String(key))"
-        v-model="model[key]"
       />
     </template>
     <ObjectField
       v-else-if="schema?.type === 'object'"
+      v-model="model"
       :object-schema="schema"
       :defs="resolvedDefs"
       field-key="root"
-      v-model="model"
     />
     <AdditionalPropertiesEditor
       v-else-if="schema?.additionalProperties"
+      v-model="model"
       :value-schema="typeof schema.additionalProperties === 'object' ? schema.additionalProperties : {}"
       :defs="resolvedDefs"
-      v-model="model"
     />
-    <el-empty v-else description="无配置项" />
+    <el-empty
+      v-else
+      description="无配置项"
+    />
   </div>
 </template>
 
@@ -35,11 +38,11 @@ import ObjectField from "./ObjectField.vue";
 import AdditionalPropertiesEditor from "./AdditionalPropertiesEditor.vue";
 
 // modelValue: record<string, any>; schema: JSON Schema object
-const props = defineProps<{ schema?: any; modelValue?: Record<string, any> }>();
-const emit = defineEmits<{ "update:modelValue": [v: Record<string, any>] }>();
+const props = defineProps<{ schema?: Record<string, unknown>; modelValue?: Record<string, unknown> }>();
+const emit = defineEmits<{ "update:modelValue": [v: Record<string, unknown>] }>();
 
 const resolvedDefs = computed(() => props.schema?.$defs || props.schema?.$defs || {});
-const model = ref<Record<string, any>>({ ...(props.modelValue ?? {}) });
+const model = ref<Record<string, unknown>>({ ...(props.modelValue ?? {}) });
 
 watch(() => props.modelValue, (v) => {
   const next = v ?? {};

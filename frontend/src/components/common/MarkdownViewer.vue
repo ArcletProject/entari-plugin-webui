@@ -5,11 +5,13 @@
     :data-dark-theme="'github-markdown-dark'"
     :data-light-theme="'github-markdown-light'"
     v-html="renderedHtml"
-  ></div>
+  />
 </template>
 <script setup lang="ts">
 import { ref, watch, onMounted, onUnmounted } from "vue";
-import { marked } from "marked";
+import { marked, type Token } from "marked";
+import type { HighlighterCore } from "@shikijs/core";
+import type { LanguageInput } from "@shikijs/types";
 import { createHighlighterCore } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 import githubDark from "@shikijs/themes/github-dark";
@@ -45,7 +47,7 @@ onUnmounted(() => {
 });
 
 // Common readme/programming languages loaded on demand.
-const langLoaders: Record<string, () => Promise<{ default: any }>> = {
+const langLoaders: Record<string, () => Promise<{ default: LanguageInput }>> = {
   bash: () => import("@shikijs/langs/bash"),
   c: () => import("@shikijs/langs/c"),
   cpp: () => import("@shikijs/langs/cpp"),
@@ -101,24 +103,24 @@ function resolveLang(lang: string): string | undefined {
   return langLoaders[normalized] ? normalized : langAliases[normalized];
 }
 
-function collectCodeLanguages(tokens: any[], langs: Set<string>) {
+function collectCodeLanguages(tokens: Token[], langs: Set<string>) {
   for (const token of tokens) {
     if (token.type === "code" && token.lang) {
       const resolved = resolveLang(token.lang);
       if (resolved) langs.add(resolved);
     }
-    if (token.tokens) {
+    if ("tokens" in token && token.tokens) {
       collectCodeLanguages(token.tokens, langs);
     }
-    if (token.items) {
+    if ("items" in token && token.items) {
       for (const item of token.items) {
-        if (item.tokens) collectCodeLanguages(item.tokens, langs);
+        if ("tokens" in item && item.tokens) collectCodeLanguages(item.tokens, langs);
       }
     }
   }
 }
 
-async function loadLanguages(highlighter: any, source: string) {
+async function loadLanguages(highlighter: HighlighterCore, source: string) {
   const langs = new Set<string>();
   const tokens = marked.lexer(source);
   collectCodeLanguages(tokens, langs);
@@ -151,7 +153,7 @@ async function renderMarkdown() {
   await loadLanguages(highlighter, source);
 
   const renderer = new marked.Renderer();
-  renderer.code = ({ text, lang }: any) => {
+  renderer.code = ({ text, lang }: { text: string; lang?: string }) => {
     const language = (lang && resolveLang(lang)) || lang || "text";
     try {
       return highlighter.codeToHtml(text, { lang: language, theme });

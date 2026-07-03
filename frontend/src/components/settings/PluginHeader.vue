@@ -3,9 +3,16 @@
     <div class="info">
       <h3>{{ plugin.name }}</h3>
       <div class="meta">
-        <el-tag size="small" v-if="plugin.version">v{{ plugin.version }}</el-tag>
-        <span v-if="plugin.description" class="description">{{ plugin.description }}</span>
-
+        <el-tag
+          v-if="plugin.version"
+          size="small"
+        >
+          v{{ plugin.version }}
+        </el-tag>
+        <span
+          v-if="plugin.description"
+          class="description"
+        >{{ plugin.description }}</span>
       </div>
     </div>
     <div class="actions">
@@ -14,8 +21,18 @@
         :disabled="plugin.is_static"
         @change="(v: any) => emit('toggle', v)"
       />
-      <el-button size="small" @click="emit('reload')">重载</el-button>
-      <el-button size="small" @click="emit('detail')">详情</el-button>
+      <el-button
+        size="small"
+        @click="emit('reload')"
+      >
+        重载
+      </el-button>
+      <el-button
+        size="small"
+        @click="emit('detail')"
+      >
+        详情
+      </el-button>
     </div>
   </div>
 </template>

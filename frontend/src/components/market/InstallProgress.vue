@@ -1,7 +1,15 @@
 <template>
-  <div class="install-progress" v-if="taskId">
-    <el-progress :percentage="percent" :status="status" />
-    <div class="msg">{{ message }}</div>
+  <div
+    v-if="taskId"
+    class="install-progress"
+  >
+    <el-progress
+      :percentage="percent"
+      :status="status"
+    />
+    <div class="msg">
+      {{ message }}
+    </div>
   </div>
 </template>
 <script setup lang="ts">

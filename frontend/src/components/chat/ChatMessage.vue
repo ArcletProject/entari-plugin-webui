@@ -1,16 +1,27 @@
 <template>
   <div :class="['chat-message', data.role]">
     <template v-if="data.role === 'system'">
-      <div class="system-bubble" v-html="renderedContent"></div>
+      <div
+        class="system-bubble"
+        v-html="renderedContent"
+      />
     </template>
     <template v-else>
-      <div class="avatar" :style="avatarStyle">{{ avatarText }}</div>
+      <div
+        class="avatar"
+        :style="avatarStyle"
+      >
+        {{ avatarText }}
+      </div>
       <div class="body">
         <div class="meta">
           <span class="nickname">{{ nickname }}</span>
           <span class="time">{{ formatTime(data.time) }}</span>
         </div>
-        <div class="bubble" v-html="renderedContent"></div>
+        <div
+          class="bubble"
+          v-html="renderedContent"
+        />
       </div>
     </template>
   </div>

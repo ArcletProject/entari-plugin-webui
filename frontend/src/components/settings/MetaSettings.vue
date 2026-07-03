@@ -1,13 +1,25 @@
 <template>
-  <el-card class="meta-card" v-if="schema">
+  <el-card
+    v-if="schema"
+    class="meta-card"
+  >
     <template #header>
-      <div class="card-header collapsible" @click="open = !open">
+      <div
+        class="card-header collapsible"
+        @click="open = !open"
+      >
         <span>元数据设置</span>
-        <el-icon :class="{ 'is-reverse': open }"><ArrowUpBold /></el-icon>
+        <el-icon :class="{ 'is-reverse': open }">
+          <ArrowUpBold />
+        </el-icon>
       </div>
     </template>
     <div v-show="open">
-      <SchemaForm v-if="patchedSchema" :schema="patchedSchema" v-model="model" />
+      <SchemaForm
+        v-if="patchedSchema"
+        v-model="model"
+        :schema="patchedSchema"
+      />
     </div>
   </el-card>
 </template>
@@ -18,17 +30,18 @@ import { useI18n } from "vue-i18n";
 import { ArrowUpBold } from "@element-plus/icons-vue";
 import SchemaForm from "@/components/schema-form/SchemaForm.vue";
 
-const props = defineProps<{ schema: any; modelValue: any }>();
+const props = defineProps<{ schema: Record<string, unknown> | null; modelValue: Record<string, unknown> }>();
 const open = ref(true);
-const emit = defineEmits<{ "update:modelValue": [value: any] }>();
+const emit = defineEmits<{ "update:modelValue": [value: Record<string, unknown>] }>();
 const { t } = useI18n();
 
 const patchedSchema = computed(() => {
   if (!props.schema) return null;
-  const properties: Record<string, any> = {};
-  for (const [key, prop] of Object.entries<any>(props.schema.properties || {})) {
+  const properties: Record<string, Record<string, unknown>> = {};
+  for (const [key, prop] of Object.entries(props.schema.properties ?? {})) {
+    const p = prop as Record<string, unknown>;
     const label = t(`meta.${key}`);
-    properties[key] = label && !label.startsWith("meta.") ? { ...prop, title: label } : { ...prop };
+    properties[key] = label && !label.startsWith("meta.") ? { ...p, title: label } : { ...p };
   }
   return { ...props.schema, properties };
 });

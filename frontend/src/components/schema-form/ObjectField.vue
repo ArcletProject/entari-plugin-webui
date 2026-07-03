@@ -1,23 +1,29 @@
 <template>
   <div class="object-field">
     <template v-if="objectSchema.properties">
-      <el-collapse v-if="collapsible" v-model="activeNames">
-        <el-collapse-item :title="collapseTitle" :name="fieldKey">
+      <el-collapse
+        v-if="collapsible"
+        v-model="activeNames"
+      >
+        <el-collapse-item
+          :title="collapseTitle"
+          :name="fieldKey"
+        >
           <SchemaField
             v-for="(p, k) in objectSchema.properties"
             :key="k"
+            v-model="model[k]"
             :field-schema="p"
             :defs="defs"
             :field-key="String(k)"
             :required="objectSchema.required?.includes(String(k))"
-            v-model="model[k]"
           />
           <AdditionalPropertiesEditor
             v-if="objectSchema.additionalProperties"
+            v-model="model"
             :excluded-keys="Object.keys(objectSchema.properties)"
             :value-schema="typeof objectSchema.additionalProperties === 'object' ? objectSchema.additionalProperties : {}"
             :defs="defs"
-            v-model="model"
           />
         </el-collapse-item>
       </el-collapse>
@@ -25,28 +31,33 @@
         <SchemaField
           v-for="(p, k) in objectSchema.properties"
           :key="k"
+          v-model="model[k]"
           :field-schema="p"
           :defs="defs"
           :field-key="String(k)"
           :required="objectSchema.required?.includes(String(k))"
-          v-model="model[k]"
         />
         <AdditionalPropertiesEditor
           v-if="objectSchema.additionalProperties"
+          v-model="model"
           :excluded-keys="Object.keys(objectSchema.properties)"
           :value-schema="typeof objectSchema.additionalProperties === 'object' ? objectSchema.additionalProperties : {}"
           :defs="defs"
-          v-model="model"
         />
       </template>
     </template>
     <AdditionalPropertiesEditor
       v-else-if="objectSchema.additionalProperties"
+      v-model="model"
       :value-schema="typeof objectSchema.additionalProperties === 'object' ? objectSchema.additionalProperties : {}"
       :defs="defs"
-      v-model="model"
     />
-    <el-input v-else v-model="jsonText" type="textarea" :rows="4" />
+    <el-input
+      v-else
+      v-model="jsonText"
+      type="textarea"
+      :rows="4"
+    />
   </div>
 </template>
 
@@ -55,8 +66,8 @@ import { computed, ref } from "vue";
 import SchemaField from "./SchemaField.vue";
 import AdditionalPropertiesEditor from "./AdditionalPropertiesEditor.vue";
 
-const props = defineProps<{ objectSchema: any; defs?: any; fieldKey: string; modelValue?: any }>();
-const emit = defineEmits<{ "update:modelValue": [v: any] }>();
+const props = defineProps<{ objectSchema: Record<string, unknown>; defs?: Record<string, unknown>; fieldKey: string; modelValue?: unknown }>();
+const emit = defineEmits<{ "update:modelValue": [v: unknown] }>();
 
 const model = computed({
   get: () => props.modelValue ?? {},

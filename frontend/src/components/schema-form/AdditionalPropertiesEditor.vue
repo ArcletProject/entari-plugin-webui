@@ -1,25 +1,55 @@
 <template>
   <div class="ap-editor">
-    <el-divider v-if="excludedKeys?.length" content-position="left">附加属性</el-divider>
-    <el-card v-for="(v, k) in extra" :key="String(k)" style="margin-bottom: 8px">
+    <el-divider
+      v-if="excludedKeys?.length"
+      content-position="left"
+    >
+      附加属性
+    </el-divider>
+    <el-card
+      v-for="(v, k) in extra"
+      :key="String(k)"
+      style="margin-bottom: 8px"
+    >
       <template #header>
         <div class="card-header">
-          <el-input v-model="renameMap[String(k)]" placeholder="属性名" style="width: 180px" size="small" @blur="rename(String(k), renameMap[String(k)])" />
-          <el-button text type="danger" size="small" @click="remove(String(k))">删除</el-button>
+          <el-input
+            v-model="renameMap[String(k)]"
+            placeholder="属性名"
+            style="width: 180px"
+            size="small"
+            @blur="rename(String(k), renameMap[String(k)])"
+          />
+          <el-button
+            text
+            type="danger"
+            size="small"
+            @click="remove(String(k))"
+          >
+            删除
+          </el-button>
         </div>
       </template>
       <SchemaField
         v-if="hasValueSchema"
+        v-model="model[String(k)]"
         :field-schema="valueSchema"
         :defs="defs"
         :field-key="String(k)"
+      />
+      <el-input
+        v-else
         v-model="model[String(k)]"
       />
-      <el-input v-else v-model="model[String(k)]" />
     </el-card>
     <div class="add-row">
-      <el-input v-model="newKey" placeholder="新属性名" />
-      <el-button @click="add">添加属性</el-button>
+      <el-input
+        v-model="newKey"
+        placeholder="新属性名"
+      />
+      <el-button @click="add">
+        添加属性
+      </el-button>
     </div>
   </div>
 </template>
@@ -29,15 +59,15 @@ import { computed, ref, watch } from "vue";
 import SchemaField from "./SchemaField.vue";
 
 const props = defineProps<{
-  valueSchema?: any;
-  defs?: any;
+  valueSchema?: Record<string, unknown>;
+  defs?: Record<string, unknown>;
   excludedKeys?: string[];
-  modelValue?: Record<string, any>;
+  modelValue?: Record<string, unknown>;
 }>();
-const emit = defineEmits<{ "update:modelValue": [v: Record<string, any>] }>();
+const emit = defineEmits<{ "update:modelValue": [v: Record<string, unknown>] }>();
 
 const excluded = computed(() => props.excludedKeys ?? []);
-const model = computed<Record<string, any>>({
+const model = computed<Record<string, unknown>>({
   get: () => props.modelValue ?? {},
   set: (v) => emit("update:modelValue", v),
 });

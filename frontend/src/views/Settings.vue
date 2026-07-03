@@ -2,53 +2,94 @@
   <div class="settings-page">
     <SettingsSidebar />
     <div class="settings-main">
-      <el-skeleton v-if="store.loading" :rows="10" animated />
+      <el-skeleton
+        v-if="store.loading"
+        :rows="10"
+        animated
+      />
       <template v-else>
         <PluginHeader
           v-if="store.currentPlugin"
           :plugin="store.currentPlugin"
           @toggle="(v) => onToggle(v)"
           @reload="onReload"
-          @detail="detailPlugin = store.pluginRawMap[store.pluginId]"
+          @detail="showDetail"
         />
-        <div v-else class="section-header">
+        <div
+          v-else
+          class="section-header"
+        >
           <h3>{{ sectionTitle }}</h3>
         </div>
 
-        <el-alert v-if="store.error" :title="store.error" type="error" :closable="false" class="mb-4" />
+        <el-alert
+          v-if="store.error"
+          :title="store.error"
+          type="error"
+          :closable="false"
+          class="mb-4"
+        />
 
         <div class="actions">
-          <el-button type="primary" :loading="store.savePending" @click="save">
-            <AppIcon icon="mdi:content-save" style="margin-right: 4px" />
+          <el-button
+            type="primary"
+            :loading="store.savePending"
+            @click="save"
+          >
+            <AppIcon
+              icon="mdi:content-save"
+              style="margin-right: 4px"
+            />
             保存
           </el-button>
         </div>
 
         <MetaSettings
           v-if="store.metaSchema"
-          :schema="store.metaSchema"
           v-model="store.metaData"
+          :schema="store.metaSchema"
           @update:model-value="store.markDirty"
         />
 
         <el-card v-if="store.configSchema">
           <template #header>
-            <div class="card-header collapsible" @click="configOpen = !configOpen">
+            <div
+              class="card-header collapsible"
+              @click="configOpen = !configOpen"
+            >
               <span>配置</span>
-              <el-icon :class="{ 'is-reverse': configOpen }"><ArrowUpBold /></el-icon>
+              <el-icon :class="{ 'is-reverse': configOpen }">
+                <ArrowUpBold />
+              </el-icon>
             </div>
           </template>
           <div v-show="configOpen">
-            <DualConfigEditor :key="store.currentSection" :schema="store.configSchema" v-model="store.configData" lang="json" @update:model-value="store.markDirty" />
+            <DualConfigEditor
+              :key="store.currentSection"
+              v-model="store.configData"
+              :schema="store.configSchema"
+              lang="json"
+              @update:model-value="store.markDirty"
+            />
           </div>
         </el-card>
 
-        <el-empty v-if="!store.metaSchema && !store.configSchema && !store.loading" description="无配置项" />
+        <el-empty
+          v-if="!store.metaSchema && !store.configSchema && !store.loading"
+          description="无配置项"
+        />
       </template>
     </div>
 
-    <el-dialog v-model="detailVisible" width="600" :title="detailPlugin?.name">
-      <PluginDetailModal :plugin="detailPlugin" v-if="detailPlugin" />
+    <el-dialog
+      v-model="detailVisible"
+      width="600"
+      :title="detailPlugin?.name"
+    >
+      <PluginDetailModal
+        v-if="detailPlugin"
+        :plugin="detailPlugin"
+      />
     </el-dialog>
   </div>
 </template>
@@ -69,7 +110,19 @@ defineOptions({ name: "Settings" });
 
 const route = useRoute();
 const store = useSettingsStore();
-const detailPlugin = ref<any>(null);
+interface PluginDetail {
+  id: string;
+  name?: string;
+  version?: string;
+  license?: string;
+  description?: string;
+  authors?: string | string[];
+  urls?: Record<string, string> | string[];
+  references?: string[];
+  referents?: string[];
+  readme?: string;
+}
+const detailPlugin = ref<PluginDetail | null>(null);
 const detailVisible = computed({ get: () => !!detailPlugin.value, set: (v) => { if (!v) detailPlugin.value = null; } });
 const configOpen = ref(true);
 
@@ -90,6 +143,9 @@ async function onToggle(v: boolean) {
   ElMessage.success(v ? "已启用" : "已停用");
 }
 
+function showDetail() {
+  detailPlugin.value = store.pluginRawMap[store.pluginId] as PluginDetail;
+}
 async function onReload() {
   if (!store.currentPlugin) return;
   await store.reloadPlugin(store.currentPlugin.id);

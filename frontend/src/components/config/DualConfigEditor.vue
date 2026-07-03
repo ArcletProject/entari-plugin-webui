@@ -1,12 +1,29 @@
 <template>
   <div class="dual-editor">
     <el-radio-group v-model="view">
-      <el-radio-button value="form">表单</el-radio-button>
-      <el-radio-button value="code">代码</el-radio-button>
+      <el-radio-button value="form">
+        表单
+      </el-radio-button>
+      <el-radio-button value="code">
+        代码
+      </el-radio-button>
     </el-radio-group>
-    <el-alert v-if="codeInvalid && view==='form'" type="warning" :title="t('config.code_invalid_note')" :closable="false" />
-    <SchemaForm v-show="view==='form'" :schema="schema" v-model="formData" />
-    <div v-show="view==='code'" ref="monacoHost" style="height:480px"></div>
+    <el-alert
+      v-if="codeInvalid && view==='form'"
+      type="warning"
+      :title="t('config.code_invalid_note')"
+      :closable="false"
+    />
+    <SchemaForm
+      v-show="view==='form'"
+      v-model="formData"
+      :schema="schema"
+    />
+    <div
+      v-show="view==='code'"
+      ref="monacoHost"
+      style="height:480px"
+    />
   </div>
 </template>
 <script setup lang="ts">
@@ -15,11 +32,11 @@ import * as monaco from "monaco-editor";
 import SchemaForm from "@/components/schema-form/SchemaForm.vue";
 import { useI18n } from "vue-i18n";
 
-const props = defineProps<{ schema: any; modelValue: any; lang?: "json" | "yaml" }>();
-const emit = defineEmits<{ "update:modelValue": [v: any] }>();
+const props = defineProps<{ schema: Record<string, unknown>; modelValue: Record<string, unknown>; lang?: "json" | "yaml" }>();
+const emit = defineEmits<{ "update:modelValue": [v: Record<string, unknown>] }>();
 const { t } = useI18n();
 const view = ref<"form" | "code">("form");
-const formData = ref<any>(props.modelValue ?? {});
+const formData = ref<Record<string, unknown>>(props.modelValue ?? {});
 const codeInvalid = ref(false);
 const monacoHost = ref<HTMLElement>();
 let editor: monaco.editor.IStandaloneCodeEditor | null = null;

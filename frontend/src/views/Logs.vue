@@ -1,10 +1,17 @@
 <template>
   <div class="logs-page">
     <div class="toolbar">
-      <el-tag :type="log.connected ? 'success' : 'danger'">{{ log.connected ? "已连接" : "未连接" }}</el-tag>
-      <el-button @click="log.clear">清空</el-button>
+      <el-tag :type="log.connected ? 'success' : 'danger'">
+        {{ log.connected ? "已连接" : "未连接" }}
+      </el-tag>
+      <el-button @click="log.clear">
+        清空
+      </el-button>
     </div>
-    <AnsiLogViewer :lines="log.lines" class="log-viewer" />
+    <AnsiLogViewer
+      :lines="log.lines"
+      class="log-viewer"
+    />
   </div>
 </template>
 <script setup lang="ts">

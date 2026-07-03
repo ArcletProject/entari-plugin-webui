@@ -1,20 +1,63 @@
 <template>
   <div class="oneof-field">
-    <div v-if="isSimple" class="simple-row">
-      <el-select v-model="selectedIndex" @change="onTypeChange" class="type-select">
-        <el-option v-for="(o, i) in simpleOptions" :key="i" :label="labelOf(o)" :value="i" />
+    <div
+      v-if="isSimple"
+      class="simple-row"
+    >
+      <el-select
+        v-model="selectedIndex"
+        class="type-select"
+        @change="onTypeChange"
+      >
+        <el-option
+          v-for="(o, i) in simpleOptions"
+          :key="i"
+          :label="labelOf(o)"
+          :value="i"
+        />
       </el-select>
-      <el-input v-if="curType==='string'" v-model="model" class="value-input" />
-      <el-input-number v-else-if="curType==='number'||curType==='integer'" v-model="model" :step="curType==='integer'?1:0.1" class="value-input" />
-      <el-switch v-else-if="curType==='boolean'" v-model="model" />
-      <el-input v-else-if="curType==='null'" model-value="null" disabled class="value-input" />
+      <el-input
+        v-if="curType==='string'"
+        v-model="model"
+        class="value-input"
+      />
+      <el-input-number
+        v-else-if="curType==='number'||curType==='integer'"
+        v-model="model"
+        :step="curType==='integer'?1:0.1"
+        class="value-input"
+      />
+      <el-switch
+        v-else-if="curType==='boolean'"
+        v-model="model"
+      />
+      <el-input
+        v-else-if="curType==='null'"
+        model-value="null"
+        disabled
+        class="value-input"
+      />
     </div>
     <div v-else>
-      <el-select v-model="selectedIndex" @change="onTypeChange" style="width:100%;margin-bottom:8px">
-        <el-option v-for="(o, i) in complexOptions" :key="i" :label="optionLabel(o, i)" :value="i" />
+      <el-select
+        v-model="selectedIndex"
+        style="width:100%;margin-bottom:8px"
+        @change="onTypeChange"
+      >
+        <el-option
+          v-for="(o, i) in complexOptions"
+          :key="i"
+          :label="optionLabel(o, i)"
+          :value="i"
+        />
       </el-select>
       <el-card v-if="complexOptions[selectedIndex]">
-        <SchemaField :field-schema="complexOptions[selectedIndex]" :defs="defs" :field-key="fieldKey" v-model="model" />
+        <SchemaField
+          v-model="model"
+          :field-schema="complexOptions[selectedIndex]"
+          :defs="defs"
+          :field-key="fieldKey"
+        />
       </el-card>
     </div>
   </div>
@@ -24,8 +67,8 @@
 import { computed, ref, watch } from "vue";
 import SchemaField from "./SchemaField.vue";
 
-const props = defineProps<{ oneOf: any[]; defs?: any; fieldKey: string; modelValue?: any }>();
-const emit = defineEmits<{ "update:modelValue": [v: any] }>();
+const props = defineProps<{ oneOf: Record<string, unknown>[]; defs?: Record<string, unknown>; fieldKey: string; modelValue?: unknown }>();
+const emit = defineEmits<{ "update:modelValue": [v: unknown] }>();
 
 const simpleTypes = ["string", "number", "integer", "boolean", "null"];
 const simpleOptions = computed(() => props.oneOf.filter(o => simpleTypes.includes(o.type)));
@@ -38,10 +81,10 @@ const model = computed({
   set: (v) => emit("update:modelValue", v),
 });
 
-function labelOf(o: any) {
+function labelOf(o: Record<string, unknown>) {
   return o.title || (o.type === "null" ? "空" : o.type);
 }
-function optionLabel(o: any, i: number) {
+function optionLabel(o: Record<string, unknown>, i: number) {
   return o.title || o.properties?.type?.enum?.[0] || `选项 ${i + 1}`;
 }
 function defaultForType(t?: string) {
