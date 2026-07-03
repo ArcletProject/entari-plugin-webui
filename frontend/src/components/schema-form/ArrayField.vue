@@ -48,7 +48,7 @@
         </template>
         <ObjectField
           v-model="model[i]"
-          :object-schema="itemsSchema!"
+          :object-schema="resolvedItemsSchema!"
           :defs="defs"
           :field-key="`${fieldKey}[${i}]`"
         />
@@ -111,12 +111,13 @@ const model = computed<unknown[]>({
   set: (v) => emit("update:modelValue", v),
 });
 
-const itemType = computed(() => props.itemsSchema?.type as string | undefined);
+const resolvedItemsSchema = computed(() => props.itemsSchema ? resolveRef(props.itemsSchema, props.defs) : undefined);
+const itemType = computed(() => resolvedItemsSchema.value?.type as string | undefined);
 const isPrimitiveItems = computed(() => ["string", "number", "integer"].includes(itemType.value!));
 const isObjectItems = computed(() => itemType.value === "object");
-const isUnionItems = computed(() => !!((props.itemsSchema?.oneOf || props.itemsSchema?.anyOf) as unknown[] | undefined));
+const isUnionItems = computed(() => !!((resolvedItemsSchema.value?.oneOf || resolvedItemsSchema.value?.anyOf) as unknown[] | undefined));
 const resolvedOneOf = computed(() => {
-  const items = (props.itemsSchema?.oneOf || props.itemsSchema?.anyOf) as Record<string, unknown>[] | undefined;
+  const items = (resolvedItemsSchema.value?.oneOf || resolvedItemsSchema.value?.anyOf) as Record<string, unknown>[] | undefined;
   return (items || []).map((o) => resolveRef(o, props.defs));
 });
 
