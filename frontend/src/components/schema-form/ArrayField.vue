@@ -48,7 +48,7 @@
         </template>
         <ObjectField
           v-model="model[i]"
-          :object-schema="itemsSchema"
+          :object-schema="itemsSchema!"
           :defs="defs"
           :field-key="`${fieldKey}[${i}]`"
         />
@@ -111,11 +111,14 @@ const model = computed<unknown[]>({
   set: (v) => emit("update:modelValue", v),
 });
 
-const itemType = computed(() => props.itemsSchema?.type);
-const isPrimitiveItems = computed(() => ["string", "number", "integer"].includes(itemType.value));
+const itemType = computed(() => props.itemsSchema?.type as string | undefined);
+const isPrimitiveItems = computed(() => ["string", "number", "integer"].includes(itemType.value!));
 const isObjectItems = computed(() => itemType.value === "object");
-const isUnionItems = computed(() => !!(props.itemsSchema?.oneOf || props.itemsSchema?.anyOf));
-const resolvedOneOf = computed(() => (props.itemsSchema?.oneOf || props.itemsSchema?.anyOf || []).map((o: Record<string, unknown>) => resolveRef(o, props.defs)));
+const isUnionItems = computed(() => !!((props.itemsSchema?.oneOf || props.itemsSchema?.anyOf) as unknown[] | undefined));
+const resolvedOneOf = computed(() => {
+  const items = (props.itemsSchema?.oneOf || props.itemsSchema?.anyOf) as Record<string, unknown>[] | undefined;
+  return (items || []).map((o) => resolveRef(o, props.defs));
+});
 
 const jsonText = ref(JSON.stringify(props.modelValue ?? [], null, 2));
 const newValue = ref("");
@@ -140,19 +143,21 @@ function addUnion() {
     emit("update:modelValue", [...model.value, {}]);
     return;
   }
-  const type = first.properties?.type?.enum?.[0];
+  const props = first.properties as Record<string, unknown> | undefined;
+  const type = ((props?.type as Record<string, unknown>)?.enum as unknown[])?.[0] as string;
   emit("update:modelValue", [...model.value, type !== undefined ? { type } : defaultForSchema(first)]);
 }
 
 function resolveRef(schema: Record<string, unknown>, defs?: Record<string, unknown>): Record<string, unknown> {
   if (!schema) return {};
   if (schema.$ref) {
-    const m = schema.$ref.match(/#\/(?:\$defs|definitions)\/([^/]+)$/);
+    const m = (schema.$ref as string).match(/#\/(?:\$defs|definitions)\/([^/]+)$/);
     if (m && defs?.[m[1]]) {
+      const def = defs[m[1]] as Record<string, unknown>;
       return {
-        ...defs[m[1]],
-        description: schema.description ?? defs[m[1]].description,
-        title: schema.title ?? defs[m[1]].title,
+        ...def,
+        description: schema.description ?? def.description,
+        title: schema.title ?? def.title,
       };
     }
   }

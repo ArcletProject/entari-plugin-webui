@@ -27,7 +27,7 @@ function expandFlatKeys(obj: Record<string, unknown>): Record<string, unknown> {
     let current = result;
     for (let i = 0; i < parts.length - 1; i++) {
       if (!current[parts[i]]) current[parts[i]] = {};
-      current = current[parts[i]];
+      current = current[parts[i]] as Record<string, unknown>;
     }
     current[parts[parts.length - 1]] = value;
   }

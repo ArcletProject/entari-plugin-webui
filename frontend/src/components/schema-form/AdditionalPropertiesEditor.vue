@@ -33,7 +33,7 @@
       <SchemaField
         v-if="hasValueSchema"
         v-model="model[String(k)]"
-        :field-schema="valueSchema"
+        :field-schema="valueSchema!"
         :defs="defs"
         :field-key="String(k)"
       />

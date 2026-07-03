@@ -80,7 +80,7 @@ export const useChatStore = defineStore("chat", () => {
     if (data.action && data.token) {
       ws?.send(JSON.stringify({ token: data.token, status: "ok", data: { id: uuid() } }));
       if (data.action === "message_create") {
-        const elements: SatoriElement[] | undefined = data.data?.elements;
+        const elements: SatoriElement[] | undefined = (data.data as { elements?: SatoriElement[] })?.elements;
         const content = elementsToText(elements);
         messages.value.push({ id: uuid(), role: "bot", content, elements, time: new Date() });
       }
@@ -88,10 +88,10 @@ export const useChatStore = defineStore("chat", () => {
     }
     // 普通事件：用户消息回显
     if (data.type === "message_create") {
-      const elements: SatoriElement[] | undefined = data.data?.elements;
+      const elements: SatoriElement[] | undefined = (data.data as { elements?: SatoriElement[] })?.elements;
       const content = elementsToText(elements);
       messages.value.push({
-        id: data.data?.message_id || uuid(),
+        id: (data.data as { message_id?: string })?.message_id || uuid(),
         role: "user",
         content,
         elements,

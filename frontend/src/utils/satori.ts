@@ -45,7 +45,7 @@ function renderElement(el: SatoriElement): string {
     case "img":
     case "image": {
       const src = attrs?.src ?? "";
-      const sanitized = DOMPurify.sanitize(src, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+      const sanitized = DOMPurify.sanitize(src as string, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
       return `<img src="${attrValue(sanitized)}"${renderAttrs(attrs, ["alt", "title", "width", "height"])} />`;
     }
     case "at": {
@@ -59,7 +59,7 @@ function renderElement(el: SatoriElement): string {
     case "a":
     case "link": {
       const href = attrs?.href ?? "";
-      const sanitized = DOMPurify.sanitize(href, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+      const sanitized = DOMPurify.sanitize(href as string, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
       return `<a href="${attrValue(sanitized)}" target="_blank" rel="noopener noreferrer"${renderAttrs(attrs, ["title"])}>${renderSatori(children)}</a>`;
     }
     case "quote": {
@@ -76,7 +76,7 @@ function renderElement(el: SatoriElement): string {
     case "audio":
     case "file": {
       const src = attrs?.src ?? "";
-      const sanitized = DOMPurify.sanitize(src, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
+      const sanitized = DOMPurify.sanitize(src as string, { ALLOWED_TAGS: [], ALLOWED_ATTR: [] });
       return `<a href="${attrValue(sanitized)}" target="_blank" rel="noopener noreferrer">[${escapeHtml(type)}]</a>`;
     }
     default: {

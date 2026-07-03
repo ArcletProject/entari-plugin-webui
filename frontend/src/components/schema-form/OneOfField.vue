@@ -71,9 +71,9 @@ const props = defineProps<{ oneOf: Record<string, unknown>[]; defs?: Record<stri
 const emit = defineEmits<{ "update:modelValue": [v: unknown] }>();
 
 const simpleTypes = ["string", "number", "integer", "boolean", "null"];
-const simpleOptions = computed(() => props.oneOf.filter(o => simpleTypes.includes(o.type)));
-const complexOptions = computed(() => props.oneOf.filter(o => !simpleTypes.includes(o.type)));
-const isSimple = computed(() => props.oneOf.every(o => simpleTypes.includes(o.type)));
+const simpleOptions = computed(() => props.oneOf.filter(o => simpleTypes.includes(o.type as string)));
+const complexOptions = computed(() => props.oneOf.filter(o => !simpleTypes.includes(o.type as string)));
+const isSimple = computed(() => props.oneOf.every(o => simpleTypes.includes(o.type as string)));
 const selectedIndex = ref(0);
 const curType = computed(() => simpleOptions.value[selectedIndex.value]?.type);
 const model = computed({
@@ -85,7 +85,10 @@ function labelOf(o: Record<string, unknown>) {
   return o.title || (o.type === "null" ? "空" : o.type);
 }
 function optionLabel(o: Record<string, unknown>, i: number) {
-  return o.title || o.properties?.type?.enum?.[0] || `选项 ${i + 1}`;
+  const props = o.properties as Record<string, unknown> | undefined;
+  const typeSchema = props?.type as Record<string, unknown> | undefined;
+  const enumVal = (typeSchema?.enum as unknown[])?.[0] as string;
+  return (o.title as string) || enumVal || `选项 ${i + 1}`;
 }
 function defaultForType(t?: string) {
   if (t === "null") return null;
@@ -95,7 +98,7 @@ function defaultForType(t?: string) {
   return {};
 }
 function onTypeChange() {
-  emit("update:modelValue", defaultForType(curType.value));
+  emit("update:modelValue", defaultForType(curType.value as string));
 }
 
 watch(() => props.modelValue, () => {
@@ -107,10 +110,12 @@ watch(() => props.modelValue, () => {
     );
     if (i >= 0) selectedIndex.value = i;
   } else {
-    const type = props.modelValue?.type;
-    const i = complexOptions.value.findIndex(o =>
-      o.properties?.type?.enum?.includes(type)
-    );
+    const type = (props.modelValue as Record<string, unknown>)?.type as string;
+    const i = complexOptions.value.findIndex(o => {
+      const typeSchema = (o.properties as Record<string, unknown>)?.type as Record<string, unknown> | undefined;
+      const enum_ = typeSchema?.enum as string[] | undefined;
+      return enum_?.includes(type);
+    });
     if (i >= 0) selectedIndex.value = i;
   }
 }, { immediate: true });

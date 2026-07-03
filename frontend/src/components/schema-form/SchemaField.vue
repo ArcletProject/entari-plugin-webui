@@ -89,10 +89,11 @@
       <!-- array -->
       <ArrayField
         v-else-if="resolved.type === 'array'"
-        v-model="model"
-        :items-schema="resolved.items"
+        :model-value="castArray(model)"
+        :items-schema="castItemsSchema(resolved.items)"
         :defs="defs"
         :field-key="fieldKey"
+        @update:model-value="model = $event"
       />
       <!-- object -->
       <ObjectField
@@ -106,7 +107,7 @@
       <OneOfField
         v-else-if="resolved.oneOf"
         v-model="model"
-        :one-of="resolved.oneOf"
+        :one-of="castSchemas(resolved.oneOf)"
         :defs="defs"
         :field-key="fieldKey"
       />
@@ -114,7 +115,7 @@
       <OneOfField
         v-else-if="resolved.anyOf"
         v-model="model"
-        :one-of="resolved.anyOf"
+        :one-of="castSchemas(resolved.anyOf)"
         :defs="defs"
         :field-key="fieldKey"
       />
@@ -141,7 +142,7 @@
       />
       <!-- textarea for long strings -->
       <el-input
-        v-else-if="resolved.format === 'textarea' || resolved.maxLength && resolved.maxLength > 200"
+        v-else-if="resolved.format === 'textarea' || castNumber(resolved.maxLength) > 200"
         v-model="model"
         type="textarea"
         :rows="4"
@@ -229,17 +230,23 @@ function resolveRef(schema: Record<string, unknown>, defs?: Record<string, unkno
   if (!schema) return {};
   if (!schema.$ref && !schema.oneOf && !schema.anyOf && !schema.$defs) return schema;
   if (schema.$ref) {
-    const m = schema.$ref.match(/#\/(?:\$defs|definitions)\/([^/]+)$/);
+    const m = (schema.$ref as string).match(/#\/(?:\$defs|definitions)\/([^/]+)$/);
     if (m && defs?.[m[1]]) {
+      const def = defs[m[1]] as Record<string, unknown>;
       return {
-        ...defs[m[1]],
-        description: schema.description ?? defs[m[1]].description,
-        title: schema.title ?? defs[m[1]].title,
+        ...def,
+        description: schema.description ?? def.description,
+        title: schema.title ?? def.title,
       };
     }
   }
   return schema;
 }
+
+function castArray(v: unknown): unknown[] { return v as unknown[] }
+function castItemsSchema(v: unknown): Record<string, unknown> | undefined { return v as Record<string, unknown> | undefined }
+function castSchemas(v: unknown): Record<string, unknown>[] { return v as Record<string, unknown>[] }
+function castNumber(v: unknown): number { return v as number }
 
 function defaultFor(schema: Record<string, unknown>): unknown {
   if (schema.default !== undefined) return schema.default;

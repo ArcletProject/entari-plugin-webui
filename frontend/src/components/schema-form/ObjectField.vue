@@ -16,13 +16,13 @@
             :field-schema="p"
             :defs="defs"
             :field-key="String(k)"
-            :required="objectSchema.required?.includes(String(k))"
+            :required="(objectSchema.required as string[])?.includes(String(k))"
           />
           <AdditionalPropertiesEditor
             v-if="objectSchema.additionalProperties"
             v-model="model"
-            :excluded-keys="Object.keys(objectSchema.properties)"
-            :value-schema="typeof objectSchema.additionalProperties === 'object' ? objectSchema.additionalProperties : {}"
+            :excluded-keys="Object.keys(objectSchema.properties!)"
+            :value-schema="typeof objectSchema.additionalProperties === 'object' ? (objectSchema.additionalProperties as Record<string, unknown>) : {}"
             :defs="defs"
           />
         </el-collapse-item>
@@ -35,13 +35,13 @@
           :field-schema="p"
           :defs="defs"
           :field-key="String(k)"
-          :required="objectSchema.required?.includes(String(k))"
+          :required="(objectSchema.required as string[])?.includes(String(k))"
         />
         <AdditionalPropertiesEditor
           v-if="objectSchema.additionalProperties"
           v-model="model"
-          :excluded-keys="Object.keys(objectSchema.properties)"
-          :value-schema="typeof objectSchema.additionalProperties === 'object' ? objectSchema.additionalProperties : {}"
+          :excluded-keys="Object.keys(objectSchema.properties!)"
+          :value-schema="typeof objectSchema.additionalProperties === 'object' ? (objectSchema.additionalProperties as Record<string, unknown>) : {}"
           :defs="defs"
         />
       </template>
@@ -49,7 +49,7 @@
     <AdditionalPropertiesEditor
       v-else-if="objectSchema.additionalProperties"
       v-model="model"
-      :value-schema="typeof objectSchema.additionalProperties === 'object' ? objectSchema.additionalProperties : {}"
+      :value-schema="typeof objectSchema.additionalProperties === 'object' ? (objectSchema.additionalProperties as Record<string, unknown>) : {}"
       :defs="defs"
     />
     <el-input
@@ -70,7 +70,7 @@ const props = defineProps<{ objectSchema: Record<string, unknown>; defs?: Record
 const emit = defineEmits<{ "update:modelValue": [v: unknown] }>();
 
 const model = computed({
-  get: () => props.modelValue ?? {},
+  get: () => (props.modelValue ?? {}) as Record<string, unknown>,
   set: (v) => emit("update:modelValue", v),
 });
 const jsonText = ref(JSON.stringify(props.modelValue ?? {}, null, 2));
