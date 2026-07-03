@@ -9,6 +9,7 @@ from arclet.entari.event.lifespan import Startup
 from arclet.entari.event.send import SendResponse
 from arclet.entari.plugin import PluginRole, plugin_config
 from entari_plugin_server import add_route, add_websocket_route, replace_asgi, server
+from fastapi import Request
 from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse, Response
 
@@ -63,15 +64,16 @@ plugin.metadata(
 
 
 # ---------- SPA fallback handlers ----------
-async def _root() -> Response:
+async def _root(request: Request) -> Response:
     if not _FRONTEND_DIR.exists():
         return Response(
             content="Frontend not built. Run 'pdm run build-frontend'.",
             status_code=503,
         )
-    index = _FRONTEND_DIR / "index.html"
-    if index.exists():
-        return FileResponse(index)
+    path = request.url.path.lstrip("/")
+    file = _FRONTEND_DIR / (path or "index.html")
+    if file.exists():
+        return FileResponse(file)
     return Response(status_code=404)
 
 
@@ -81,6 +83,8 @@ if _FRONTEND_DIR.exists() and (_FRONTEND_DIR / "assets").exists():
     app.mount("/assets", StaticFiles(directory=_FRONTEND_DIR / "assets", html=True))
 
 add_route("/", methods=["GET"], include_in_schema=False)(_root)
+add_route("/favicon.ico", methods=["GET"], include_in_schema=False)(_root)
+add_route("/favicon.svg", methods=["GET"], include_in_schema=False)(_root)
 
 
 # ---------- SendResponse listener (message counting) ----------
