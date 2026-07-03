@@ -9,7 +9,7 @@ on:
       - "frontend/**"
       - "src/**"
       - "tests/**"
-      - ".github/workflows/build.yml"
+      - ".github/workflows/CI.yml"
       - "pyproject.toml"
   pull_request:
     types:
@@ -20,7 +20,7 @@ on:
       - "frontend/**"
       - "src/**"
       - "tests/**"
-      - ".github/workflows/build.yml"
+      - ".github/workflows/CI.yml"
       - "pyproject.toml"
 
 jobs:
@@ -64,6 +64,7 @@ jobs:
           pdm run test
 
   build:
+    needs: test
     name: Build and Upload Artifacts
     runs-on: ubuntu-latest
     steps:

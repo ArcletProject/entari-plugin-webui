@@ -19,7 +19,7 @@ jobs:
         name: Download Build Artifacts
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: build.yml
+          workflow: CI.yml
           name: plugin-webui-build
           path: dist/
 
