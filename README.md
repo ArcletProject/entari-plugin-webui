@@ -1,112 +1,117 @@
-<!-- markdownlint-disable MD033 MD041 -->
-<h1 align="center">Entari Plugin WebUI</h1>
+# entari-plugin-webui
 
-<p align="center">
-  <strong>图形化 Entari 实例管理面板 | Graphical Entari Instance Manager</strong>
-</p>
+基于 Vite + Vue 3 + Element Plus 的 [Entari](https://github.com/ArcletProject/arclet-entari) 可视化管理面板。
 
-<p align="center">
-  <a href="https://github.com/ArcletProject/entari-plugin-webui/blob/main/LICENSE">
-    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License"/>
-  </a>
-  <a href="https://github.com/ArcletProject/Entari">
-    <img src="https://img.shields.io/badge/Powered%20by-Entari-ff2072.svg" alt="Powered by Entari"/>
-  </a>
-</p>
+## 功能特性
 
-🌟 特性一览 Feature Matrix
+- **仪表盘** — 消息统计、运行状态一览（ECharts）
+- **配置管理** — 可视化编辑所有插件配置，支持 YAML 源码与表单双模式
+- **插件管理** — 查看/启用/停用/重载插件
+- **插件市场** — 浏览、安装、卸载社区插件
+- **实时日志** — WebSocket 流式日志查看，支持 ANSI 转义渲染
+- **在线聊天** — 基于 Satori 协议的浏览器内聊天界面
+- **扩展机制** — 其他插件可通过 `webui_extend` 注册菜单、页面、路由、国际化、权限
+- **主题切换** — 明暗主题一键切换
+- **会话管理** — 基于 Cookie 的登录会话，自动过期
+- **登录限流** — 防暴力破解
 
-| 模块 | 状态 | 说明 |
-| ---- | :--: | ---- |
-| 用户认证 | ✅ | 登录 / 登出 / Token 鉴权，默认管理员账号自动初始化 |
-| 实例管理 | ✅ | 创建、删除、启动、停止；支持 JSON 配置实时编辑与热重载 |
-| 插件系统 | ✅ | 本地 & 远程插件列表；加载、卸载、热重载；在线代码编辑器 |
-| 控制台日志 | ✅ | WebSocket 实时推送，ANSI 高亮，自动滚动，清空 / 重连 |
-| 系统配置 | ✅ | 可视化编辑 YAML（基础配置 + 插件配置），一键保存生效 |
-| 社区扩展 | ✅ | 社区项目展示、贡献者头像墙、插件市场入口 |
-| UI/UX | ✅ | 暗黑模式、响应式布局、表单校验、操作反馈、空状态提示 |
-| 协议支持 | ✅ | 已接入 Satori、Console、GitHub、OneBot 等主流协议 |
+## 安装
 
----
+### pip
 
-## 🚀 快速开始 Quick Start
-
-### 1. 安装插件
 ```bash
-# 在 Entari 项目根目录执行
 pip install entari-plugin-webui
 ```
 
-### 2. 启用插件
-`config.yaml` 中追加：
-```yaml
-  database:
-    type: sqlite
-    name: database.db
-    driver: aiosqlite
-  server:
-    host: 127.0.0.1
-    port: 8080
-    adapters:
-      - $path: nekobox.main:NekoBoxAdapt
-        uin: 自己的账号
-        sign_url: https://sign.lagrangecore.org/api/sign/30366
-        protocol: remote
-        log_level: INFO
-        use_png: false
-  webui: {}
-```
+### pdm
 
-### 3. 启动 Entari
 ```bash
-entari run
+pdm add entari-plugin-webui
 ```
-浏览器访问 [http://localhost:8080](http://localhost:8080) 即可。
 
----
+## 配置示例
 
-## 🛠️ 技术栈 Tech Stack
+在 `entari.yml` 中启用插件：
 
-| 方向 | 技术 |
-| ---- | ---- |
-| 后端 | Python 3.10+ · Entari · FastAPI |
-| 前端 | Vue 3 · Vite · TypeScript · Element-Plus · SCSS |
-| 实时通信 | WebSocket (原生) |
-| 包管理 | npm |
-| 代码规范 | ESLint · Prettier · Husky · lint-staged |
-
----
-
-## 📝 代码规范
-
-- 前端：遵守 `@vue/eslint-config-typescript` + `prettier`
-- 后端：遵守 `black` 格式化 + `ruff` 静态检查
-- 提交前自动触发 `lint-staged`，不合规无法提交
-
----
-
-## 🤝 贡献指南
-
-1. Fork 本仓库
-2. 新建分支 (`git checkout -b feat/xxx`)
-3. 提交合规 Commit (`git commit -m 'feat: add xxx'`)
-4. 推送分支 (`git push origin feat/xxx`)
-5. 提交 Pull Request
-
----
-
-## 📄 开源协议
-
-[MIT](./LICENSE) © 2025 ArcletProject
-
----
-
-## 🔗 相关链接
-
-- [Entari 主仓库](https://github.com/ArcletProject/Entari) 
-- [Entari 文档](https://github.com/ArcletProject/Entari/tree/main/docs)
-- [Satori 协议](https://satori.js.org/)
-
-: [Entari Releases](https://github.com/ArcletProject/Entari/releases)  
-: [entari-plugin-server · PyPI](https://pypi.org/project/entari-plugin-server/)
+```yaml
+plugins:
+  server:
+    port: 8765              # WebUI 服务端口
+    path: "satori"
+    direct_adapter: true
+  database:
+    name: .entari/database.db   # 统计数据用 SQLite
+  webui: {}                     # 启动 WebUI 面板
 ```
+
+完整字段说明：
+
+| 字段 | 默认值 | 说明 |
+|------|--------|------|
+| `password` | `""` | 登录密码（远程部署必填，本地可省略） |
+| `registry_url` | `""` | 插件市场地址 |
+| `package_manager` | `""` | 包管理器（自动探测 pip/pdm/uv/poetry/rye/pipenv） |
+| `session_ttl` | `43200` | 会话过期时间（秒，默认 12 小时） |
+| `log_buffer_lines` | `5000` | 日志缓冲区行数 |
+| `login_rate_limit` | `5/60s` | 登录频率限制 |
+
+## 认证说明
+
+- **本地部署**（`host=127.0.0.1/localhost/::1`）：自动免认证，无需密码即可登录
+- **远程部署**：首次启动时自动生成随机 16 位密码并输出到控制台日志
+
+## 故障恢复
+
+忘记密码时，删除配置中的 `plugins.webui.password` 字段（或置空），重启后即重新生成新密码：
+
+```yaml
+plugins:
+  webui: {}
+  # password 字段可删除或留空
+```
+
+## 扩展开发
+
+其他 Entari 插件可通过 `webui_extend` 注册前端扩展，无需修改本插件源码。
+
+```python
+from entari_plugin_webui.core.extension import webui_extend
+
+ext = webui_extend("my_plugin")
+
+# 注册侧栏菜单
+ext.add_menu("my_plugin.name", "mdi:account", "/extension/my_plugin")
+
+# 注册 iframe 页面
+ext.add_page("my_plugin", "my_plugin.name", "mdi:account",
+             "http://127.0.0.1:3000/", permission="my_plugin.access")
+
+# 注册后端 API 路由
+ext.add_route("/api/my-plugin/hello", ["GET"], my_handler, permission="my_plugin.access")
+
+# 注册国际化文案
+ext.add_i18n("zh-CN", "my_plugin.name", "我的插件")
+ext.add_i18n("en-US", "my_plugin.name", "My Plugin")
+
+# 注册权限项
+ext.add_permission("my_plugin.access", "my_plugin.permission.access")
+```
+
+`WebUIExtension` 方法总览：
+
+| 方法 | 参数 | 说明 |
+|------|------|------|
+| `add_menu` | `label_key, icon, path, order, badge_key, children` | 添加侧栏菜单项 |
+| `add_page` | `key, label_key, icon, component_url, permission` | 添加 iframe 页面 |
+| `add_route` | `path, methods, handler, permission` | 添加后端 HTTP 路由 |
+| `add_websocket_route` | `path, handler, permission` | 添加后端 WebSocket 路由 |
+| `add_i18n` | `locale, key, value` | 添加国际化翻译 |
+| `add_permission` | `key, label_key` | 添加权限定义 |
+
+## 风险须知
+
+> [!WARNING]
+> - 扩展页面以 **iframe 沙箱** 加载，与主面板隔离运行
+> - 扩展来源 **仅限本机已安装的插件**，不支持加载外部站点
+> - 各扩展通过 `postMessage` 与主面板通信，无法直接操作 DOM 或获取全局状态
+> - 安装插件市场中的第三方插件前，请自行评估其安全性

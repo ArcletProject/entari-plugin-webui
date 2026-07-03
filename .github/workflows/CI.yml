@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - "frontend/**"
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/build.yml"
+      - "pyproject.toml"
+  pull_request:
+    types:
+      - opened
+      - synchronize
+      - reopened
+    paths:
+      - "frontend/**"
+      - "src/**"
+      - "tests/**"
+      - ".github/workflows/build.yml"
+      - "pyproject.toml"
+
+jobs:
+  lint-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: |
+          cd frontend && npm ci
+          npm run lint
+
+  lint-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pdm-project/setup-pdm@v4
+        with: { python-version: '3.11' }
+      - run: pdm sync -G:all
+      - run: pdm run format && pdm run lint && pdm run typecheck
+
+  test:
+    needs: [lint-frontend, lint-backend]
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        py_ver: ['3.10', '3.11', '3.12', '3.13', '3.14']
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pdm-project/setup-pdm@v4
+        with:
+          python-version: ${{ matrix.py_ver }}
+      - name: Install Dependencies
+        run: |
+          pdm sync -G:all
+      - name: Run Tests
+        env:
+          WEBUI_CI_TEST: 1
+        run: |
+          pdm run test
+
+  build:
+    name: Build and Upload Artifacts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pdm-project/setup-pdm@v4
+        with: { python-version: '3.11' }
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - name: Install Dependencies
+        run: |
+            cd frontend && npm ci
+            pdm sync -G:all
+      - run: pdm run build-all
+      - uses: actions/upload-artifact@v7
+        name: build-artifacts
+        with:
+          name: plugin-webui-build
+          path: dist/

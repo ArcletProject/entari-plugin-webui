@@ -1,55 +1,42 @@
-name: Build
+name: Release
 
 on:
-  workflow_dispatch:
   push:
     tags:
-      - "v*"
-
-permissions:
-  contents: write
-  pull-requests: read
-
-env:
-  FRONTEND_ROOT: frontend
-  BACKEND_ROOT: entari_plugin_webui
-  PACKAGE_NAME: entari_plugin_webui
+      - v*
 
 jobs:
-  build-and-deploy:
+  release:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: pdm-project/setup-pdm@v4
+        with: { python-version: '3.11' }
+      - uses: dawidd6/action-download-artifact@v9
+        name: Download Build Artifacts
         with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: ${{ env.FRONTEND_ROOT }}/package-lock.json
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: build.yml
+          name: plugin-webui-build
+          path: dist/
 
-      - name: Build frontend
-        working-directory: ${{ env.FRONTEND_ROOT }}
+      - name: Get Version
+        id: version
         run: |
-          npm install -no-fund
-          npm run build -no-fund
+          echo "VERSION=$(pdm show --version)" >> $GITHUB_OUTPUT
+          echo "TAG_VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+          echo "TAG_NAME=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
 
-      - name: Setup PDM
-        uses: pdm-project/setup-pdm@v4
-        with:
-          python-version: "3.11"
-          cache: true
-          cache-dependency-path: pdm.lock
-
-      - name: Build wheel
-        working-directory: ${{ env.BACKEND_ROOT }}
-        run: pdm build
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-dist
-          path: |
-              ${{ env.BACKEND_ROOT }}/dist/*.whl
-              ${{ env.BACKEND_ROOT }}/dist/*.tar.gz
+      - name: Check Version
+        if: steps.version.outputs.VERSION != steps.version.outputs.TAG_VERSION
+        run: exit 1
+     
+      - name: Publish Package
+        run: |
+          pdm publish --no-build
+          gh release upload --clobber ${{ steps.version.outputs.TAG_NAME }} dist/*.tar.gz dist/*.whl
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

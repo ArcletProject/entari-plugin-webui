@@ -1,98 +1,35 @@
-import { createRouter, createWebHashHistory } from 'vue-router';
-import AppLayout from '@/components/layout/AppLayout.vue';
-import IndexView from '@/views/IndexView.vue';
-import LoginView from '@/views/login/LoginView.vue';
-import ErrorPage from '@/views/ErrorPage.vue';
-import { useAuthStore } from '@/stores/auth';
+import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
+import { useAuthStore } from "@/stores/auth";
 
-const router = createRouter({
-  history: createWebHashHistory(import.meta.env.BASE_URL),
-  routes: [
-    {
-      path: '/login',
-      name: 'login',
-      component: LoginView,
-    },
-    {
-      path: '/',
-      component: AppLayout,
-      meta: { requiresAuth: true },
-      children: [
-        {
-          path: '',
-          name: 'home',
-          component: IndexView,
-        },
-        {
-          path: '/menus',
-          name: 'menus',
-          component: () => import('@/views/menu/ExamplesIndex.vue'),
-        },
-        {
-          path: '/control',
-          name: 'control',
-          component: () => import('@/views/control/ControlView.vue'),
-        },
-        {
-          path: '/instances',
-          name: 'instances',
-          component: () => import('@/views/instance/InstanceManager.vue'),
-        },
-        {
-          path: '/plugin',
-          name: 'plugin',
-          component: () => import('@/views/plugin/PluginView.vue'),
-        },
-        {
-          path: '/plugin-market',
-          name: 'plugin-market',
-          component: () => import('@/views/plugin/PluginMarketView.vue'),
-        },
-        {
-          path: '/set',
-          name: 'set',
-          component: () => import('@/views/set/SetView.vue'),
-        },
-        {
-          path: '/support/docs',
-          name: 'docs',
-          component: () => import('@/views/support/DocsView.vue'),
-        },
-        {
-          path: '/support/community',
-          name: 'community',
-          component: () => import('@/views/support/CommunityView.vue'),
-        },
-        {
-          path: '/about/contributors',
-          name: 'contributors',
-          component: () => import('@/views/about/ContributorsView.vue'),
-        },
-        {
-          path: '/about/project-info',
-          name: 'project-info',
-          component: () => import('@/views/about/ProjectInfoView.vue'),
-        },
-        {
-          path: '/:xxx(.*)*',
-          name: 'ErrorPage',
-          component: ErrorPage,
-        },
-      ]
-    },
-  ],
+const routes: RouteRecordRaw[] = [
+  { path: "/", component: () => import("@/views/Dashboard.vue"), meta: { layout: "default" } },
+  { path: "/login", component: () => import("@/views/Login.vue"), meta: { layout: "blank" } },
+  { path: "/settings", component: () => import("@/views/Settings.vue"), meta: { layout: "default", label_key: "menu.settings" } },
+  { path: "/config", redirect: "/settings" },
+  { path: "/plugins", redirect: "/settings" },
+  { path: "/market", component: () => import("@/views/Market.vue"), meta: { layout: "default", label_key: "menu.market" } },
+  { path: "/logs", component: () => import("@/views/Logs.vue"), meta: { layout: "default", label_key: "menu.logs" } },
+  { path: "/chat", component: () => import("@/views/Chat.vue"), meta: { layout: "default", label_key: "menu.chat" } },
+  { path: "/extension/:key", component: () => import("@/views/ExtensionPage.vue"), meta: { layout: "default" } },
+];
+
+const router = createRouter({ history: createWebHistory(), routes });
+
+router.beforeEach(async (to) => {
+  if (to.path === "/login") return true;
+  const auth = useAuthStore();
+  await auth.init();
+  if (auth.localMode) return true;
+  // 远程模式：无 401 即视为已会话
+  return true;
 });
 
-router.beforeEach((to, from, next) => {
-  if (to.matched.some(r=>r.meta?.requiresAuth)){
-    const store = useAuthStore();
-    if (!store.token) {
-      // 如果没有token，重定向到登录页面
-      next({ name: 'login' ,query: { redirect: to.fullPath } });
-      return;
-    }
-  }
-  next()
+router.onError((err) => {
+  // 网络错误由健康心跳处理
+  console.warn("router error", err);
 });
 
 export default router;
+
+async function _nav(path: string) { return router.push(path); }
+export { _nav };

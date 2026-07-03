@@ -1,28 +1,70 @@
 [project]
 name = "entari-plugin-webui"
-version = "0.1.1"
-description = "基于 Vue3 + entari_plugin_server + entari_plugin_database 的可视化面板"
-authors = [{name = "Utopia", email = "utopia@qq.com"}]
+version = "0.1.0"
+description = "WebUI Plugin for Entari"
+authors = [{name = "RF-Tar-Railt", email = "rf_tar_railt@qq.com"}]
 dependencies = [
-    "arclet-entari>=0.16.3",
-    "entari-plugin-database>=0.1.1",
-    "entari-plugin-server>=0.2.3",
-    "sqlalchemy>=2.0.43",
-    "fastapi>=0.116.1",
-    "starlette>=0.47.2",
-    "uvicorn>=0.35.0",
+    "arclet-entari[dotenv,yaml]>=0.18.0",
+    "entari-plugin-server>=0.7.1",
+    "entari-plugin-database>=0.3.2",
+    "fastapi>=0.135.1",
     "ansi2html>=1.9.2",
-    "loguru>=0.7.3",
-    "pyyaml>=6.0.2",
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.10"
+readme = "README.md"
+license = {text = "MIT"}
+
+[dependency-groups]
+dev = [
+    "arclet-entari[reload]>=0.18.0",
+    "pytest>=8",
+    "pytest-asyncio>=0.23",
+    "ruff>=0.15",
+    "pyright>=1.1",
+    "anyio>=4",
+    "httpx>=0.28.1",
+]
 
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
 
+[tool.pdm]
+distribution = true
+
 [tool.pdm.build]
-includes = [
-    "entari_plugin_webui/",
-    "entari_plugin_webui/frontend/",
-]
+includes = ["src/entari_plugin_webui"]
+
+[tool.pdm.scripts]
+build-frontend = "npm --prefix frontend run build"
+build-all = { composite = ["build-frontend", "pdm build"] }
+dev = "cd frontend && npm run dev"
+format = "ruff format src/ tests/"
+lint = "ruff check src/ tests/ --fix"
+typecheck = "pyright src/entari_plugin_webui"
+test = "pytest -v -s -W ignore"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+
+[tool.ruff]
+line-length = 120
+target-version = "py310"
+include = ["src/**.py", "tests/**.py"]
+respect-gitignore = true
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "W", "C", "T", "PYI", "PT", "Q"]
+ignore = ["C901", "T201", "E731", "E402", "PYI055", "B008"]
+
+[tool.ruff.lint.isort]
+force-sort-within-sections = false
+extra-standard-library = ["typing_extensions"]
+
+[tool.pyright]
+pythonVersion = "3.10"
+pythonPlatform = "All"
+typeCheckingMode = "basic"
+venvPath = "."
+venv = ".venv"
+reportMissingImports = true
