@@ -29,7 +29,7 @@ from .core.security import (
 from .core.session import SessionStore
 from .utils import logger
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 _STATIC_DIR = Path(__file__).parent / "static"
 _FRONTEND_DIR = _STATIC_DIR / "frontend"
 
@@ -54,7 +54,7 @@ server.apply(WebUIAdapter())
 
 plugin.metadata(
     "WebUI 服务",
-    PluginRole.NORMAL,
+    PluginRole.UTILITY,
     [{"name": "RF-Tar-Railt", "email": "rf_tar_railt@qq.com"}],
     __version__,
     description="基于 Vite + Vue 3 + Element Plus 的可视化管理面板",
