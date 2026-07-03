@@ -32,7 +32,7 @@
     },
     {
       "name": "方舟抽卡",
-      "pip_name": "entari-plugin-arkgacha ",
+      "pip_name": "entari-plugin-arkgacha",
       "version": "0.5.3",
       "description": "Entari plugin for arknights gacha",
       "authors": ["RF-Tar-Railt <rf_tar_railt@qq.com>"],

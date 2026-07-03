@@ -19,6 +19,7 @@ export interface PluginInfo {
   name: string;
   description?: string;
   version?: string;
+  type: "rootless" | "built-in" | "local" | "common";
   enabled: boolean;
   is_static: boolean;
   configurable: boolean;
@@ -97,6 +98,7 @@ export const useSettingsStore = defineStore("settings", () => {
         name: p.name as string,
         description: p.description as string | undefined,
         version: p.version as string | undefined,
+        type: (p.type as "rootless" | "built-in" | "local" | "common") || "common",
         enabled: p.enabled as boolean,
         is_static: p.is_static as boolean,
         configurable: p.configurable as boolean,

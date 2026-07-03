@@ -36,10 +36,73 @@
       </div>
       <div class="group">
         <div class="group-title">
-          插件
+          根基插件
         </div>
         <div
-          v-for="p in filteredPlugins"
+          v-for="p in filteredRootlessPlugins"
+          :key="p.id"
+          :class="['menu-item', { active: store.currentSection === `plugins:${p.id}` }]"
+          @click="select(`plugins:${p.id}`)"
+        >
+          <span class="name">{{ p.name }}</span>
+          <el-tag
+            v-if="!p.enabled"
+            type="info"
+            size="small"
+            class="status"
+          >
+            已停用
+          </el-tag>
+        </div>
+      </div>
+      <div class="group">
+        <div class="group-title">
+          内建插件
+        </div>
+        <div
+          v-for="p in filteredBuiltInPlugins"
+          :key="p.id"
+          :class="['menu-item', { active: store.currentSection === `plugins:${p.id}` }]"
+          @click="select(`plugins:${p.id}`)"
+        >
+          <span class="name">{{ p.name }}</span>
+          <el-tag
+            v-if="!p.enabled"
+            type="info"
+            size="small"
+            class="status"
+          >
+            已停用
+          </el-tag>
+        </div>
+      </div>
+      <div class="group">
+        <div class="group-title">
+          本地插件
+        </div>
+        <div
+          v-for="p in filteredLocalPlugins"
+          :key="p.id"
+          :class="['menu-item', { active: store.currentSection === `plugins:${p.id}` }]"
+          @click="select(`plugins:${p.id}`)"
+        >
+          <span class="name">{{ p.name }}</span>
+          <el-tag
+            v-if="!p.enabled"
+            type="info"
+            size="small"
+            class="status"
+          >
+            已停用
+          </el-tag>
+        </div>
+      </div>
+      <div class="group">
+        <div class="group-title">
+          常规插件
+        </div>
+        <div
+          v-for="p in filteredCommonPlugins"
           :key="p.id"
           :class="['menu-item', { active: store.currentSection === `plugins:${p.id}` }]"
           @click="select(`plugins:${p.id}`)"
@@ -66,11 +129,17 @@ import { useSettingsStore } from "@/stores/settings";
 const store = useSettingsStore();
 const keyword = ref("");
 
-const filteredPlugins = computed(() => {
-  if (!keyword.value) return store.pluginList;
+function filterByType(type: "rootless" | "built-in" | "local" | "common") {
+  const list = store.pluginList.filter((p) => p.type === type);
+  if (!keyword.value) return list;
   const q = keyword.value.toLowerCase();
-  return store.pluginList.filter((p) => p.name.toLowerCase().includes(q));
-});
+  return list.filter((p) => p.name.toLowerCase().includes(q));
+}
+
+const filteredRootlessPlugins = computed(() => filterByType("rootless"));
+const filteredBuiltInPlugins = computed(() => filterByType("built-in"));
+const filteredLocalPlugins = computed(() => filterByType("local"));
+const filteredCommonPlugins = computed(() => filterByType("common"));
 
 async function select(section: string) {
   if (store.isDirty) {

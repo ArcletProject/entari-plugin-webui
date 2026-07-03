@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import sys
+from pathlib import Path
 from typing import Any
 
 from arclet.entari.config.file import EntariConfig
@@ -13,7 +15,7 @@ from arclet.entari.plugin import (
     load_plugin,
     unload_plugin_async,
 )
-from arclet.entari.plugin.model import Plugin, PluginMetadata
+from arclet.entari.plugin.model import Plugin, PluginMetadata, RootlessPlugin
 
 from ..core.error import PluginNotFound
 
@@ -28,12 +30,35 @@ def _authors(meta: PluginMetadata) -> list[str]:
     return out
 
 
+PROJECT_ROOT = EntariConfig.instance.path.parent.resolve()
+ENV_ROOT = Path(sys.prefix).resolve()
+
+
+def is_project_module(module):
+
+    path = getattr(module, "__file__", None)
+    if path is None:
+        return False  # 内建模块
+
+    path = Path(path).resolve()
+
+    return path.is_relative_to(PROJECT_ROOT) and not path.is_relative_to(ENV_ROOT)
+
+
 def serialize_plugin(plug: Plugin) -> dict[str, Any]:
     meta = plug.metadata
     configurable = bool(meta and getattr(meta, "config", None))
+    type = "common"
+    if isinstance(plug, RootlessPlugin):
+        type = "rootless"
+    elif plug.id.startswith("arclet.entari"):
+        type = "built-in"
+    elif is_project_module(plug.module):
+        type = "local"
     return {
         "id": plug.id,
         "uid": plug.uid,
+        "type": type,
         "path": plug.path,
         "name": meta.name if meta else plug.id,
         "version": meta.version if meta else None,
