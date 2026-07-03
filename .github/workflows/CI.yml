@@ -58,6 +58,8 @@ jobs:
         run: |
           pdm sync -G:all
       - name: Run Tests
+        env:
+          WEBUI_CI_TEST: 1
         run: |
           pdm run test
 
