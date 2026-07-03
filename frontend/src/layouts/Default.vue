@@ -10,7 +10,7 @@
       <el-menu :default-active="route.path" :collapse="collapsed" router>
         <el-menu-item v-for="m in menu.items" :key="m.path" :index="m.path">
           <el-icon><Icon :icon="m.icon" /></el-icon>
-          <template #title>{{ t(m.label_key) }}</template>
+          <template #title>{{ m.label || t(m.label_key) }}</template>
         </el-menu-item>
       </el-menu>
     </el-aside>

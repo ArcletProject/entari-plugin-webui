@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>示例插件</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f5f7fa;
+      color: #303133;
+      padding: 24px;
+    }
+    h1 { font-size: 20px; margin-bottom: 16px; color: #409eff; }
+    .card {
+      background: #fff;
+      border-radius: 8px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      margin-bottom: 16px;
+    }
+    .card h2 { font-size: 15px; margin-bottom: 12px; color: #606266; }
+    button {
+      background: #409eff;
+      color: #fff;
+      border: none;
+      padding: 8px 18px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      margin-right: 8px;
+      margin-bottom: 8px;
+    }
+    button:hover { background: #66b1ff; }
+    pre {
+      background: #f0f2f5;
+      padding: 12px;
+      border-radius: 6px;
+      font-size: 13px;
+      overflow-x: auto;
+      margin-top: 8px;
+      white-space: pre-wrap;
+    }
+    .status {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 6px;
+    }
+    .status.connected { background: #67c23a; }
+    .status.disconnected { background: #f56c6c; }
+    input {
+      border: 1px solid #dcdfe6;
+      border-radius: 6px;
+      padding: 8px 12px;
+      width: 240px;
+      font-size: 14px;
+      margin-right: 8px;
+    }
+  </style>
+</head>
+<body>
+  <h1>示例插件</h1>
+
+  <div class="card">
+    <h2>连接状态</h2>
+    <p><span class="status disconnected" id="statusDot"></span><span id="statusText">等待连接...</span></p>
+  </div>
+
+  <div class="card">
+    <h2>调用后端 API</h2>
+    <button onclick="callHello()">GET /api/example/hello</button>
+    <button onclick="callHelloWithName()">带参数</button>
+    <pre id="apiResult">点击按钮查看结果</pre>
+  </div>
+
+  <div class="card">
+    <h2>发送消息</h2>
+    <input type="text" id="msgInput" placeholder="输入消息..." />
+    <button onclick="sendEcho()">POST /api/example/echo</button>
+    <pre id="echoResult">等待发送...</pre>
+  </div>
+
+  <div class="card">
+    <h2>获取用户信息</h2>
+    <button onclick="getUser()">获取用户信息</button>
+    <pre id="userResult">点击获取</pre>
+  </div>
+
+  <script>
+    let callId = 0;
+    const pending = {};
+
+    function callHost(method, payload) {
+      return new Promise((resolve, reject) => {
+        const id = ++callId;
+        pending[id] = { resolve, reject };
+        window.parent.postMessage({ id, method, payload }, "*");
+      });
+    }
+
+    function setStatus(connected) {
+      const dot = document.getElementById("statusDot");
+      const text = document.getElementById("statusText");
+      dot.className = "status " + (connected ? "connected" : "disconnected");
+      text.textContent = connected ? "已连接" : "未连接";
+    }
+
+    window.addEventListener("message", (e) => {
+      const { id, result, error, type } = e.data || {};
+      if (type === "webui.ready") {
+        setStatus(true);
+        return;
+      }
+      if (id && pending[id]) {
+        if (error) pending[id].reject(error);
+        else pending[id].resolve(result);
+        delete pending[id];
+      }
+    });
+
+    setTimeout(() => { if (!document.querySelector(".status.connected")) setStatus(false); }, 3000);
+
+    async function callHello() {
+      document.getElementById("apiResult").textContent = "请求中...";
+      try {
+        const r = await callHost("api", { method: "GET", url: "/api/example/hello" });
+        document.getElementById("apiResult").textContent = JSON.stringify(r, null, 2);
+      } catch (e) {
+        document.getElementById("apiResult").textContent = "错误: " + e;
+      }
+    }
+
+    async function callHelloWithName() {
+      document.getElementById("apiResult").textContent = "请求中...";
+      try {
+        const r = await callHost("api", { method: "GET", url: "/api/example/hello?name=插件" });
+        document.getElementById("apiResult").textContent = JSON.stringify(r, null, 2);
+      } catch (e) {
+        document.getElementById("apiResult").textContent = "错误: " + e;
+      }
+    }
+
+    async function sendEcho() {
+      const msg = document.getElementById("msgInput").value || "你好";
+      document.getElementById("echoResult").textContent = "发送中...";
+      try {
+        const r = await callHost("api", {
+          method: "POST",
+          url: "/api/example/echo",
+          data: { message: msg },
+          headers: { "Content-Type": "application/json" },
+        });
+        document.getElementById("echoResult").textContent = JSON.stringify(r, null, 2);
+      } catch (e) {
+        document.getElementById("echoResult").textContent = "错误: " + e;
+      }
+    }
+
+    async function getUser() {
+      document.getElementById("userResult").textContent = "请求中...";
+      try {
+        const r = await callHost("user", {});
+        document.getElementById("userResult").textContent = JSON.stringify(r, null, 2);
+      } catch (e) {
+        document.getElementById("userResult").textContent = "错误: " + e;
+      }
+    }
+  </script>
+</body>
+</html>

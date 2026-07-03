@@ -36,7 +36,7 @@ distribution = true
 includes = ["src/entari_plugin_webui"]
 
 [tool.pdm.scripts]
-build-frontend = "npm --prefix frontend ci && npm --prefix frontend run build"
+build-frontend = "npm --prefix frontend run build"
 build-all = { composite = ["build-frontend", "pdm build"] }
 dev = "cd frontend && npm run dev"
 format = "ruff format src/ tests/"

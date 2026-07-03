@@ -10,6 +10,10 @@ basic:
       - "asyncio.selector_events"
   schema: true
 plugins:
+  $prefix:
+    - key: ""
+      plugins:
+        - example_plugin
   ::echo: {}
   ::inspect: {}
   ::help: {}
@@ -21,3 +25,4 @@ plugins:
   database:
     name: .entari/database.db
   webui: {}
+  example_plugin: {}

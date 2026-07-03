@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends
 
 from ..core.extension import get_all_menus
+from ..core.i18n import I18nRegistry
 from .deps import require_auth
 
 router = APIRouter(prefix="/api", tags=["menus"], dependencies=[Depends(require_auth)])
@@ -20,4 +21,9 @@ BUILTIN_MENUS = [
 async def menus():
     extension = get_all_menus()
     merged = sorted(BUILTIN_MENUS + extension, key=lambda m: m.get("order", 100))
+    ext_i18n = I18nRegistry.get_locale("zh-CN")
+    for m in merged:
+        key = m.get("label_key", "")
+        if key in ext_i18n:
+            m["label"] = ext_i18n[key]
     return {"success": True, "menus": merged}

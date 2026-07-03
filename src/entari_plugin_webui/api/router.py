@@ -19,7 +19,7 @@ from .stats import router as stats_router
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 _SECURITY_HEADERS = {
     "X-Content-Type-Options": "nosniff",
-    "X-Frame-Options": "DENY",
+    "X-Frame-Options": "SAMEORIGIN",
     "Referrer-Policy": "no-referrer",
     "X-XSS-Protection": "0",
 }

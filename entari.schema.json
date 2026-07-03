@@ -1379,6 +1379,25 @@
           "additionalProperties": false,
           "description": "基于 Vite + Vue 3 + Element Plus 的可视化管理面板"
         },
+        "example_plugin": {
+          "type": "object",
+          "description": "WebUI 扩展开发示例; no configuration required",
+          "additionalProperties": true,
+          "properties": {
+            "$disable": {
+              "type": "string",
+              "description": "Expression for whether disable this plugin"
+            },
+            "$priority": {
+              "type": "integer",
+              "description": "Plugin loading priority, lower value means higher priority (default: 16)"
+            },
+            "$filter": {
+              "type": "string",
+              "description": "Plugin filter expression, which will be evaluated in the context of the plugin"
+            }
+          }
+        },
         ".commands": {
           "type": "object",
           "title": "CommandsConfig",

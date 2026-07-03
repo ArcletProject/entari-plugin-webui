@@ -94,7 +94,7 @@ async def _on_message_sent(event: SendResponse) -> None:
 
 
 # ---------- Startup listener ----------
-@plugin.listen(Startup)
+@plugin.listen(Startup, priority=100)
 async def _on_startup() -> None:
     is_local = is_local_deployment(server.host)
     set_local_mode(is_local)
