@@ -30,7 +30,7 @@ jobs:
         with: { node-version: '20' }
       - run: |
           cd frontend && npm ci
-          cd frontend && npm run lint
+          npm run lint
   lint-backend:
     runs-on: ubuntu-latest
     steps:
@@ -58,7 +58,7 @@ jobs:
       - name: Build Frontend
         run: |
           cd frontend && npm ci
-          cd frontend && npm run build
+          npm run build
       - name: Run Tests
         run: |
           pdm run test
