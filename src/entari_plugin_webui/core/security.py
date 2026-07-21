@@ -41,6 +41,17 @@ def hash_password(password: str, salt: bytes | None = None) -> str:
     return f"pbkdf2_sha256${_PBKDF2_ITERATIONS}${base64.b64encode(salt).decode()}${base64.b64encode(derived).decode()}"
 
 
+def is_hashed_password(stored: str) -> bool:
+    try:
+        algo, iter_s, salt_b, hash_b = stored.split("$")
+        int(iter_s)
+        base64.b64decode(salt_b)
+        base64.b64decode(hash_b)
+    except Exception:
+        return False
+    return algo == "pbkdf2_sha256"
+
+
 def verify_password(password: str, stored: str) -> bool:
     try:
         algo, iter_s, salt_b, hash_b = stored.split("$")

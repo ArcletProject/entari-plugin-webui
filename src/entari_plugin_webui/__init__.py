@@ -22,6 +22,7 @@ from .core.security import (
     LoginThrottle,
     generate_random_password,
     hash_password,
+    is_hashed_password,
     is_local_deployment,
     parse_rate_limit,
     set_local_mode,
@@ -29,11 +30,11 @@ from .core.security import (
 from .core.session import SessionStore
 from .utils import logger
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 _STATIC_DIR = Path(__file__).parent / "static"
 _FRONTEND_DIR = _STATIC_DIR / "frontend"
 
-webui_config = plugin_config(Config, bind=True)
+webui_config = plugin_config(Config)
 
 from .adapter import WebUIAdapter
 from .api import create_app as _create_app  # noqa: E402
@@ -110,6 +111,9 @@ async def _on_startup() -> None:
             raw = generate_random_password(16)
             webui_config.password = hash_password(raw)
             logger.warning("已生成管理员密码：" + raw)
+        elif not is_hashed_password(webui_config.password):
+            webui_config.password = hash_password(webui_config.password)
+            logger.info("已将配置文件中的明文密码哈希处理")
 
     import arclet.entari.logger as entari_log
     from loguru import logger as loguru_logger

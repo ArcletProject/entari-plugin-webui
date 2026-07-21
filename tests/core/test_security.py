@@ -1,3 +1,15 @@
+def test_is_hashed_password():
+    from entari_plugin_webui.core.security import hash_password, is_hashed_password
+
+    h = hash_password("secret123")
+    assert is_hashed_password(h) is True
+    assert is_hashed_password("plain_password") is False
+    assert is_hashed_password("") is False
+    assert is_hashed_password("pbkdf2_sha256$abc$def$ghi") is False
+    assert is_hashed_password("too$few$parts") is False
+    assert is_hashed_password("too$many$parts$here$now") is False
+
+
 def test_hash_and_verify():
     from entari_plugin_webui.core.security import hash_password, verify_password
 
