@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from arclet.entari import plugin
+from arclet.entari import plugin, metadata
 from arclet.entari.event.lifespan import Startup
 from arclet.entari.event.send import SendResponse
 from arclet.entari.plugin import PluginRole, plugin_config
@@ -53,7 +53,7 @@ if not server.path:
 server.apply(WebUIAdapter())
 
 
-plugin.metadata(
+metadata(
     "WebUI 服务",
     PluginRole.UTILITY,
     [{"name": "RF-Tar-Railt", "email": "rf_tar_railt@qq.com"}],
