@@ -1,5 +1,8 @@
 <template>
-  <div class="market-page" v-loading="loading">
+  <div
+    v-loading="loading"
+    class="market-page"
+  >
     <div class="toolbar">
       <el-input
         v-model="search"

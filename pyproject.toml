@@ -1,6 +1,6 @@
 [project]
 name = "entari-plugin-webui"
-version = "1.0.3"
+version = "1.0.4"
 description = "WebUI Plugin for Entari"
 authors = [{name = "RF-Tar-Railt", email = "rf_tar_railt@qq.com"}]
 dependencies = [

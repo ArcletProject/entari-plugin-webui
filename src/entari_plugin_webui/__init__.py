@@ -30,7 +30,7 @@ from .core.security import (
 from .core.session import SessionStore
 from .utils import logger
 
-__version__ = "1.0.2"
+__version__ = "1.0.4"
 _STATIC_DIR = Path(__file__).parent / "static"
 _FRONTEND_DIR = _STATIC_DIR / "frontend"
 
