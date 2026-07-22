@@ -4,7 +4,7 @@ from arclet.entari.config.models.default import BasicConfModel
 class Config(BasicConfModel):
     password: str = ""
     """WebUI 的登录密码，在本地部署时可以不设置"""
-    registry_url: str = "https://cdn.jsdelivr.net/gh/ArcletProject/entari-registry@main/registry.json"
+    registry_url: str = "https://arclet.top/entari-registry/registry.json"
     """插件市场网址"""
     package_manager: str = ""
     """安装插件时使用的包管理器，不指定时将自动探测"""

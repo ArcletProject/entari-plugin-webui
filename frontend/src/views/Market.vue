@@ -134,6 +134,6 @@ function dismissError() {
 onMounted(load);
 </script>
 <style scoped>
-.market-page { padding: 16px; }
+.market-page { padding: 16px; min-height: 300px; }
 .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 16px; }
 </style>
