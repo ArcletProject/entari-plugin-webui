@@ -34,7 +34,7 @@ __version__ = "1.0.2"
 _STATIC_DIR = Path(__file__).parent / "static"
 _FRONTEND_DIR = _STATIC_DIR / "frontend"
 
-webui_config = plugin_config(Config)
+webui_config = plugin_config(Config, bind=True)
 
 from .adapter import WebUIAdapter
 from .api import create_app as _create_app  # noqa: E402

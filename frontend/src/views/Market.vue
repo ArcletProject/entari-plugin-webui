@@ -1,5 +1,5 @@
 <template>
-  <div class="market-page">
+  <div class="market-page" v-loading="loading">
     <div class="toolbar">
       <el-input
         v-model="search"
@@ -73,6 +73,7 @@ interface MarketPluginItem {
   _installing?: boolean;
 }
 
+const loading = ref(false);
 const list = ref<MarketPluginItem[]>([]);
 const fallback = ref(false);
 const search = ref("");
@@ -92,9 +93,14 @@ const filtered = computed(() => list.value.filter((p) => {
 }));
 
 async function load() {
-  const r = await api.get("/api/market/plugins");
-  list.value = r.data.plugins || [];
-  fallback.value = r.data.fallback || false;
+  loading.value = true;
+  try {
+    const r = await api.get("/api/market/plugins");
+    list.value = r.data.plugins || [];
+    fallback.value = r.data.fallback || false;
+  } finally {
+    loading.value = false;
+  }
 }
 async function startInstall(p: MarketPluginItem) {
   p._installing = true;

@@ -80,7 +80,7 @@ def _load_local_cache() -> dict[str, Any]:
             return json.loads(_CACHE_PATH.read_text("utf-8"))
         except Exception:  # noqa: BLE001
             pass
-    return {"plugins": []}
+    return {"plugins": {}}
 
 
 def _save_local_cache(data: dict[str, Any]) -> None:
@@ -115,7 +115,7 @@ async def list_plugins() -> dict[str, Any]:
     catalog = await _ensure_catalog()
     installed = await _installed_pip_names()
     plugins = []
-    for p in catalog.get("plugins", []):
+    for p in catalog.get("plugins", {}).values():
         p = dict(p)
         p["installed"] = (p.get("pip_name", "") or "").lower() in installed
         plugins.append(p)
@@ -124,9 +124,9 @@ async def list_plugins() -> dict[str, Any]:
 
 async def get_plugin(name: str) -> dict[str, Any] | None:
     catalog = await _ensure_catalog()
-    for p in catalog.get("plugins", []):
+    installed = await _installed_pip_names()
+    for p in catalog.get("plugins", {}).values():
         if p.get("name") == name:
-            installed = await _installed_pip_names()
             out = dict(p)
             out["installed"] = (p.get("pip_name", "") or "").lower() in installed
             return out

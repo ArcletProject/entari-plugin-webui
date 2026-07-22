@@ -27,7 +27,7 @@ function set(next: HealthState) {
 export function useBackendHealth() {
   async function start() {
     if (timer) return;
-    timer = window.setInterval(tick, 5000);
+    timer = window.setInterval(tick, 60000);
     await tick();
   }
   async function tick() {
