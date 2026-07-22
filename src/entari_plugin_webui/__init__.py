@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from arclet.entari import plugin, metadata
+from arclet.entari import metadata, plugin
 from arclet.entari.event.lifespan import Startup
 from arclet.entari.event.send import SendResponse
 from arclet.entari.plugin import PluginRole, plugin_config

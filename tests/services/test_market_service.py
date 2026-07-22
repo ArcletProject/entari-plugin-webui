@@ -20,7 +20,11 @@ async def test_list_uses_remote(monkeypatch, tmp_path):
     monkeypatch.setattr(ms, "_registry_url", lambda: "http://reg/x.json")
 
     async def fake_fetch(url):
-        return {"plugins": [{"name": "demo", "pip_name": "entari-demo", "version": "1.0", "description": "d"}]}
+        return {
+            "plugins": {
+                "entari-demo": {"name": "demo", "pip_name": "entari-demo", "version": "1.0", "description": "d"}
+            }
+        }
 
     monkeypatch.setattr(ms, "_fetch_remote", fake_fetch)
     monkeypatch.setattr(ms, "_installed_pip_names", _empty_installed)
@@ -52,7 +56,7 @@ async def test_start_install_spawns_action(monkeypatch):
     from entari_plugin_webui.services import package_manager as pm
 
     async def fake_catalog():
-        return {"plugins": [{"name": "demo", "pip_name": "entari-demo"}], "__fallback": False}
+        return {"plugins": {"entari-demo": {"name": "demo", "pip_name": "entari-demo"}}, "__fallback": False}
 
     monkeypatch.setattr(ms, "_ensure_catalog", fake_catalog)
     monkeypatch.setattr(ms, "_installed_pip_names", _empty_installed)
@@ -84,7 +88,7 @@ async def test_start_uninstall_not_installed_rejected(monkeypatch):
     from entari_plugin_webui.services import market_service as ms
 
     async def fake_catalog():
-        return {"plugins": [{"name": "demo", "pip_name": "entari-demo"}], "__fallback": False}
+        return {"plugins": {"entari-demo": {"name": "demo", "pip_name": "entari-demo"}}, "__fallback": False}
 
     monkeypatch.setattr(ms, "_ensure_catalog", fake_catalog)
     monkeypatch.setattr(ms, "_installed_pip_names", _empty_installed)
