@@ -12,9 +12,8 @@ from arclet.entari.plugin import (
     get_plugin_references,
     get_plugin_referents,
     get_plugins,
-    load_plugin,
-    unload_plugin_async,
 )
+from arclet.entari.plugin import reload_plugin as reload_plugin
 from arclet.entari.plugin.model import Plugin, PluginMetadata, RootlessPlugin
 
 from ..core.error import PluginNotFound
@@ -95,21 +94,6 @@ def get_plugin(plugin_id: str) -> dict[str, Any]:
 
 async def toggle_plugin(plugin_id: str, *, enable: bool) -> bool:
     return await (enable_plugin(plugin_id) if enable else disable_plugin(plugin_id))
-
-
-async def reload_plugin(plugin_id: str) -> bool:
-    plug = find_plugin(plugin_id)
-    if plug is None:
-        raise PluginNotFound(plugin_id)
-    pid = plug.id
-    _conf = plug.config.copy()
-    del plug
-    await unload_plugin_async(pid)
-    new = load_plugin(pid, _conf)
-    if new is not None:
-        del new
-        return True
-    return False
 
 
 def update_plugin_config(plugin_id: str, config: dict[str, Any]) -> None:

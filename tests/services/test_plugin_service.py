@@ -61,15 +61,11 @@ async def test_toggle(monkeypatch):
 async def test_reload(monkeypatch):
     from entari_plugin_webui.services import plugin_service as ps
 
-    p = _mk()
-    monkeypatch.setattr(ps, "find_plugin", lambda i: p)
-    monkeypatch.setattr(ps, "enable_plugin", lambda *a, **k: None)
-
-    async def _unload(i):
+    async def _reload(plugin_id: str) -> bool:
+        assert plugin_id == "p1"
         return True
 
-    monkeypatch.setattr(ps, "unload_plugin_async", _unload)
-    monkeypatch.setattr(ps, "load_plugin", lambda i, c: p)
+    monkeypatch.setattr(ps, "reload_plugin", _reload)
     assert await ps.reload_plugin("p1") is True
 
 

@@ -1,10 +1,10 @@
 [project]
 name = "entari-plugin-webui"
-version = "1.0.4"
+version = "1.1.0rc1"
 description = "WebUI Plugin for Entari"
 authors = [{name = "RF-Tar-Railt", email = "rf_tar_railt@qq.com"}]
 dependencies = [
-    "arclet-entari[dotenv,yaml]>=0.18.0",
+    "arclet-entari[dotenv,yaml]>=0.19.0rc1",
     "entari-plugin-server>=0.7.1",
     "entari-plugin-database>=0.3.2",
     "fastapi>=0.135.1",
@@ -21,7 +21,7 @@ repository = "https://github.com/ArcletProject/entari-plugin-webui"
 
 [dependency-groups]
 dev = [
-    "arclet-entari[reload]>=0.18.0",
+    "arclet-entari[reload]>=0.19.0rc1",
     "pytest>=8",
     "pytest-asyncio>=0.23",
     "ruff>=0.15",
