@@ -60,3 +60,47 @@ def test_install_unknown_400(client, monkeypatch):
     r = client.post("/api/market/install", json={"name": "x"}, headers={"X-Requested-With": "XMLHttpRequest"})
     assert r.status_code == 400
     assert r.json() == {"success": False, "code": "unknown_plugin", "message": "x"}
+
+
+def test_builtin_unload_and_load(client, monkeypatch):
+    from entari_plugin_webui.api import market as M
+
+    calls = []
+
+    async def _unload(name):
+        calls.append(("unload", name))
+
+    async def _load(name):
+        calls.append(("load", name))
+        return True
+
+    monkeypatch.setattr(M, "set_builtin_unloaded", _unload)
+    monkeypatch.setattr(M, "load_builtin", _load)
+    headers = {"X-Requested-With": "XMLHttpRequest"}
+    r = client.post("/api/market/builtins/echo/unload", headers=headers)
+    assert r.status_code == 200
+    assert r.json() == {"success": True}
+    r = client.post("/api/market/builtins/echo/load", headers=headers)
+    assert r.status_code == 200
+    assert r.json() == {"success": True}
+    assert calls == [("unload", "echo"), ("load", "echo")]
+
+
+def test_uninstall_unloads_first(client, monkeypatch):
+    from entari_plugin_webui.api import market as M
+
+    calls = []
+
+    async def _unload(name):
+        calls.append(("unload", name))
+
+    async def _delete(name):
+        calls.append(("delete", name))
+        return "tid"
+
+    monkeypatch.setattr(M, "unload_market_plugin", _unload)
+    monkeypatch.setattr(M, "start_uninstall", _delete)
+    r = client.post("/api/market/uninstall", json={"name": "demo"}, headers={"X-Requested-With": "XMLHttpRequest"})
+    assert r.status_code == 200
+    assert r.json() == {"success": True, "task_id": "tid"}
+    assert calls == [("unload", "demo"), ("delete", "demo")]

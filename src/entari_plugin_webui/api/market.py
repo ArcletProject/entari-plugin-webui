@@ -7,7 +7,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 
 from ..api.deps import require_auth
 from ..core.error import PluginNotFound
-from ..services.builtin_service import list_builtins, set_builtin_enabled
+from ..services.builtin_service import list_builtins, load_builtin, set_builtin_enabled, set_builtin_unloaded
 from ..services.market_service import (
     get_plugin,
     get_task,
@@ -15,6 +15,7 @@ from ..services.market_service import (
     start_install,
     start_uninstall,
 )
+from ..services.plugin_service import unload_market_plugin
 
 router = APIRouter(prefix="/api/market", tags=["market"], dependencies=[Depends(require_auth)])
 
@@ -38,6 +39,17 @@ async def toggle_builtin(name: str, body: ToggleBuiltinBody):
     return {"success": True, "enabled": body.enable}
 
 
+@router.post("/builtins/{name}/unload")
+async def unload_builtin(name: str):
+    await set_builtin_unloaded(name)
+    return {"success": True}
+
+
+@router.post("/builtins/{name}/load")
+async def load_builtin_(name: str):
+    return {"success": await load_builtin(name)}
+
+
 @router.get("/plugins")
 async def list_():
     return {"success": True, **(await list_plugins())}
@@ -59,6 +71,7 @@ async def install(body: NameBody):
 
 @router.post("/uninstall")
 async def uninstall(body: NameBody):
+    await unload_market_plugin(body.name)
     tid = await start_uninstall(body.name)
     return {"success": True, "task_id": tid}
 

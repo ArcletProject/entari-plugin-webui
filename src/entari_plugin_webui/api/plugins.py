@@ -4,11 +4,16 @@ from fastapi import APIRouter, Depends
 from pydantic import BaseModel
 
 from ..api.deps import require_auth
+from ..services import market_service
 from ..services.plugin_service import (
     get_plugin,
     list_plugins,
+    list_unloaded_plugins,
+    load_unloaded,
     reload_plugin,
     toggle_plugin,
+    uninstall_plugin,
+    unload_plugin,
     update_plugin_config,
 )
 
@@ -23,26 +28,53 @@ class ConfigBody(BaseModel):
     config: dict
 
 
+class LoadBody(BaseModel):
+    key: str
+
+
 @router.get("")
 async def list_():
     return {"success": True, "data": list_plugins()}
 
 
+@router.get("/unloaded")
+async def unloaded_():
+    return {"success": True, "plugins": list_unloaded_plugins()}
+
+
+@router.post("/load")
+async def load(body: LoadBody):
+    return {"success": True, "data": await load_unloaded(body.key)}
+
+
 @router.get("/{plugin_id}")
 async def detail(plugin_id: str):
-    return {"success": True, "data": get_plugin(plugin_id)}
+    data = get_plugin(plugin_id)
+    data["market"] = await market_service.find_market_entry(data["id"], data["path"])
+    return {"success": True, "data": data}
 
 
 @router.post("/{plugin_id}/toggle")
 async def toggle(plugin_id: str, body: ToggleBody):
-    success = await toggle_plugin(plugin_id, enable=body.enable)
-    return {"success": success, "enabled": body.enable}
+    data = await toggle_plugin(plugin_id, enable=body.enable)
+    return {"success": True, "data": data}
 
 
 @router.post("/{plugin_id}/reload")
 async def reload(plugin_id: str):
     ok = await reload_plugin(plugin_id)
-    return {"success": ok}
+    return {"success": ok, "data": get_plugin(plugin_id)}
+
+
+@router.post("/{plugin_id}/unload")
+async def unload(plugin_id: str):
+    return {"success": True, "data": await unload_plugin(plugin_id)}
+
+
+@router.post("/{plugin_id}/uninstall")
+async def uninstall(plugin_id: str):
+    task_id = await uninstall_plugin(plugin_id)
+    return {"success": True, "task_id": task_id}
 
 
 @router.put("/{plugin_id}/config")
