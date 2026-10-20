@@ -49,7 +49,7 @@
         <ObjectField
           v-model="model[i]"
           :object-schema="resolvedItemsSchema!"
-          :defs="defs"
+          :root-schema="rootSchema"
           :field-key="`${fieldKey}[${i}]`"
         />
       </el-card>
@@ -80,7 +80,7 @@
         <OneOfField
           v-model="model[i]"
           :one-of="resolvedOneOf"
-          :defs="defs"
+          :root-schema="rootSchema"
           :field-key="`${fieldKey}[${i}]`"
         />
       </el-card>
@@ -102,8 +102,9 @@
 import { computed, ref } from "vue";
 import ObjectField from "./ObjectField.vue";
 import OneOfField from "./OneOfField.vue";
+import { resolveRef } from "./resolve-ref";
 
-const props = defineProps<{ itemsSchema?: Record<string, unknown>; defs?: Record<string, unknown>; fieldKey: string; modelValue?: unknown[] }>();
+const props = defineProps<{ itemsSchema?: Record<string, unknown>; rootSchema?: Record<string, unknown>; fieldKey: string; modelValue?: unknown[] }>();
 const emit = defineEmits<{ "update:modelValue": [v: unknown[]] }>();
 
 const model = computed<unknown[]>({
@@ -111,14 +112,14 @@ const model = computed<unknown[]>({
   set: (v) => emit("update:modelValue", v),
 });
 
-const resolvedItemsSchema = computed(() => props.itemsSchema ? resolveRef(props.itemsSchema, props.defs) : undefined);
+const resolvedItemsSchema = computed(() => props.itemsSchema ? resolveRef(props.itemsSchema, props.rootSchema ?? {}) : undefined);
 const itemType = computed(() => resolvedItemsSchema.value?.type as string | undefined);
 const isPrimitiveItems = computed(() => ["string", "number", "integer"].includes(itemType.value!));
 const isObjectItems = computed(() => itemType.value === "object");
 const isUnionItems = computed(() => !!((resolvedItemsSchema.value?.oneOf || resolvedItemsSchema.value?.anyOf) as unknown[] | undefined));
 const resolvedOneOf = computed(() => {
   const items = (resolvedItemsSchema.value?.oneOf || resolvedItemsSchema.value?.anyOf) as Record<string, unknown>[] | undefined;
-  return (items || []).map((o) => resolveRef(o, props.defs));
+  return (items || []).map((o) => resolveRef(o, props.rootSchema ?? {}));
 });
 
 const jsonText = ref(JSON.stringify(props.modelValue ?? [], null, 2));
@@ -147,22 +148,6 @@ function addUnion() {
   const props = first.properties as Record<string, unknown> | undefined;
   const type = ((props?.type as Record<string, unknown>)?.enum as unknown[])?.[0] as string;
   emit("update:modelValue", [...model.value, type !== undefined ? { type } : defaultForSchema(first)]);
-}
-
-function resolveRef(schema: Record<string, unknown>, defs?: Record<string, unknown>): Record<string, unknown> {
-  if (!schema) return {};
-  if (schema.$ref) {
-    const m = (schema.$ref as string).match(/#\/(?:\$defs|definitions)\/([^/]+)$/);
-    if (m && defs?.[m[1]]) {
-      const def = defs[m[1]] as Record<string, unknown>;
-      return {
-        ...def,
-        description: schema.description ?? def.description,
-        title: schema.title ?? def.title,
-      };
-    }
-  }
-  return schema;
 }
 
 function defaultForSchema(schema: Record<string, unknown>): unknown {

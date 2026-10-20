@@ -91,7 +91,7 @@
         v-else-if="resolved.type === 'array'"
         :model-value="castArray(model)"
         :items-schema="castItemsSchema(resolved.items)"
-        :defs="defs"
+        :root-schema="rootSchema"
         :field-key="fieldKey"
         @update:model-value="model = $event"
       />
@@ -100,7 +100,7 @@
         v-else-if="resolved.type === 'object'"
         v-model="model"
         :object-schema="resolved"
-        :defs="defs"
+        :root-schema="rootSchema"
         :field-key="fieldKey"
       />
       <!-- oneOf -->
@@ -108,7 +108,7 @@
         v-else-if="resolved.oneOf"
         v-model="model"
         :one-of="castSchemas(resolved.oneOf)"
-        :defs="defs"
+        :root-schema="rootSchema"
         :field-key="fieldKey"
       />
       <!-- anyOf -->
@@ -116,7 +116,7 @@
         v-else-if="resolved.anyOf"
         v-model="model"
         :one-of="castSchemas(resolved.anyOf)"
-        :defs="defs"
+        :root-schema="rootSchema"
         :field-key="fieldKey"
       />
       <!-- date -->
@@ -188,17 +188,18 @@ import { MoreFilled } from "@element-plus/icons-vue";
 import ArrayField from "./ArrayField.vue";
 import ObjectField from "./ObjectField.vue";
 import OneOfField from "./OneOfField.vue";
+import { resolveRef } from "./resolve-ref";
 
 const props = defineProps<{
   fieldSchema: Record<string, unknown>;
-  defs?: Record<string, unknown>;
+  rootSchema?: Record<string, unknown>;
   fieldKey: string;
   required?: boolean;
   modelValue?: unknown;
 }>();
 const emit = defineEmits<{ "update:modelValue": [v: unknown] }>();
 
-const resolved = computed(() => resolveRef(props.fieldSchema, props.defs));
+const resolved = computed(() => resolveRef(props.fieldSchema, props.rootSchema ?? {}));
 const displayTitle = computed(() => resolved.value.title || props.fieldKey);
 const placeholder = computed(() => {
   if (resolved.value.default != null) return String(resolved.value.default);
@@ -225,23 +226,6 @@ const enumOptions = computed(() => {
   }
   return null;
 });
-
-function resolveRef(schema: Record<string, unknown>, defs?: Record<string, unknown>): Record<string, unknown> {
-  if (!schema) return {};
-  if (!schema.$ref && !schema.oneOf && !schema.anyOf && !schema.$defs) return schema;
-  if (schema.$ref) {
-    const m = (schema.$ref as string).match(/#\/(?:\$defs|definitions)\/([^/]+)$/);
-    if (m && defs?.[m[1]]) {
-      const def = defs[m[1]] as Record<string, unknown>;
-      return {
-        ...def,
-        description: schema.description ?? def.description,
-        title: schema.title ?? def.title,
-      };
-    }
-  }
-  return schema;
-}
 
 function castArray(v: unknown): unknown[] { return v as unknown[] }
 function castItemsSchema(v: unknown): Record<string, unknown> | undefined { return v as Record<string, unknown> | undefined }

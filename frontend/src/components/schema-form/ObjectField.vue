@@ -14,7 +14,7 @@
             :key="k"
             v-model="model[k]"
             :field-schema="p"
-            :defs="defs"
+            :root-schema="rootSchema"
             :field-key="String(k)"
             :required="(objectSchema.required as string[])?.includes(String(k))"
           />
@@ -23,7 +23,7 @@
             v-model="model"
             :excluded-keys="Object.keys(objectSchema.properties!)"
             :value-schema="typeof objectSchema.additionalProperties === 'object' ? (objectSchema.additionalProperties as Record<string, unknown>) : {}"
-            :defs="defs"
+            :root-schema="rootSchema"
           />
         </el-collapse-item>
       </el-collapse>
@@ -33,7 +33,7 @@
           :key="k"
           v-model="model[k]"
           :field-schema="p"
-          :defs="defs"
+          :root-schema="rootSchema"
           :field-key="String(k)"
           :required="(objectSchema.required as string[])?.includes(String(k))"
         />
@@ -42,7 +42,7 @@
           v-model="model"
           :excluded-keys="Object.keys(objectSchema.properties!)"
           :value-schema="typeof objectSchema.additionalProperties === 'object' ? (objectSchema.additionalProperties as Record<string, unknown>) : {}"
-          :defs="defs"
+          :root-schema="rootSchema"
         />
       </template>
     </template>
@@ -50,7 +50,7 @@
       v-else-if="objectSchema.additionalProperties"
       v-model="model"
       :value-schema="typeof objectSchema.additionalProperties === 'object' ? (objectSchema.additionalProperties as Record<string, unknown>) : {}"
-      :defs="defs"
+      :root-schema="rootSchema"
     />
     <el-input
       v-else
@@ -66,7 +66,7 @@ import { computed, ref } from "vue";
 import SchemaField from "./SchemaField.vue";
 import AdditionalPropertiesEditor from "./AdditionalPropertiesEditor.vue";
 
-const props = defineProps<{ objectSchema: Record<string, unknown>; defs?: Record<string, unknown>; fieldKey: string; modelValue?: unknown }>();
+const props = defineProps<{ objectSchema: Record<string, unknown>; rootSchema?: Record<string, unknown>; fieldKey: string; modelValue?: unknown }>();
 const emit = defineEmits<{ "update:modelValue": [v: unknown] }>();
 
 const model = computed({

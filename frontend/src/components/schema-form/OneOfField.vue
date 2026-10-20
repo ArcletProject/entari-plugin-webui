@@ -78,7 +78,7 @@
         <SchemaField
           v-model="model"
           :field-schema="resolvedOptions[selectedIndex]"
-          :defs="defs"
+          :root-schema="rootSchema"
           :field-key="fieldKey"
         />
       </el-card>
@@ -89,23 +89,14 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import SchemaField from "./SchemaField.vue";
+import { resolveRef } from "./resolve-ref";
 
-const props = defineProps<{ oneOf: Record<string, unknown>[]; defs?: Record<string, unknown>; fieldKey: string; modelValue?: unknown }>();
+const props = defineProps<{ oneOf: Record<string, unknown>[]; rootSchema?: Record<string, unknown>; fieldKey: string; modelValue?: unknown }>();
 const emit = defineEmits<{ "update:modelValue": [v: unknown] }>();
 
 const simpleTypes = ["string", "number", "integer", "boolean", "null"];
 
-function resolveRef(schema: Record<string, unknown>): Record<string, unknown> {
-  if (!schema || !schema.$ref) return schema;
-  const m = (schema.$ref as string).match(/#\/(?:\$defs|definitions)\/([^/]+)$/);
-  if (m && props.defs?.[m[1]]) {
-    const def = props.defs[m[1]] as Record<string, unknown>;
-    return { ...def, title: schema.title ?? def.title };
-  }
-  return schema;
-}
-
-const resolvedOptions = computed(() => props.oneOf.map(resolveRef));
+const resolvedOptions = computed(() => props.oneOf.map((o) => resolveRef(o, props.rootSchema ?? {})));
 
 const isSimple = computed(() => resolvedOptions.value.every(o => simpleTypes.includes(o.type as string)));
 const selectedIndex = ref(0);

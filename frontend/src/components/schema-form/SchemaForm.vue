@@ -6,7 +6,7 @@
         :key="key"
         v-model="model[key]"
         :field-schema="prop as Record<string, unknown>"
-        :defs="resolvedDefs"
+        :root-schema="rootSchema"
         :field-key="String(key)"
         :required="(schema.required as string[])?.includes(String(key))"
       />
@@ -15,14 +15,14 @@
       v-else-if="schema?.type === 'object'"
       v-model="model"
       :object-schema="schema!"
-      :defs="resolvedDefs"
+      :root-schema="rootSchema"
       field-key="root"
     />
     <AdditionalPropertiesEditor
       v-else-if="schema?.additionalProperties"
       v-model="model"
       :value-schema="typeof schema.additionalProperties === 'object' ? (schema.additionalProperties as Record<string, unknown>) : {}"
-      :defs="resolvedDefs"
+      :root-schema="rootSchema"
     />
     <el-empty
       v-else
@@ -41,7 +41,7 @@ import AdditionalPropertiesEditor from "./AdditionalPropertiesEditor.vue";
 const props = defineProps<{ schema?: Record<string, unknown>; modelValue?: Record<string, unknown> }>();
 const emit = defineEmits<{ "update:modelValue": [v: Record<string, unknown>] }>();
 
-const resolvedDefs = computed(() => (props.schema?.$defs || props.schema?.$defs || {}) as Record<string, unknown>);
+const rootSchema = computed(() => props.schema ?? {});
 const model = ref<Record<string, unknown>>({ ...(props.modelValue ?? {}) });
 
 watch(() => props.modelValue, (v) => {

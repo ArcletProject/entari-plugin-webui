@@ -34,7 +34,7 @@
         v-if="hasValueSchema"
         v-model="model[String(k)]"
         :field-schema="valueSchema!"
-        :defs="defs"
+        :root-schema="rootSchema"
         :field-key="String(k)"
       />
       <el-input
@@ -57,10 +57,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import SchemaField from "./SchemaField.vue";
+import { resolveRef } from "./resolve-ref";
 
 const props = defineProps<{
   valueSchema?: Record<string, unknown>;
-  defs?: Record<string, unknown>;
+  rootSchema?: Record<string, unknown>;
   excludedKeys?: string[];
   modelValue?: Record<string, unknown>;
 }>();
@@ -76,16 +77,6 @@ const extra = computed(() =>
 );
 const hasValueSchema = computed(() => props.valueSchema && Object.keys(props.valueSchema).length > 0);
 
-function resolveRef(schema: Record<string, unknown>, defs?: Record<string, unknown>): Record<string, unknown> {
-  if (!schema || !schema.$ref) return schema;
-  const m = (schema.$ref as string).match(/#\/(?:\$defs|definitions)\/([^/]+)$/);
-  if (m && defs?.[m[1]]) {
-    const def = defs[m[1]] as Record<string, unknown>;
-    return { ...def, description: schema.description ?? def.description, title: schema.title ?? def.title };
-  }
-  return schema;
-}
-
 const renameMap = ref<Record<string, string>>({});
 const newKey = ref("");
 
@@ -95,7 +86,7 @@ watch(extra, (val) => {
 
 function add() {
   if (!newKey.value) return;
-  const vs = resolveRef(props.valueSchema ?? {}, props.defs);
+  const vs = resolveRef(props.valueSchema ?? {}, props.rootSchema ?? {});
   const type = vs.type;
   const defaultValue = type === "boolean" ? false : type === "object" ? {} : type === "array" ? [] : "";
   model.value[newKey.value] = defaultValue;
