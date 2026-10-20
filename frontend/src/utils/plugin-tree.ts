@@ -49,8 +49,10 @@ export function isSubplugin(plugin: PluginLike): boolean {
 
 export function isSubpluginVisible(plugin: PluginLike, mode: PluginDisplayMode): boolean {
   if (!isSubplugin(plugin)) return true;
-  // 根基础与内置插件及其子插件不受三态过滤影响。
-  if (plugin.type === "rootless" || plugin.type === "built-in") return true;
+  // 根基础插件及其子插件不受三态过滤影响。
+  if (plugin.type === "rootless") return true;
+  // 内置插件任何模式都只展示顶层，内置子插件一律隐藏。
+  if (plugin.type === "built-in") return false;
   if (mode === "all") return true;
   if (mode === "top") return false;
   return Boolean(plugin.has_metadata || plugin.has_config_schema);

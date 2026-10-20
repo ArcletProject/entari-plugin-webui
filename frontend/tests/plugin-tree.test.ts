@@ -12,6 +12,7 @@ const plugins = [
   { id: "root", name: "Root", type: "rootless" as const, parent: null },
   { id: "root.child", name: "RootChild", type: "rootless" as const, parent: "root" },
   { id: "builtin", name: "Builtin", type: "built-in" as const, parent: null },
+  { id: "builtin.child", name: "BuiltinChild", type: "built-in" as const, parent: "builtin", has_metadata: true },
   { id: "parent", name: "Parent", type: "local" as const, parent: null },
   { id: "parent.meta", name: "Meta", type: "local" as const, parent: "parent", has_metadata: true },
   { id: "parent.schema", name: "Schema", type: "local" as const, parent: "parent", has_config_schema: true },
@@ -26,7 +27,7 @@ test("configured 模式只显示有元数据或 schema 的子插件，并保留�
   assert.deepEqual(parent.children[0].children.map((n) => n.plugin.id), ["parent.bare.deep"]);
 });
 
-test("top 模式隐藏普通子插件，但根基础与内置子插件仍显示", () => {
+test("top 模式隐藏普通子插件，但根基础子插件仍显示", () => {
   const groups = filterPluginTree(buildPluginTree(plugins), "top");
   assert.deepEqual(groups.local[0].children, []);
   assert.deepEqual(groups.rootless[0].children.map((n) => n.plugin.id), ["root.child"]);
@@ -60,9 +61,22 @@ test("搜索匹配名称、id 与配置键", () => {
   assert.equal(matchesPluginSearch(plugin, "  "), true);
 });
 
+test("内置插件任何模式都只显示顶层", () => {
+  for (const mode of ["top", "configured", "all"] as const) {
+    const groups = filterPluginTree(buildPluginTree(plugins), mode);
+    assert.deepEqual(groups["built-in"].map((n) => n.plugin.id), ["builtin"]);
+    assert.deepEqual(groups["built-in"][0].children, []);
+  }
+});
+
 test("isSubpluginVisible 按模式判断", () => {
-  const bare = plugins[6];
+  const bare = plugins.find((p) => p.id === "parent.bare")!;
+  const meta = plugins.find((p) => p.id === "parent.meta")!;
+  const builtinChild = plugins.find((p) => p.id === "builtin.child")!;
   assert.equal(isSubpluginVisible(bare, "all"), true);
   assert.equal(isSubpluginVisible(bare, "configured"), false);
-  assert.equal(isSubpluginVisible(plugins[4], "configured"), true);
+  assert.equal(isSubpluginVisible(meta, "configured"), true);
+  for (const mode of ["top", "configured", "all"] as const) {
+    assert.equal(isSubpluginVisible(builtinChild, mode), false);
+  }
 });
