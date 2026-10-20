@@ -145,6 +145,11 @@ def get_plugin(plugin_id: str) -> dict[str, Any]:
 
 def _plugin_entry(path: list[str]) -> dict[str, Any]:
     node = EntariConfig.instance.data.setdefault("plugins", {})
+    root_key = path[0]
+    root_entry, raw_key = _find_plugin_entry(node, root_key)
+    if root_entry is not None and raw_key != root_key:
+        node.pop(raw_key, None)
+        node[root_key] = root_entry
     for key in path[:-1]:
         child = node.get(key)
         if not isinstance(child, dict):
@@ -186,12 +191,21 @@ async def toggle_plugin(plugin_id: str, *, enable: bool) -> dict[str, Any]:
 
     path = config_service.get_plugin_config_path(plugin_id)
     if path:
-        entry = _plugin_entry(path)
-        entry.pop("$optional", None)
-        if enable:
-            entry.pop("$disable", None)
+        if len(path) == 1:
+            key = path[0]
+            plugins = EntariConfig.instance.data.setdefault("plugins", {})
+            entry, raw_key = _find_plugin_entry(plugins, key)
+            body = {} if entry is None else {k: v for k, v in entry.items() if k not in ("$disable", "$optional")}
+            if raw_key != key:
+                plugins.pop(raw_key, None)
+            plugins[key] = {**body, "$disable": True} if not enable else body
         else:
-            entry["$disable"] = True
+            entry = _plugin_entry(path)
+            entry.pop("$optional", None)
+            if enable:
+                entry.pop("$disable", None)
+            else:
+                entry["$disable"] = True
     EntariConfig.instance.save()
     return serialize_plugin(plug, _force=True)
 

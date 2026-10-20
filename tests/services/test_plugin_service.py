@@ -123,6 +123,59 @@ async def test_toggle_top_level_persists_disable(monkeypatch):
 
 
 @pytest.mark.asyncio
+async def test_toggle_top_level_resolves_raw_disable_key_on_enable(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    p = _mk("demo")
+    p.enable = MagicMock()
+    monkeypatch.setattr(ps, "find_plugin", lambda i: p)
+    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
+    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
+    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
+    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
+    cfg = MagicMock()
+    cfg.data = {"plugins": {"~demo": {"x": 1}}}
+    cfg.save = MagicMock()
+    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
+    from entari_plugin_webui.services import config_service as cs
+
+    monkeypatch.setattr(cs, "get_plugin_config_path", lambda pid: ["demo"])
+
+    await ps.toggle_plugin("demo", enable=True)
+    assert cfg.data["plugins"]["demo"] == {"x": 1}
+    assert "~demo" not in cfg.data["plugins"]
+    assert "$disable" not in cfg.data["plugins"]["demo"]
+    assert "$optional" not in cfg.data["plugins"]["demo"]
+    p.enable.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_toggle_top_level_resolves_raw_optional_key_on_disable(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    p = _mk("demo")
+    p.disable = MagicMock()
+    monkeypatch.setattr(ps, "find_plugin", lambda i: p)
+    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
+    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
+    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
+    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
+    cfg = MagicMock()
+    cfg.data = {"plugins": {"?demo": {"x": 1}}}
+    cfg.save = MagicMock()
+    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
+    from entari_plugin_webui.services import config_service as cs
+
+    monkeypatch.setattr(cs, "get_plugin_config_path", lambda pid: ["demo"])
+
+    await ps.toggle_plugin("demo", enable=False)
+    assert cfg.data["plugins"]["demo"] == {"x": 1, "$disable": True}
+    assert "?demo" not in cfg.data["plugins"]
+    assert "$optional" not in cfg.data["plugins"]["demo"]
+    p.disable.assert_called_once()
+
+
+@pytest.mark.asyncio
 async def test_toggle_child_writes_nested_and_clears_optional(monkeypatch):
     from entari_plugin_webui.services import plugin_service as ps
 
