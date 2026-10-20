@@ -158,6 +158,15 @@ def _plugin_entry(path: list[str]) -> dict[str, Any]:
     return target
 
 
+def _find_plugin_entry(plugins: dict[str, Any], key: str) -> tuple[dict[str, Any] | None, str]:
+    """在顶层 ``plugins`` 映射里按 raw form（``key``/``~key``/``?key``）查找条目。"""
+    for candidate in (key, f"~{key}", f"?{key}"):
+        value = plugins.get(candidate)
+        if isinstance(value, dict):
+            return value, candidate
+    return None, key
+
+
 async def toggle_plugin(plugin_id: str, *, enable: bool) -> dict[str, Any]:
     plug = find_plugin(plugin_id)
     if plug is None:
@@ -208,12 +217,16 @@ async def unload_plugin(plugin_id: str) -> dict[str, Any]:
 
     path = config_service.get_plugin_config_path(plugin_id)
     snapshot = serialize_plugin(plug, _force=True)
-    if path:
-        entry = _plugin_entry(path)
-        entry.pop("$disable", None)
-        entry["$optional"] = True
-    EntariConfig.instance.save()
-    _unloaded_snapshots[plug.id] = snapshot
+    cfg = EntariConfig.instance
+    plugins = cfg.data.setdefault("plugins", {})
+    key = path[0] if path else plug._config_key
+    entry, raw_key = _find_plugin_entry(plugins, key)
+    body = {} if entry is None else {k: v for k, v in entry.items() if k not in ("$disable", "$optional")}
+    if raw_key != key:
+        plugins.pop(raw_key, None)
+    plugins[key] = {**body, "$optional": True}
+    cfg.save()
+    _unloaded_snapshots[key] = snapshot
     await unload_plugin_async(plug.id)
     return {**snapshot, "unloaded": True}
 
@@ -301,6 +314,10 @@ async def load_unloaded(key: str) -> dict[str, Any]:
     plugins.pop(raw_key, None)
     plugins[key] = clean
     cfg.save()
+    if original_names is None:
+        cfg._plugin_names.pop(key, None)
+    else:
+        cfg._plugin_names[key] = original_names
     _unloaded_snapshots.pop(key, None)
     return serialize_plugin(result.plugin, _force=True)
 
