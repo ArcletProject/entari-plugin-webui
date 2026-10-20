@@ -222,7 +222,7 @@ def get_schema_for_section(section: str) -> dict[str, Any]:
         if plug is None:
             raise ConfigSectionNotFound(message=f"Plugin not found: {key}")
         relative = _relative_key(plug)
-        if relative is None:
+        if relative is None or plug.id.startswith("$"):
             schema = plugin_config_schema(plug, ref_root="/")
         else:
             meta = plug.metadata
@@ -236,7 +236,7 @@ def get_schema_for_section(section: str) -> dict[str, Any]:
                 }
             schema.setdefault("properties", {})
             for name, prop in PLUGIN_META_PROPERTIES.items():
-                schema["properties"].setdefault(name, prop)
+                schema["properties"].setdefault(name, dict(prop))
             for record in _schema_fragments.get(plug._config_key, []):
                 parts = _fragment_parts(record.path, relative)
                 if parts is None:

@@ -241,6 +241,8 @@ def test_child_schema_applies_only_own_fragment(monkeypatch):
     props = out["schema"]["properties"]
     assert "inner" in props
     assert ".child" not in props
+    for key in ("$disable", "$priority", "$filter"):
+        assert key in props
     assert any("Inner" in key for key in out["schema"].get("$defs", {}))
 
 
@@ -258,4 +260,22 @@ def test_child_schema_ignores_deeper_child_fragment(monkeypatch):
     )
     monkeypatch.setattr(cs, "_relative_key", lambda p: ".child" if p.id.endswith(".child") else None)
     out = cs.get_schema_for_section("plugins:demo_parent.child")
-    assert ".deep" not in out["schema"].get("properties", {})
+    props = out["schema"].get("properties", {})
+    assert ".deep" not in props
+    assert ".child.deep" not in props
+    assert ".child" not in props
+
+
+def test_rootless_plugin_schema_uses_top_level_path(monkeypatch):
+    from entari_plugin_webui.services import config_service as cs
+
+    plug = _plugin("$.commands", ".commands")
+    _bind_plugins(monkeypatch, cs, [plug], {"$.commands": "$"})
+    monkeypatch.setattr(cs, "_relative_key", lambda p: ".commands" if p.id.startswith("$") else None)
+
+    def _fake_plugin_config_schema(plug, ref_root="/"):
+        return {"type": "object", "properties": {"rootless_marker": {"type": "string"}}}
+
+    monkeypatch.setattr(cs, "plugin_config_schema", _fake_plugin_config_schema)
+    out = cs.get_schema_for_section("plugins:$.commands")
+    assert out["schema"]["properties"] == {"rootless_marker": {"type": "string"}}
