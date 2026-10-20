@@ -32,11 +32,12 @@ class _Result:
 
 
 def _plugin(*, available=True, static=False, name="Echo", description="desc"):
-    return SimpleNamespace(
-        is_available=available,
-        is_static=static,
-        metadata=SimpleNamespace(name=name, description=description),
-    )
+    plug = MagicMock()
+    plug.is_available = available
+    plug.is_static = static
+    plug.metadata = SimpleNamespace(name=name, description=description)
+    plug.disable = MagicMock()
+    return plug
 
 
 def _bind(monkeypatch, bs, cfg, modules, plugins=None, load_error=None):
@@ -167,7 +168,27 @@ async def test_enable_failure_keeps_existing_config(bs, tmp_path, monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_disable_unloads_and_keeps_optional_config(bs, tmp_path, monkeypatch):
+async def test_disable_writes_disable_marker_without_unload(bs, tmp_path, monkeypatch):
+    cfg = _cfg({"plugins": {"::echo": {"foo": 1}}})
+    plug = _plugin()
+    _, _, unload = _bind(
+        monkeypatch,
+        bs,
+        cfg,
+        [("echo", tmp_path / "echo.py")],
+        plugins={"arclet.entari.builtins.echo": plug},
+    )
+
+    await bs.set_builtin_enabled("echo", False)
+
+    assert cfg.data["plugins"] == {"~::echo": {"foo": 1}}
+    plug.disable.assert_called_once()
+    unload.assert_not_awaited()
+    cfg.save.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_unload_writes_optional_and_unloads(bs, tmp_path, monkeypatch):
     cfg = _cfg({"plugins": {"::echo": {"foo": 1}}})
     _, _, unload = _bind(
         monkeypatch,
@@ -177,11 +198,20 @@ async def test_disable_unloads_and_keeps_optional_config(bs, tmp_path, monkeypat
         plugins={"arclet.entari.builtins.echo": _plugin()},
     )
 
-    await bs.set_builtin_enabled("echo", False)
+    await bs.set_builtin_unloaded("echo")
 
     assert cfg.data["plugins"] == {"?::echo": {"foo": 1}}
     unload.assert_awaited_once_with("::echo")
-    cfg.save.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_load_builtin_clears_optional(bs, tmp_path, monkeypatch):
+    cfg = _cfg({"plugins": {"?::echo": {"foo": 1}}})
+    load, _, _ = _bind(monkeypatch, bs, cfg, [("echo", tmp_path / "echo.py")])
+
+    assert await bs.load_builtin("echo") is True
+    assert cfg.data["plugins"] == {"::echo": {"foo": 1}}
+    load.assert_called_once()
 
 
 @pytest.mark.asyncio
@@ -199,6 +229,26 @@ async def test_disable_static_rejected(bs, tmp_path, monkeypatch):
 
     with pytest.raises(MarketError):
         await bs.set_builtin_enabled("echo", False)
+
+    assert cfg.data["plugins"] == {"::echo": {"foo": 1}}
+    unload.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_unload_static_rejected(bs, tmp_path, monkeypatch):
+    cfg = _cfg({"plugins": {"::echo": {"foo": 1}}})
+    _, _, unload = _bind(
+        monkeypatch,
+        bs,
+        cfg,
+        [("echo", tmp_path / "echo.py")],
+        plugins={"arclet.entari.builtins.echo": _plugin(static=True)},
+    )
+
+    from entari_plugin_webui.core.error import MarketError
+
+    with pytest.raises(MarketError):
+        await bs.set_builtin_unloaded("echo")
 
     assert cfg.data["plugins"] == {"::echo": {"foo": 1}}
     unload.assert_not_awaited()

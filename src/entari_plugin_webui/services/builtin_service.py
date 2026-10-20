@@ -127,7 +127,47 @@ async def set_builtin_enabled(name: str, enable: bool) -> None:
     entry = _clean_entry(plugins.get(raw, {}) if raw is not None else {})
     if raw is not None:
         plugins.pop(raw, None)
+    plugins[f"~{key}"] = entry
+    cfg.save()
+    if plug is not None:
+        plug.disable()
+
+
+async def set_builtin_unloaded(name: str) -> None:
+    if name not in {mod_name for mod_name, _ in _iter_builtin_modules()}:
+        raise MarketError(f"Unknown builtin plugin: {name}")
+
+    cfg = EntariConfig.instance
+    plugins = cfg.data.setdefault("plugins", {})
+    key = f"::{name}"
+    raw = _raw_key(plugins, key)
+    plug = _find_builtin(name)
+
+    if plug is not None and plug.is_static:
+        raise MarketError(f"Builtin plugin {name} is static and cannot be unloaded")
+    entry = _clean_entry(plugins.get(raw, {}) if raw is not None else {})
+    if raw is not None:
+        plugins.pop(raw, None)
     plugins[f"?{key}"] = entry
     cfg.save()
     if plug is not None:
         await unload_plugin_async(key)
+
+
+async def load_builtin(name: str) -> bool:
+    if name not in {mod_name for mod_name, _ in _iter_builtin_modules()}:
+        raise MarketError(f"Unknown builtin plugin: {name}")
+
+    cfg = EntariConfig.instance
+    plugins = cfg.data.setdefault("plugins", {})
+    key = f"::{name}"
+    raw = _raw_key(plugins, key)
+    entry = _clean_entry(plugins.get(raw, {}) if raw is not None else {})
+    result = load_plugin(key, entry)
+    if not result:
+        raise MarketError(f"Failed to load builtin plugin {name}: {result.error}")
+    if raw is not None:
+        plugins.pop(raw, None)
+    plugins[key] = entry
+    cfg.save()
+    return True
