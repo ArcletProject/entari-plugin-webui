@@ -215,3 +215,47 @@ def test_get_plugin_config_path_public(monkeypatch):
     child = _plugin("demo_parent.child", "demo_parent")
     _bind_plugins(monkeypatch, cs, [parent, child], {"demo_parent.child": "demo_parent"})
     assert cs.get_plugin_config_path("demo_parent.child") == ["demo_parent", ".child"]
+
+
+def test_child_schema_applies_only_own_fragment(monkeypatch):
+    from entari_plugin_webui.services import config_service as cs
+
+    class _Inner(BaseModel):
+        value: str = "x"
+
+    class _Child(BaseModel):
+        inner: _Inner
+
+    parent = _plugin("demo_parent", "demo_parent", subplugins=["demo_parent.child"])
+    child = _plugin("demo_parent.child", "demo_parent")
+    _bind_plugins(monkeypatch, cs, [parent, child], {"demo_parent.child": "demo_parent"})
+    monkeypatch.setattr(
+        cs,
+        "_schema_fragments",
+        {"demo_parent": [SimpleNamespace(path=(".child",), fragment=_Child, replace=False)]},
+        raising=False,
+    )
+    monkeypatch.setattr(cs, "_relative_key", lambda p: ".child" if p.id.endswith(".child") else None)
+
+    out = cs.get_schema_for_section("plugins:demo_parent.child")
+    props = out["schema"]["properties"]
+    assert "inner" in props
+    assert ".child" not in props
+    assert any("Inner" in key for key in out["schema"].get("$defs", {}))
+
+
+def test_child_schema_ignores_deeper_child_fragment(monkeypatch):
+    from entari_plugin_webui.services import config_service as cs
+
+    parent = _plugin("demo_parent", "demo_parent", subplugins=["demo_parent.child"])
+    child = _plugin("demo_parent.child", "demo_parent")
+    _bind_plugins(monkeypatch, cs, [parent, child], {"demo_parent.child": "demo_parent"})
+    monkeypatch.setattr(
+        cs,
+        "_schema_fragments",
+        {"demo_parent": [SimpleNamespace(path=(".child.deep",), fragment={"type": "object"}, replace=False)]},
+        raising=False,
+    )
+    monkeypatch.setattr(cs, "_relative_key", lambda p: ".child" if p.id.endswith(".child") else None)
+    out = cs.get_schema_for_section("plugins:demo_parent.child")
+    assert ".deep" not in out["schema"].get("properties", {})

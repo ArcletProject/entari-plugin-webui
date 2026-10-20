@@ -5,7 +5,9 @@ from typing import Any, TypedDict
 from arclet.entari.config import config_model_schema
 from arclet.entari.config.file import EntariConfig
 from arclet.entari.config.model import BasicConfig
-from arclet.entari.config.schema.plugin import plugin_config_schema
+from arclet.entari.config.schema.plugin import PLUGIN_META_PROPERTIES, plugin_config_schema
+from arclet.entari.config.schema.rebase import update_schema
+from arclet.entari.config.schema.registry import _schema_fragments
 from arclet.entari.plugin import find_plugin, get_plugins
 from arclet.entari.plugin.model import Plugin
 from arclet.entari.plugin.service import plugin_service
@@ -13,6 +15,7 @@ from ruamel.yaml import CommentedMap
 from tarina.tools import nest_dict_update, nest_list_update
 
 from ..core.error import ConfigSectionNotFound
+from .plugin_service import _fragment_parts, _relative_key
 
 
 def _unwrap(obj: Any) -> Any:
@@ -218,7 +221,27 @@ def get_schema_for_section(section: str) -> dict[str, Any]:
         plug = _resolve_plugin(key)
         if plug is None:
             raise ConfigSectionNotFound(message=f"Plugin not found: {key}")
-        schema = plugin_config_schema(plug, ref_root="/")
+        relative = _relative_key(plug)
+        if relative is None:
+            schema = plugin_config_schema(plug, ref_root="/")
+        else:
+            meta = plug.metadata
+            if meta is not None and getattr(meta, "config", None):
+                schema = config_model_schema(meta.config, ref_root="/")
+            else:
+                schema = {
+                    "type": "object",
+                    "description": "No configuration required",
+                    "additionalProperties": True,
+                }
+            schema.setdefault("properties", {})
+            for name, prop in PLUGIN_META_PROPERTIES.items():
+                schema["properties"].setdefault(name, prop)
+            for record in _schema_fragments.get(plug._config_key, []):
+                parts = _fragment_parts(record.path, relative)
+                if parts is None:
+                    continue
+                update_schema(schema, plug._config_key, "/", parts, record.fragment, record.replace)
     else:
         raise ConfigSectionNotFound(message=f"Section not found: {section}")
     return {"schema": schema}
