@@ -5,6 +5,10 @@
       placeholder="搜索插件"
       clearable
     />
+    <PluginDisplayFilter
+      v-model="mode"
+      class="display-filter"
+    />
     <el-scrollbar class="menu-scroll">
       <div class="group">
         <div class="group-title">
@@ -44,16 +48,16 @@
         </div>
         <div
           v-for="item in group.items"
-          :key="item.id"
-          :class="['menu-item', { active: store.currentSection === `plugins:${item.id}` }]"
+          :key="item.plugin.id"
+          :class="['menu-item', { active: store.currentSection === `plugins:${item.plugin.id}` }]"
           :style="{ paddingLeft: `${12 + item.depth * 16}px` }"
-          @click="select(`plugins:${item.id}`)"
+          @click="select(`plugins:${item.plugin.id}`)"
         >
           <span
             v-if="item.hasChildren"
             class="toggle"
-            :class="{ expanded: isExpanded(item.id) }"
-            @click.stop="toggleCollapse(item.id)"
+            :class="{ expanded: isExpanded(item.plugin.id) }"
+            @click.stop="toggleCollapse(item.plugin.id)"
           >
             <el-icon><ArrowRight /></el-icon>
           </span>
@@ -61,9 +65,9 @@
             v-else
             class="toggle-placeholder"
           />
-          <span class="name">{{ item.name }}</span>
+          <span class="name">{{ item.plugin.name }}</span>
           <el-tag
-            v-if="!item.enabled"
+            v-if="!item.plugin.enabled"
             type="info"
             size="small"
             class="status"
@@ -80,8 +84,17 @@
 import { ref, computed, watch } from "vue";
 import { ArrowRight } from "@element-plus/icons-vue";
 import { useSettingsStore, type PluginInfo } from "@/stores/settings";
+import PluginDisplayFilter from "@/components/plugins/PluginDisplayFilter.vue";
+import { usePluginDisplayMode } from "@/composables/usePluginDisplayMode";
+import {
+  buildPluginTree,
+  filterPluginTree,
+  flattenPluginTree,
+  type PluginTreeNode,
+} from "@/utils/plugin-tree";
 
 const store = useSettingsStore();
+const { mode } = usePluginDisplayMode();
 const keyword = ref("");
 const collapsed = ref<Set<string>>(new Set());
 
@@ -91,15 +104,6 @@ const TYPE_GROUPS = [
   { type: "local", title: "本地插件" },
   { type: "common", title: "常规插件" },
 ] as const;
-
-interface TreeNode extends PluginInfo {
-  children: TreeNode[];
-}
-
-interface FlatNode extends PluginInfo {
-  depth: number;
-  hasChildren: boolean;
-}
 
 // 搜索时重置折叠状态：命中的父插件默认展开，仍可手动折叠
 watch(keyword, () => {
@@ -117,48 +121,17 @@ function toggleCollapse(id: string) {
   collapsed.value = next;
 }
 
-// 子插件跟着父插件走：只把父插件缺失（或指向自身）的插件当作顶层
-const pluginTrees = computed<Record<string, TreeNode[]>>(() => {
-  const byId = new Map(store.pluginList.map((p) => [p.id, p]));
-  const childrenOf = new Map<string, PluginInfo[]>();
-  for (const p of store.pluginList) {
-    if (!p.parent || p.parent === p.id || !byId.has(p.parent)) continue;
-    const siblings = childrenOf.get(p.parent) ?? [];
-    siblings.push(p);
-    childrenOf.set(p.parent, siblings);
-  }
-
-  const build = (p: PluginInfo, ancestors: Set<string>): TreeNode => {
-    const next = new Set(ancestors).add(p.id);
-    const children = (childrenOf.get(p.id) ?? []).filter((c) => !next.has(c.id));
-    return { ...p, children: children.map((c) => build(c, next)) };
-  };
-
-  const trees: Record<string, TreeNode[]> = { rootless: [], "built-in": [], local: [], common: [] };
-  for (const p of store.pluginList) {
-    if (p.parent && p.parent !== p.id && byId.has(p.parent)) continue;
-    trees[p.type].push(build(p, new Set()));
-  }
-  return trees;
+const pluginTrees = computed(() => {
+  const pinnedId = store.isPluginSection ? store.pluginId : undefined;
+  return filterPluginTree(buildPluginTree<PluginInfo>(store.pluginList), mode.value, pinnedId);
 });
 
-function filterTree(nodes: TreeNode[], q: string, ancestorMatched = false): TreeNode[] {
-  const out: TreeNode[] = [];
+function filterTree(nodes: PluginTreeNode<PluginInfo>[], q: string, ancestorMatched = false): PluginTreeNode<PluginInfo>[] {
+  const out: PluginTreeNode<PluginInfo>[] = [];
   for (const node of nodes) {
-    const matched = ancestorMatched || node.name.toLowerCase().includes(q);
+    const matched = ancestorMatched || node.plugin.name.toLowerCase().includes(q);
     const children = filterTree(node.children, q, matched);
-    if (matched || children.length) out.push({ ...node, children });
-  }
-  return out;
-}
-
-function flatten(nodes: TreeNode[], depth = 0): FlatNode[] {
-  const out: FlatNode[] = [];
-  for (const node of nodes) {
-    out.push({ ...node, depth, hasChildren: node.children.length > 0 });
-    if (node.children.length && isExpanded(node.id)) {
-      out.push(...flatten(node.children, depth + 1));
-    }
+    if (matched || children.length) out.push({ plugin: node.plugin, children });
   }
   return out;
 }
@@ -168,7 +141,7 @@ const pluginGroups = computed(() => {
   return TYPE_GROUPS.map((group) => {
     const nodes = pluginTrees.value[group.type] ?? [];
     const filtered = q ? filterTree(nodes, q) : nodes;
-    return { type: group.type, title: group.title, items: flatten(filtered) };
+    return { type: group.type, title: group.title, items: flattenPluginTree(filtered, isExpanded) };
   });
 });
 
@@ -192,6 +165,9 @@ async function select(section: string) {
 .menu-scroll {
   flex: 1;
   margin-top: 12px;
+}
+.display-filter {
+  margin-top: 8px;
 }
 .group {
   margin-bottom: 16px;

@@ -24,6 +24,13 @@ export interface PluginInfo {
   is_static: boolean;
   configurable: boolean;
   parent?: string | null;
+  has_metadata: boolean;
+  has_config_schema: boolean;
+  config_key?: string;
+  can_unload: boolean;
+  state: "enabled" | "disabled" | "unavailable" | "unloaded";
+  disable_expr: string | null;
+  parent_enabled: boolean | null;
 }
 
 function patchTitles(properties: Record<string, unknown>) {
@@ -104,6 +111,13 @@ export const useSettingsStore = defineStore("settings", () => {
         is_static: p.is_static as boolean,
         configurable: p.configurable as boolean,
         parent: (p.parent as string | null | undefined) ?? null,
+        has_metadata: !!p.has_metadata,
+        has_config_schema: !!p.has_config_schema,
+        config_key: p.config_key as string | undefined,
+        can_unload: !!p.can_unload,
+        state: (p.state as PluginInfo["state"]) || (p.enabled ? "enabled" : "unavailable"),
+        disable_expr: (p.disable_expr as string | null | undefined) ?? null,
+        parent_enabled: (p.parent_enabled as boolean | null | undefined) ?? null,
       }));
       pluginRawMap.value = {};
       for (const p of raw) {

@@ -11,7 +11,7 @@
         <PluginHeader
           v-if="store.currentPlugin"
           :plugin="store.currentPlugin"
-          @toggle="(v) => onToggle(v)"
+          @manage="onManage"
           @reload="onReload"
           @detail="showDetail"
         />
@@ -96,7 +96,7 @@
 
 <script setup lang="ts">
 import { computed, ref, onMounted, watch } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import { ElMessage } from "element-plus";
 import { useSettingsStore } from "@/stores/settings";
 import SettingsSidebar from "@/components/settings/SettingsSidebar.vue";
@@ -109,6 +109,7 @@ import AppIcon from "@/components/AppIcon.vue";
 defineOptions({ name: "Settings" });
 
 const route = useRoute();
+const router = useRouter();
 const store = useSettingsStore();
 interface PluginDetail {
   id: string;
@@ -137,10 +138,9 @@ async function save() {
   else ElMessage.error("保存失败");
 }
 
-async function onToggle(v: boolean) {
+function onManage() {
   if (!store.currentPlugin) return;
-  await store.togglePlugin(store.currentPlugin.id, v);
-  ElMessage.success(v ? "已启用" : "已停用");
+  router.push({ path: "/plugins", query: { plugin: store.currentPlugin.id } });
 }
 
 function showDetail() {

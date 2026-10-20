@@ -16,11 +16,13 @@
       </div>
     </div>
     <div class="actions">
-      <el-switch
-        :model-value="plugin.enabled"
-        :disabled="plugin.is_static"
-        @change="(v: any) => emit('toggle', v)"
-      />
+      <el-button
+        size="small"
+        type="primary"
+        @click="emit('manage')"
+      >
+        管理
+      </el-button>
       <el-button
         size="small"
         @click="emit('reload')"
@@ -42,7 +44,7 @@ import type { PluginInfo } from "@/stores/settings";
 
 defineProps<{ plugin: PluginInfo }>();
 const emit = defineEmits<{
-  toggle: [value: boolean];
+  manage: [];
   reload: [];
   detail: [];
 }>();
