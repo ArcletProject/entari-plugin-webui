@@ -72,13 +72,31 @@ async def _root(request: Request) -> Response:
             status_code=503,
         )
     path = request.url.path.lstrip("/")
-    file = _FRONTEND_DIR / (path or "index.html")
-    if file.exists():
+    root = _FRONTEND_DIR.resolve()
+    file = (_FRONTEND_DIR / (path or "index.html")).resolve()
+    if file.is_file() and file.is_relative_to(root):
         return FileResponse(file)
     return Response(status_code=404)
 
 
 replace_asgi(app := _create_app())
+
+_original_default = app.router.default
+
+
+async def _spa_default(scope, receive, send) -> None:
+    """前端使用 history 路由：未匹配到后端路由的页面请求回退到 index.html。"""
+    if scope["type"] == "http" and scope.get("method") in {"GET", "HEAD"}:
+        path = scope["path"].lstrip("/")
+        if not path.startswith("api/") and "." not in path.rsplit("/", 1)[-1]:
+            index = _FRONTEND_DIR / "index.html"
+            if index.is_file():
+                await FileResponse(index)(scope, receive, send)
+                return
+    await _original_default(scope, receive, send)
+
+
+app.router.default = _spa_default
 
 if _FRONTEND_DIR.exists() and (_FRONTEND_DIR / "assets").exists():
     app.mount("/assets", StaticFiles(directory=_FRONTEND_DIR / "assets", html=True))
