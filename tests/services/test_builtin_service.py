@@ -20,6 +20,17 @@ def _cfg(data=None):
     return cfg
 
 
+class _Result:
+    """模拟 entari 的 _LoadResult：加载失败时为假值。"""
+
+    def __init__(self, error=None):
+        self.error = error
+        self.plugin = None if error is not None else object()
+
+    def __bool__(self):
+        return self.plugin is not None
+
+
 def _plugin(*, available=True, static=False, name="Echo", description="desc"):
     return SimpleNamespace(
         is_available=available,
@@ -33,7 +44,7 @@ def _bind(monkeypatch, bs, cfg, modules, plugins=None, load_error=None):
     monkeypatch.setattr(bs, "_iter_builtin_modules", lambda: modules)
     monkeypatch.setattr(bs, "find_plugin", lambda pid: (plugins or {}).get(pid))
 
-    load = MagicMock(return_value=SimpleNamespace(error=load_error, plugin=object()))
+    load = MagicMock(return_value=_Result(load_error))
     monkeypatch.setattr(bs, "load_plugin", load)
 
     async def _enable(pid):
