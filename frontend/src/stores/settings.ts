@@ -23,6 +23,7 @@ export interface PluginInfo {
   enabled: boolean;
   is_static: boolean;
   configurable: boolean;
+  parent?: string | null;
 }
 
 function patchTitles(properties: Record<string, unknown>) {
@@ -102,6 +103,7 @@ export const useSettingsStore = defineStore("settings", () => {
         enabled: p.enabled as boolean,
         is_static: p.is_static as boolean,
         configurable: p.configurable as boolean,
+        parent: (p.parent as string | null | undefined) ?? null,
       }));
       pluginRawMap.value = {};
       for (const p of raw) {

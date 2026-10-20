@@ -34,82 +34,36 @@
           适配器
         </div>
       </div>
-      <div class="group">
+      <div
+        v-for="group in pluginGroups"
+        :key="group.type"
+        class="group"
+      >
         <div class="group-title">
-          根基插件
+          {{ group.title }}
         </div>
         <div
-          v-for="p in filteredRootlessPlugins"
-          :key="p.id"
-          :class="['menu-item', { active: store.currentSection === `plugins:${p.id}` }]"
-          @click="select(`plugins:${p.id}`)"
+          v-for="item in group.items"
+          :key="item.id"
+          :class="['menu-item', { active: store.currentSection === `plugins:${item.id}` }]"
+          :style="{ paddingLeft: `${12 + item.depth * 16}px` }"
+          @click="select(`plugins:${item.id}`)"
         >
-          <span class="name">{{ p.name }}</span>
-          <el-tag
-            v-if="!p.enabled"
-            type="info"
-            size="small"
-            class="status"
+          <span
+            v-if="item.hasChildren"
+            class="toggle"
+            :class="{ expanded: isExpanded(item.id) }"
+            @click.stop="toggleCollapse(item.id)"
           >
-            已停用
-          </el-tag>
-        </div>
-      </div>
-      <div class="group">
-        <div class="group-title">
-          内建插件
-        </div>
-        <div
-          v-for="p in filteredBuiltInPlugins"
-          :key="p.id"
-          :class="['menu-item', { active: store.currentSection === `plugins:${p.id}` }]"
-          @click="select(`plugins:${p.id}`)"
-        >
-          <span class="name">{{ p.name }}</span>
+            <el-icon><ArrowRight /></el-icon>
+          </span>
+          <span
+            v-else
+            class="toggle-placeholder"
+          />
+          <span class="name">{{ item.name }}</span>
           <el-tag
-            v-if="!p.enabled"
-            type="info"
-            size="small"
-            class="status"
-          >
-            已停用
-          </el-tag>
-        </div>
-      </div>
-      <div class="group">
-        <div class="group-title">
-          本地插件
-        </div>
-        <div
-          v-for="p in filteredLocalPlugins"
-          :key="p.id"
-          :class="['menu-item', { active: store.currentSection === `plugins:${p.id}` }]"
-          @click="select(`plugins:${p.id}`)"
-        >
-          <span class="name">{{ p.name }}</span>
-          <el-tag
-            v-if="!p.enabled"
-            type="info"
-            size="small"
-            class="status"
-          >
-            已停用
-          </el-tag>
-        </div>
-      </div>
-      <div class="group">
-        <div class="group-title">
-          常规插件
-        </div>
-        <div
-          v-for="p in filteredCommonPlugins"
-          :key="p.id"
-          :class="['menu-item', { active: store.currentSection === `plugins:${p.id}` }]"
-          @click="select(`plugins:${p.id}`)"
-        >
-          <span class="name">{{ p.name }}</span>
-          <el-tag
-            v-if="!p.enabled"
+            v-if="!item.enabled"
             type="info"
             size="small"
             class="status"
@@ -123,23 +77,100 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { useSettingsStore } from "@/stores/settings";
+import { ref, computed, watch } from "vue";
+import { ArrowRight } from "@element-plus/icons-vue";
+import { useSettingsStore, type PluginInfo } from "@/stores/settings";
 
 const store = useSettingsStore();
 const keyword = ref("");
+const collapsed = ref<Set<string>>(new Set());
 
-function filterByType(type: "rootless" | "built-in" | "local" | "common") {
-  const list = store.pluginList.filter((p) => p.type === type);
-  if (!keyword.value) return list;
-  const q = keyword.value.toLowerCase();
-  return list.filter((p) => p.name.toLowerCase().includes(q));
+const TYPE_GROUPS = [
+  { type: "rootless", title: "根基插件" },
+  { type: "built-in", title: "内建插件" },
+  { type: "local", title: "本地插件" },
+  { type: "common", title: "常规插件" },
+] as const;
+
+interface TreeNode extends PluginInfo {
+  children: TreeNode[];
 }
 
-const filteredRootlessPlugins = computed(() => filterByType("rootless"));
-const filteredBuiltInPlugins = computed(() => filterByType("built-in"));
-const filteredLocalPlugins = computed(() => filterByType("local"));
-const filteredCommonPlugins = computed(() => filterByType("common"));
+interface FlatNode extends PluginInfo {
+  depth: number;
+  hasChildren: boolean;
+}
+
+// 搜索时重置折叠状态：命中的父插件默认展开，仍可手动折叠
+watch(keyword, () => {
+  collapsed.value = new Set();
+});
+
+function isExpanded(id: string) {
+  return !collapsed.value.has(id);
+}
+
+function toggleCollapse(id: string) {
+  const next = new Set(collapsed.value);
+  if (next.has(id)) next.delete(id);
+  else next.add(id);
+  collapsed.value = next;
+}
+
+// 子插件跟着父插件走：只把父插件缺失（或指向自身）的插件当作顶层
+const pluginTrees = computed<Record<string, TreeNode[]>>(() => {
+  const byId = new Map(store.pluginList.map((p) => [p.id, p]));
+  const childrenOf = new Map<string, PluginInfo[]>();
+  for (const p of store.pluginList) {
+    if (!p.parent || p.parent === p.id || !byId.has(p.parent)) continue;
+    const siblings = childrenOf.get(p.parent) ?? [];
+    siblings.push(p);
+    childrenOf.set(p.parent, siblings);
+  }
+
+  const build = (p: PluginInfo, ancestors: Set<string>): TreeNode => {
+    const next = new Set(ancestors).add(p.id);
+    const children = (childrenOf.get(p.id) ?? []).filter((c) => !next.has(c.id));
+    return { ...p, children: children.map((c) => build(c, next)) };
+  };
+
+  const trees: Record<string, TreeNode[]> = { rootless: [], "built-in": [], local: [], common: [] };
+  for (const p of store.pluginList) {
+    if (p.parent && p.parent !== p.id && byId.has(p.parent)) continue;
+    trees[p.type].push(build(p, new Set()));
+  }
+  return trees;
+});
+
+function filterTree(nodes: TreeNode[], q: string, ancestorMatched = false): TreeNode[] {
+  const out: TreeNode[] = [];
+  for (const node of nodes) {
+    const matched = ancestorMatched || node.name.toLowerCase().includes(q);
+    const children = filterTree(node.children, q, matched);
+    if (matched || children.length) out.push({ ...node, children });
+  }
+  return out;
+}
+
+function flatten(nodes: TreeNode[], depth = 0): FlatNode[] {
+  const out: FlatNode[] = [];
+  for (const node of nodes) {
+    out.push({ ...node, depth, hasChildren: node.children.length > 0 });
+    if (node.children.length && isExpanded(node.id)) {
+      out.push(...flatten(node.children, depth + 1));
+    }
+  }
+  return out;
+}
+
+const pluginGroups = computed(() => {
+  const q = keyword.value.trim().toLowerCase();
+  return TYPE_GROUPS.map((group) => {
+    const nodes = pluginTrees.value[group.type] ?? [];
+    const filtered = q ? filterTree(nodes, q) : nodes;
+    return { type: group.type, title: group.title, items: flatten(filtered) };
+  });
+});
 
 async function select(section: string) {
   if (store.isDirty) {
@@ -187,7 +218,33 @@ async function select(section: string) {
   background: var(--el-color-primary-light-9);
   color: var(--el-color-primary);
 }
+.toggle,
+.toggle-placeholder {
+  width: 16px;
+  height: 16px;
+  margin-right: 4px;
+  flex-shrink: 0;
+}
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--el-text-color-secondary);
+  border-radius: 4px;
+}
+.toggle:hover {
+  color: var(--el-text-color-primary);
+  background: var(--el-fill-color);
+}
+.toggle .el-icon {
+  transition: transform 0.2s;
+}
+.toggle.expanded .el-icon {
+  transform: rotate(90deg);
+}
 .name {
+  flex: 1;
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
