@@ -20,6 +20,7 @@ from arclet.entari.plugin.model import Plugin, PluginMetadata
 from arclet.entari.plugin.service import plugin_service
 
 from ..core.error import PluginError, PluginNotFound
+from . import market_service
 
 _unloaded_snapshots: dict[str, dict[str, Any]] = {}
 
@@ -334,6 +335,30 @@ async def load_unloaded(key: str) -> dict[str, Any]:
         cfg._plugin_names[key] = original_names
     _unloaded_snapshots.pop(key, None)
     return serialize_plugin(result.plugin, _force=True)
+
+
+async def unload_market_plugin(market_name: str) -> str | None:
+    for plug in list(plugin_service.plugins.values()):
+        if _subplugin_root(plug) is not None:
+            continue
+        entry = await market_service.find_market_entry(plug.id, plug.path)
+        if entry and entry["name"] == market_name:
+            await unload_plugin(plug.id)
+            return plug.id
+    return None
+
+
+async def uninstall_plugin(plugin_id: str) -> str:
+    plug = find_plugin(plugin_id)
+    if plug is None:
+        raise PluginNotFound(plugin_id)
+    if plug.is_static or plug.id.startswith("$") or _subplugin_root(plug) is not None:
+        raise PluginError("Only top-level non-static plugins can be uninstalled")
+    entry = await market_service.find_market_entry(plug.id, plug.path)
+    if entry is None:
+        raise PluginError("Plugin is not installed from the marketplace")
+    await unload_plugin(plug.id)
+    return await market_service.start_uninstall(entry["name"])
 
 
 def update_plugin_config(plugin_id: str, config: dict[str, Any]) -> None:

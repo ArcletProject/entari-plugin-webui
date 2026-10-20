@@ -95,3 +95,20 @@ async def test_start_uninstall_not_installed_rejected(monkeypatch):
 
     with pytest.raises(ms.MarketError, match="not_installed"):
         await ms.start_uninstall("demo")
+
+
+@pytest.mark.asyncio
+async def test_find_market_entry_by_distribution(monkeypatch):
+    from entari_plugin_webui.services import market_service as ms
+
+    async def catalog():
+        return {"plugins": {"entari-demo": {"name": "demo", "pip_name": "entari-demo"}}, "__fallback": False}
+
+    async def installed():
+        return {"entari-demo"}
+
+    monkeypatch.setattr(ms, "_ensure_catalog", catalog)
+    monkeypatch.setattr(ms, "_installed_pip_names", installed)
+    monkeypatch.setattr(ms, "packages_distributions", lambda: {"entari_plugin_demo": ["entari-demo"]})
+    out = await ms.find_market_entry("entari_plugin_demo", "entari_plugin_demo")
+    assert out == {"name": "demo", "pip_name": "entari-demo"}

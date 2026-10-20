@@ -2,9 +2,11 @@ from __future__ import annotations
 
 import asyncio
 import json
+import re
 import time
 import uuid
 from dataclasses import dataclass
+from importlib.metadata import packages_distributions
 from pathlib import Path
 from typing import Any
 
@@ -109,6 +111,37 @@ async def _ensure_catalog() -> dict[str, Any]:
 
 async def _installed_pip_names() -> set[str]:
     return await _pm.list_installed(_get_package_manager())
+
+
+def _normalize(name: str) -> str:
+    return re.sub(r"[-_.]+", "-", name.lower())
+
+
+async def find_market_entry(plugin_id: str, module_name: str) -> dict[str, str] | None:
+    catalog = await _ensure_catalog()
+    installed = {_normalize(x) for x in await _installed_pip_names()}
+    candidates: set[str] = set()
+    for package in {plugin_id, module_name, module_name.split(".")[0]}:
+        for dist in packages_distributions().get(package, []):
+            candidates.add(_normalize(dist))
+    entries = list(catalog.get("plugins", {}).values())
+    for p in entries:
+        pip_name = p.get("pip_name", "")
+        if _normalize(pip_name) in candidates and _normalize(pip_name) in installed:
+            return {"name": p["name"], "pip_name": pip_name}
+    names = {_normalize(plugin_id), _normalize(module_name), _normalize(module_name.split(".")[0])}
+    for p in entries:
+        pip_name = p.get("pip_name", "")
+        if _normalize(pip_name) not in installed:
+            continue
+        aliases = {
+            _normalize(p.get("name", "")),
+            _normalize(pip_name),
+            f"entari-plugin-{_normalize(p.get('name', ''))}",
+        }
+        if aliases & names:
+            return {"name": p["name"], "pip_name": pip_name}
+    return None
 
 
 async def list_plugins() -> dict[str, Any]:

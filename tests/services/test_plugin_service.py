@@ -498,3 +498,34 @@ async def test_load_unloaded_raw_question_mark(monkeypatch):
     assert out["id"] == "demo"
     assert cfg.data["plugins"] == {"demo": {"x": 1}}
     assert "?demo" not in cfg.data["plugins"]
+
+
+@pytest.mark.asyncio
+async def test_uninstall_plugin_unloads_then_deletes(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    p = _mk("demo")
+    p.path = "entari_plugin_demo"
+    calls = []
+    monkeypatch.setattr(ps, "find_plugin", lambda i: p)
+
+    async def unload(pid):
+        calls.append(("unload", pid))
+        return {"id": pid, "unloaded": True}
+
+    async def market(pid, module):
+        return {"name": "demo-pkg", "pip_name": "entari-demo"}
+
+    async def delete(name):
+        calls.append(("delete", name))
+        return "tid"
+
+    monkeypatch.setattr(ps, "unload_plugin", unload)
+    monkeypatch.setattr(
+        ps,
+        "market_service",
+        SimpleNamespace(find_market_entry=market, start_uninstall=delete),
+        raising=False,
+    )
+    assert await ps.uninstall_plugin("demo") == "tid"
+    assert calls == [("unload", "demo"), ("delete", "demo-pkg")]
