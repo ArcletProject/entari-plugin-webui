@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 import pytest
@@ -61,24 +62,33 @@ async def test_toggle(monkeypatch):
 async def test_reload(monkeypatch):
     from entari_plugin_webui.services import plugin_service as ps
 
-    async def _reload(plugin_id: str) -> bool:
-        assert plugin_id == "p1"
+    p = _mk()
+    monkeypatch.setattr(ps, "find_plugin", lambda i: p)
+
+    async def _reload(i):
+        assert i == "p1"
         return True
 
-    monkeypatch.setattr(ps, "reload_plugin", _reload)
+    monkeypatch.setattr(ps, "_reload_plugin", _reload)
     assert await ps.reload_plugin("p1") is True
 
 
 def test_update_config(monkeypatch):
+    from entari_plugin_webui.services import config_service as cs
     from entari_plugin_webui.services import plugin_service as ps
 
     p = _mk()
     p._config_key = "p1"
     monkeypatch.setattr(ps, "find_plugin", lambda i: p)
+    monkeypatch.setattr(cs, "find_plugin", lambda i: p)
+    monkeypatch.setattr(cs, "plugin_service", SimpleNamespace(_subplugined={}, plugins={"p1": p}), raising=False)
+    data = {"plugins": {"p1": {}}}
     cfg = MagicMock()
-    cfg.plugin = {"p1": {}}
+    cfg.basic = {}
+    cfg.plugin = data["plugins"]
+    cfg.data = data
     cfg.save = MagicMock()
-    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
+    monkeypatch.setattr(cs, "EntariConfig", MagicMock(instance=cfg))
     ps.update_plugin_config("p1", {"x": 1})
     assert cfg.plugin["p1"] == {"x": 1}
     cfg.save.assert_called_once()

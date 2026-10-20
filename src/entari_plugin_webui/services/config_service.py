@@ -5,7 +5,10 @@ from typing import Any, TypedDict
 from arclet.entari.config import config_model_schema
 from arclet.entari.config.file import EntariConfig
 from arclet.entari.config.model import BasicConfig
+from arclet.entari.config.schema.plugin import plugin_config_schema
 from arclet.entari.plugin import find_plugin, get_plugins
+from arclet.entari.plugin.model import Plugin
+from arclet.entari.plugin.service import plugin_service
 from ruamel.yaml import CommentedMap
 from tarina.tools import nest_dict_update, nest_list_update
 
@@ -28,10 +31,71 @@ class Sections(TypedDict):
     data: dict[str, Any]
 
 
+def _resolve_plugin(key: str) -> Plugin | None:
+    """按插件 id 查找；找不到时按配置键回退（兼容旧的 section 链接）"""
+    if (plug := find_plugin(key)) is not None:
+        return plug
+    for candidate in get_plugins(subplugged=True):
+        if candidate._config_key != key:
+            continue
+        # 子插件的 _config_key 与父插件相同，不能用配置键反查
+        if candidate.id.startswith("$") or candidate.id not in plugin_service._subplugined:
+            return candidate
+    return None
+
+
+def _plugin_config_path(plug: Plugin) -> list[str]:
+    """插件配置在 ``plugins`` 映射中的键路径"""
+    if plug.id == "$":
+        return []
+    if plug.id.startswith("$"):
+        segments = [segment for segment in plug.id[1:].split(".") if segment]
+        return [f".{segment}" for segment in segments]
+    root_id = plugin_service._subplugined.get(plug.id)
+    if not root_id:
+        return [plug._config_key]
+    root = plugin_service.plugins.get(root_id)
+    root_key = root._config_key if root is not None else root_id
+    relative = plug.id[len(root_id) :]
+    segments = [segment for segment in relative.split(".") if segment]
+    return [root_key, *(f".{segment}" for segment in segments)]
+
+
+def _get_by_path(path: list[str]) -> Any:
+    node: Any = EntariConfig.instance.plugin or {}
+    for key in path:
+        if not isinstance(node, dict):
+            return {}
+        node = node.get(key)
+        if node is None:
+            return {}
+    return _unwrap(node)
+
+
+def _update_by_path(path: list[str], data: Any) -> None:
+    node = EntariConfig.instance.data.setdefault("plugins", {})
+    for key in path[:-1]:
+        child = node.get(key)
+        if not isinstance(child, dict):
+            child = {}
+            node[key] = child
+        node = child
+    target = node.get(path[-1])
+    if not isinstance(target, dict):
+        target = {}
+        node[path[-1]] = target
+    nest_dict_update(target, data)
+
+
 def list_sections() -> dict[str, Any]:
     cfg = EntariConfig.instance
     data = _unwrap(cfg.data)
-    plugin_sections = {f"plugins:{plg._config_key}": plg.id for plg in get_plugins()}
+    plugs = [plug for plug in get_plugins(subplugged=True) if plug.id != "$"]
+    plugin_sections = {f"plugins:{plug.id}": plug.id for plug in plugs}
+    # 兼容以配置键命名的旧 section；子插件的配置键与父插件重复，不参与
+    for plug in plugs:
+        if plug.id.startswith("$") or plug.id not in plugin_service._subplugined:
+            plugin_sections.setdefault(f"plugins:{plug._config_key}", plug.id)
     return {
         "sections": ["basic", "plugins", "adapters"],
         "plugin_sections": plugin_sections,
@@ -49,9 +113,13 @@ def get_section(section: str) -> Any:
         return _unwrap(cfg.plugin)
     if section.startswith("plugins:"):
         key = section[len("plugins:") :]
-        plugin_keys = {plg.id: plg._config_key for plg in get_plugins()}
-        config_key = plugin_keys.get(key, key)
-        return _unwrap((cfg.plugin or {}).get(config_key, {}))
+        plug = _resolve_plugin(key)
+        if plug is None:
+            return _unwrap((cfg.plugin or {}).get(key, {}))
+        path = _plugin_config_path(plug)
+        if not path:
+            return _unwrap(cfg.plugin or {})
+        return _get_by_path(path)
     raise ConfigSectionNotFound(message=f"Section not found: {section}")
 
 
@@ -65,27 +133,15 @@ def update_section(section: str, data: Any) -> None:
         nest_dict_update(cfg.data["plugins"], data)
     elif section.startswith("plugins:"):
         key = section[len("plugins:") :]
-        plugin_keys = {plg.id: plg._config_key for plg in get_plugins()}
-        config_key = plugin_keys.get(key, key)
-        target = cfg.data.setdefault("plugins", {}).setdefault(config_key, {})
-        nest_dict_update(target, data)
+        plug = _resolve_plugin(key)
+        path = _plugin_config_path(plug) if plug is not None else [key]
+        if not path:
+            raise ConfigSectionNotFound(message=f"Section not found: {section}")
+        _update_by_path(path, data)
     else:
         raise ConfigSectionNotFound(message=f"Section not found: {section}")
     cfg.save()
 
-
-PLUGIN_META_PROPERTIES = {
-    "$disable": {"type": "string", "description": "Expression for whether disable this plugin"},
-    "$priority": {
-        "type": "integer",
-        "description": "Plugin loading priority, lower value means higher priority (default: 16)",
-    },
-    "$filter": {
-        "type": "string",
-        "description": "Plugin filter expression, which will be evaluated in the context of the plugin",
-    },
-    "$optional": {"type": "boolean", "description": "Whether this plugin is optional"},
-}
 
 ADAPTER_SCHEMA = {
     "type": "array",
@@ -153,28 +209,11 @@ def get_schema_for_section(section: str) -> dict[str, Any]:
     elif section == "plugins":
         schema = PLUGINS_SCHEMA
     elif section.startswith("plugins:"):
-        plugin_sections = {f"plugins:{plg._config_key}": plg.id for plg in get_plugins()}
-        plugin_id = plugin_sections.get(section, section[len("plugins:") :])
-        plug = find_plugin(plugin_id)
-        if not plug:
-            raise ConfigSectionNotFound(message=f"Plugin not found: {plugin_id}")
-        if plug.metadata and plug.metadata.config:
-            schema = config_model_schema(plug.metadata.config, ref_root="/")
-            schema["properties"].update(PLUGIN_META_PROPERTIES)
-        elif plug.metadata is not None:
-            schema = {
-                "type": "object",
-                "description": f"{plug.metadata.description or plug.metadata.name}; no configuration required",
-                "additionalProperties": True,
-                "properties": PLUGIN_META_PROPERTIES,
-            }
-        else:
-            schema = {
-                "type": "object",
-                "description": "No configuration required",
-                "additionalProperties": True,
-                "properties": PLUGIN_META_PROPERTIES,
-            }
+        key = section[len("plugins:") :]
+        plug = _resolve_plugin(key)
+        if plug is None:
+            raise ConfigSectionNotFound(message=f"Plugin not found: {key}")
+        schema = plugin_config_schema(plug, ref_root="/")
     else:
         raise ConfigSectionNotFound(message=f"Section not found: {section}")
     return {"schema": schema}

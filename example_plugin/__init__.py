@@ -1,16 +1,24 @@
-from arclet.entari import plugin
+from arclet.entari import BasicConfModel, plugin
 from arclet.entari.plugin import PluginRole
 
 from entari_plugin_webui import webui_extend
 
 from .routes import router as ext_router, serve_example_page
+from . import command
+
+
+class Config(BasicConfModel):
+    foo: str = "bar"
+    """示例插件的配置项，默认值为 'bar'"""
+
 
 plugin.metadata(
     "示例插件",
-    PluginRole.NORMAL,
-    [{"name": "RF-Tar-Railt", "email": "rf_tar_railt@qq.com"}],
-    "0.1.0",
+    role=PluginRole.NORMAL,
+    author=[{"name": "RF-Tar-Railt", "email": "rf_tar_railt@qq.com"}],
+    version="0.1.0",
     description="WebUI 扩展开发示例",
+    config=Config,
 )
 
 ext = webui_extend("example_plugin")
