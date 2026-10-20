@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
-from unittest.mock import MagicMock
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -232,3 +232,91 @@ def test_update_config(monkeypatch):
     ps.update_plugin_config("p1", {"x": 1})
     assert cfg.plugin["p1"] == {"x": 1}
     cfg.save.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_unload_writes_optional_and_snapshot(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    p = _mk("demo")
+    p.path = "entari_plugin_demo"
+    monkeypatch.setattr(ps, "find_plugin", lambda i: p)
+    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
+    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
+    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
+    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
+    cfg = MagicMock()
+    cfg.data = {"plugins": {"demo": {"x": 1}}}
+    cfg.save = MagicMock()
+    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
+    unload = AsyncMock(return_value=True)
+    monkeypatch.setattr(ps, "unload_plugin_async", unload)
+    from entari_plugin_webui.services import config_service as cs
+
+    monkeypatch.setattr(cs, "get_plugin_config_path", lambda pid: ["demo"])
+
+    out = await ps.unload_plugin("demo")
+    assert out["unloaded"] is True
+    assert cfg.data["plugins"]["demo"]["$optional"] is True
+    assert "$disable" not in cfg.data["plugins"]["demo"]
+    unload.assert_awaited_once_with("demo")
+    assert "demo" in ps._unloaded_snapshots
+
+
+def test_list_unloaded_plugins_reads_optional(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    cfg = MagicMock()
+    cfg.plugin = {"demo": {"$optional": True, "x": 1}}
+    cfg.data = {"plugins": {"demo": {"$optional": True, "x": 1}}}
+    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
+    monkeypatch.setattr(ps, "plugin_service", SimpleNamespace(plugins={}, _subplugined={}, _unloaded=set()))
+    ps._unloaded_snapshots.clear()
+
+    out = ps.list_unloaded_plugins()
+    assert out[0]["key"] == "demo"
+    assert out[0]["display_key"] == "?demo"
+    assert out[0]["state"] == "unloaded"
+    assert out[0]["config"] == {"x": 1}
+
+
+@pytest.mark.asyncio
+async def test_load_unloaded_restores_plain_entry(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    cfg = MagicMock()
+    cfg.plugin = {"demo": {"$optional": True, "x": 1}}
+    cfg.data = {"plugins": {"demo": {"$optional": True, "x": 1}}}
+    cfg._plugin_names = {}
+    cfg.save = MagicMock()
+    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
+    loaded = _mk("demo")
+    loaded.is_available = True
+    monkeypatch.setattr(ps, "load_plugin", MagicMock(return_value=SimpleNamespace(plugin=loaded, error=None)))
+    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
+    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
+    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
+    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
+
+    out = await ps.load_unloaded("demo")
+    assert out["id"] == "demo"
+    assert cfg.data["plugins"]["demo"] == {"x": 1}
+    assert "$optional" not in cfg.data["plugins"]["demo"]
+
+
+@pytest.mark.asyncio
+async def test_load_unloaded_failure_restores_optional(monkeypatch):
+    from entari_plugin_webui.core.error import PluginError
+    from entari_plugin_webui.services import plugin_service as ps
+
+    cfg = MagicMock()
+    cfg.plugin = {"demo": {"$optional": True, "x": 1}}
+    cfg.data = {"plugins": {"demo": {"$optional": True, "x": 1}}}
+    cfg._plugin_names = {}
+    cfg.save = MagicMock()
+    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
+    monkeypatch.setattr(ps, "load_plugin", MagicMock(return_value=SimpleNamespace(plugin=None, error="boom")))
+
+    with pytest.raises(PluginError):
+        await ps.load_unloaded("demo")
+    assert cfg.data["plugins"]["demo"]["$optional"] is True

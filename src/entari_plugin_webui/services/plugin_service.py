@@ -11,6 +11,8 @@ from arclet.entari.plugin import (
     get_plugin_references,
     get_plugin_referents,
     get_plugins,
+    load_plugin,
+    unload_plugin_async,
 )
 from arclet.entari.plugin import reload_plugin as _reload_plugin
 from arclet.entari.plugin import reload_subplugin as _reload_subplugin
@@ -18,6 +20,8 @@ from arclet.entari.plugin.model import Plugin, PluginMetadata
 from arclet.entari.plugin.service import plugin_service
 
 from ..core.error import PluginError, PluginNotFound
+
+_unloaded_snapshots: dict[str, dict[str, Any]] = {}
 
 
 def _authors(meta: PluginMetadata) -> list[str]:
@@ -192,6 +196,113 @@ async def reload_plugin(plugin_id: str) -> bool:
     else:
         result = await _reload_plugin(plug.id)
     return bool(result)
+
+
+async def unload_plugin(plugin_id: str) -> dict[str, Any]:
+    plug = find_plugin(plugin_id)
+    if plug is None:
+        raise PluginNotFound(plugin_id)
+    if plug.is_static or plug.id.startswith("$") or _subplugin_root(plug) is not None:
+        raise PluginError("Only top-level non-static plugins can be unloaded")
+    from . import config_service
+
+    path = config_service.get_plugin_config_path(plugin_id)
+    snapshot = serialize_plugin(plug, _force=True)
+    if path:
+        entry = _plugin_entry(path)
+        entry.pop("$disable", None)
+        entry["$optional"] = True
+    EntariConfig.instance.save()
+    _unloaded_snapshots[plug.id] = snapshot
+    await unload_plugin_async(plug.id)
+    return {**snapshot, "unloaded": True}
+
+
+def _module_path_for(key: str) -> str | None:
+    if key.startswith("::"):
+        return f"arclet.entari.builtins.{key[2:]}"
+    if "." in key or key.startswith("entari_plugin_"):
+        return key
+    names = EntariConfig.instance._plugin_names.get(key)
+    if names:
+        return names[0]
+    return f"entari_plugin_{key}"
+
+
+def list_unloaded_plugins() -> list[dict[str, Any]]:
+    cfg = EntariConfig.instance
+    results = []
+    for raw_key, value in (cfg.plugin or {}).items():
+        if not isinstance(value, dict):
+            continue
+        key = raw_key
+        optional = bool(value.get("$optional"))
+        if raw_key.startswith("?"):
+            key = raw_key[1:]
+            optional = True
+        if not optional:
+            continue
+        if key in plugin_service.plugins:
+            continue
+        snapshot = _unloaded_snapshots.get(key, {})
+        config = {k: v for k, v in value.items() if k not in ("$optional", "$disable")}
+        if key.startswith("::"):
+            pid = _module_path_for(key)
+            ptype = "built-in"
+        else:
+            pid = snapshot.get("id", key)
+            ptype = snapshot.get("type", "common")
+        results.append(
+            {
+                "key": key,
+                "id": pid,
+                "display_key": f"?{key}",
+                "name": snapshot.get("name", key),
+                "description": snapshot.get("description"),
+                "config": config,
+                "module_path": _module_path_for(key),
+                "type": ptype,
+                "state": "unloaded",
+            }
+        )
+    return results
+
+
+async def load_unloaded(key: str) -> dict[str, Any]:
+    cfg = EntariConfig.instance
+    plugins = cfg.data.setdefault("plugins", {})
+    entry = plugins.get(key)
+    raw_key = key
+    if entry is None:
+        qkey = f"?{key}"
+        if qkey in plugins:
+            entry = plugins[qkey]
+            raw_key = qkey
+    if entry is None or not isinstance(entry, dict):
+        raise PluginError(f"Unloaded plugin not found: {key}")
+    clean = {k: v for k, v in entry.items() if k not in ("$optional", "$disable")}
+    module_path = _module_path_for(key)
+    original_names = cfg._plugin_names.get(key)
+    cfg._plugin_names[key] = [module_path]
+    try:
+        result = load_plugin(key, clean)
+    except Exception:
+        result = None
+    if result is None or getattr(result, "plugin", None) is None:
+        if raw_key != key:
+            plugins.pop(key, None)
+        plugins[raw_key] = entry
+        cfg.save()
+        if original_names is None:
+            cfg._plugin_names.pop(key, None)
+        else:
+            cfg._plugin_names[key] = original_names
+        raise PluginError(f"Failed to load plugin: {key}")
+    plugins.pop(raw_key, None)
+    plugins[key] = clean
+    cfg.save()
+    _unloaded_snapshots.pop(key, None)
+    return serialize_plugin(result.plugin, _force=True)
 
 
 def update_plugin_config(plugin_id: str, config: dict[str, Any]) -> None:
