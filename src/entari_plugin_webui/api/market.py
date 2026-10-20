@@ -7,6 +7,7 @@ from starlette.status import HTTP_404_NOT_FOUND
 
 from ..api.deps import require_auth
 from ..core.error import PluginNotFound
+from ..services.builtin_service import list_builtins, set_builtin_enabled
 from ..services.market_service import (
     get_plugin,
     get_task,
@@ -20,6 +21,21 @@ router = APIRouter(prefix="/api/market", tags=["market"], dependencies=[Depends(
 
 class NameBody(BaseModel):
     name: str
+
+
+class ToggleBuiltinBody(BaseModel):
+    enable: bool
+
+
+@router.get("/builtins")
+async def builtins_():
+    return {"success": True, "data": list_builtins()}
+
+
+@router.post("/builtins/{name}/toggle")
+async def toggle_builtin(name: str, body: ToggleBuiltinBody):
+    await set_builtin_enabled(name, body.enable)
+    return {"success": True, "enabled": body.enable}
 
 
 @router.get("/plugins")

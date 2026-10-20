@@ -9,6 +9,34 @@ def test_list(client, monkeypatch):
     assert r.json()["plugins"][0]["name"] == "demo"
 
 
+def test_builtins_list(client, monkeypatch):
+    from entari_plugin_webui.api import market as M
+
+    monkeypatch.setattr(M, "list_builtins", lambda: [{"name": "echo", "enabled": True}])
+    r = client.get("/api/market/builtins")
+    assert r.status_code == 200
+    assert r.json() == {"success": True, "data": [{"name": "echo", "enabled": True}]}
+
+
+def test_builtin_toggle(client, monkeypatch):
+    from entari_plugin_webui.api import market as M
+
+    calls = []
+
+    async def _toggle(name, enable):
+        calls.append((name, enable))
+
+    monkeypatch.setattr(M, "set_builtin_enabled", _toggle)
+    r = client.post(
+        "/api/market/builtins/echo/toggle",
+        json={"enable": False},
+        headers={"X-Requested-With": "XMLHttpRequest"},
+    )
+    assert r.status_code == 200
+    assert r.json() == {"success": True, "enabled": False}
+    assert calls == [("echo", False)]
+
+
 def test_install_success(client, monkeypatch):
     from entari_plugin_webui.api import market as M
 
