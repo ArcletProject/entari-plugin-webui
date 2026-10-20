@@ -109,6 +109,7 @@ import {
   buildPluginTree,
   filterPluginTree,
   flattenPluginTree,
+  matchesPluginSearch,
   type PluginType,
   type PluginTreeNode,
 } from "@/utils/plugin-tree";
@@ -146,10 +147,7 @@ const unloadedItems = computed(() => {
   return props.plugins
     .filter((p) => p.unloaded)
     .filter((p) => {
-      if (!q) return true;
-      return [p.name, p.key, p.display_key, p.uid, p.builtin_title]
-        .filter(Boolean)
-        .some((v) => String(v).toLowerCase().includes(q));
+      return matchesPluginSearch(p, q);
     })
     .sort((a, b) => a.name.localeCompare(b.name));
 });
@@ -158,16 +156,10 @@ const treeGroups = computed(() =>
   filterPluginTree(buildPluginTree(loadedPlugins.value), mode.value, props.selectedUid),
 );
 
-function matches(plugin: TreePlugin, q: string): boolean {
-  return [plugin.name, plugin.id, plugin.key, plugin.display_key, plugin.uid]
-    .filter(Boolean)
-    .some((value) => String(value).toLowerCase().includes(q));
-}
-
 function filterNodes(nodes: PluginTreeNode<TreePlugin>[], q: string, ancestorMatched = false): PluginTreeNode<TreePlugin>[] {
   const out: PluginTreeNode<TreePlugin>[] = [];
   for (const node of nodes) {
-    const selfMatched = ancestorMatched || matches(node.plugin, q);
+    const selfMatched = ancestorMatched || matchesPluginSearch(node.plugin, q);
     const children = selfMatched ? node.children : filterNodes(node.children, q);
     if (selfMatched || children.length) {
       out.push({ plugin: node.plugin, children });

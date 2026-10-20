@@ -5,6 +5,7 @@ import {
   filterPluginTree,
   flattenPluginTree,
   isSubpluginVisible,
+  matchesPluginSearch,
 } from "../src/utils/plugin-tree.ts";
 
 const plugins = [
@@ -43,6 +44,20 @@ test("flatten 保留深度并跳过折叠子节点", () => {
   assert.equal(flat[0].depth, 0);
   assert.ok(flat.some((n) => n.plugin.id === "parent.meta" && n.depth === 1));
   assert.ok(!flat.some((n) => n.plugin.id === "parent.bare.deep"));
+});
+
+test("搜索匹配名称、id 与配置键", () => {
+  const plugin = {
+    id: "entari_plugin_weather",
+    name: "天气查询",
+    type: "common" as const,
+    config_key: "weather",
+  };
+  assert.equal(matchesPluginSearch(plugin, "天气"), true);
+  assert.equal(matchesPluginSearch(plugin, "ENTARI_PLUGIN"), true);
+  assert.equal(matchesPluginSearch(plugin, "weather"), true);
+  assert.equal(matchesPluginSearch(plugin, "missing"), false);
+  assert.equal(matchesPluginSearch(plugin, "  "), true);
 });
 
 test("isSubpluginVisible 按模式判断", () => {

@@ -90,6 +90,7 @@ import {
   buildPluginTree,
   filterPluginTree,
   flattenPluginTree,
+  matchesPluginSearch,
   type PluginTreeNode,
 } from "@/utils/plugin-tree";
 
@@ -129,7 +130,7 @@ const pluginTrees = computed(() => {
 function filterTree(nodes: PluginTreeNode<PluginInfo>[], q: string, ancestorMatched = false): PluginTreeNode<PluginInfo>[] {
   const out: PluginTreeNode<PluginInfo>[] = [];
   for (const node of nodes) {
-    const matched = ancestorMatched || node.plugin.name.toLowerCase().includes(q);
+    const matched = ancestorMatched || matchesPluginSearch(node.plugin, q);
     const children = filterTree(node.children, q, matched);
     if (matched || children.length) out.push({ plugin: node.plugin, children });
   }

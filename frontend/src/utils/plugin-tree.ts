@@ -11,6 +11,25 @@ export interface PluginLike {
   has_config_schema?: boolean;
 }
 
+export interface PluginSearchTarget {
+  id?: string | null;
+  name?: string | null;
+  key?: string | null;
+  config_key?: string | null;
+  display_key?: string | null;
+  uid?: string | null;
+  builtin_title?: string | null;
+}
+
+/** 名称、id、配置键等字段的共用模糊匹配；空白查询视为不过滤。 */
+export function matchesPluginSearch(plugin: PluginSearchTarget, query: string): boolean {
+  const q = query.trim().toLowerCase();
+  if (!q) return true;
+  return [plugin.name, plugin.id, plugin.key, plugin.config_key, plugin.display_key, plugin.uid, plugin.builtin_title]
+    .filter((value): value is string => Boolean(value))
+    .some((value) => value.toLowerCase().includes(q));
+}
+
 export interface PluginTreeNode<T extends PluginLike> {
   plugin: T;
   children: PluginTreeNode<T>[];
