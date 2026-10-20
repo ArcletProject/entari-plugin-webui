@@ -17,7 +17,7 @@ plugins:
   ::echo: {}
   ::inspect: {}
   ::help: {}
-  ::norris: {}
+  ::chuck_norris: {}
   server:
     port: 8765
     path: "satori"
