@@ -206,3 +206,12 @@ def test_inject_meta_properties(monkeypatch):
     out = cs.get_schema_for_section("plugins")
     for key in ("$prefix", "$files", "$prelude"):
         assert key in out["schema"]["properties"]
+
+
+def test_get_plugin_config_path_public(monkeypatch):
+    from entari_plugin_webui.services import config_service as cs
+
+    parent = _plugin("demo_parent", "demo_parent", subplugins=["demo_parent.child"])
+    child = _plugin("demo_parent.child", "demo_parent")
+    _bind_plugins(monkeypatch, cs, [parent, child], {"demo_parent.child": "demo_parent"})
+    assert cs.get_plugin_config_path("demo_parent.child") == ["demo_parent", ".child"]

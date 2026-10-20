@@ -22,6 +22,12 @@ class PluginNotFound(AppError):
 
 
 @dataclass
+class PluginError(AppError):
+    code: str = "plugin_error"
+    status: int = 400
+
+
+@dataclass
 class ConfigSectionNotFound(AppError):
     code: str = "section_not_found"
     status: int = 404

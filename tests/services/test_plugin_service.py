@@ -98,19 +98,104 @@ def test_serialize(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_toggle(monkeypatch):
+async def test_toggle_top_level_persists_disable(monkeypatch):
     from entari_plugin_webui.services import plugin_service as ps
 
     p = _mk()
+    p.disable = MagicMock()
+    monkeypatch.setattr(ps, "find_plugin", lambda i: p)
+    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
+    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
+    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
+    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
+    cfg = MagicMock()
+    cfg.data = {"plugins": {"p1": {}}}
+    cfg.save = MagicMock()
+    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
+    from entari_plugin_webui.services import config_service as cs
 
-    async def _enable(plugin_id: str) -> bool:
-        assert plugin_id == "p1"
-        _ = p.enable()
+    monkeypatch.setattr(cs, "get_plugin_config_path", lambda pid: ["p1"])
+
+    await ps.toggle_plugin("p1", enable=False)
+    assert cfg.data["plugins"]["p1"]["$disable"] is True
+    cfg.save.assert_called_once()
+    p.disable.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_toggle_child_writes_nested_and_clears_optional(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    parent = _mk("demo_parent")
+    child = _mk("demo_parent.child")
+    child._config_key = "demo_parent"
+    child.enable = MagicMock()
+    child.config = {"$optional": True}
+    monkeypatch.setattr(ps, "find_plugin", lambda i: child)
+    monkeypatch.setattr(
+        ps,
+        "plugin_service",
+        SimpleNamespace(
+            _subplugined={"demo_parent.child": "demo_parent"},
+            plugins={"demo_parent": parent, "demo_parent.child": child},
+            _unloaded=set(),
+        ),
+    )
+    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
+    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
+    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
+    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
+    cfg = MagicMock()
+    cfg.data = {"plugins": {"demo_parent": {".child": {"$optional": True}}}}
+    cfg.save = MagicMock()
+    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
+    from entari_plugin_webui.services import config_service as cs
+
+    monkeypatch.setattr(cs, "get_plugin_config_path", lambda pid: ["demo_parent", ".child"])
+
+    await ps.toggle_plugin("demo_parent.child", enable=True)
+    assert cfg.data["plugins"]["demo_parent"][".child"] == {}
+    cfg.save.assert_called_once()
+    child.enable.assert_called_once()
+
+
+@pytest.mark.asyncio
+async def test_toggle_child_rejected_when_parent_disabled(monkeypatch):
+    from entari_plugin_webui.core.error import PluginError
+    from entari_plugin_webui.services import plugin_service as ps
+
+    parent = _mk("demo_parent", available=False)
+    child = _mk("demo_parent.child")
+    monkeypatch.setattr(ps, "find_plugin", lambda i: child)
+    monkeypatch.setattr(
+        ps,
+        "plugin_service",
+        SimpleNamespace(
+            _subplugined={"demo_parent.child": "demo_parent"},
+            plugins={"demo_parent": parent},
+            _unloaded=set(),
+        ),
+    )
+    with pytest.raises(PluginError):
+        await ps.toggle_plugin("demo_parent.child", enable=True)
+
+
+@pytest.mark.asyncio
+async def test_reload_child_uses_reload_subplugin(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    child = _mk("demo_parent.child")
+    monkeypatch.setattr(ps, "find_plugin", lambda i: child)
+    monkeypatch.setattr(ps, "plugin_service", SimpleNamespace(_subplugined={"demo_parent.child": "demo_parent"}))
+    called = {}
+
+    async def _sub(pid):
+        called["id"] = pid
         return True
 
-    monkeypatch.setattr(ps, "enable_plugin", _enable)
-    await ps.toggle_plugin("p1", enable=True)
-    p.enable.assert_called_once()
+    monkeypatch.setattr(ps, "_reload_subplugin", _sub)
+    assert await ps.reload_plugin("demo_parent.child") is True
+    assert called["id"] == "demo_parent.child"
 
 
 @pytest.mark.asyncio

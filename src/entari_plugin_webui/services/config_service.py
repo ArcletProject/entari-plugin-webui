@@ -61,6 +61,11 @@ def _plugin_config_path(plug: Plugin) -> list[str]:
     return [root_key, *(f".{segment}" for segment in segments)]
 
 
+def get_plugin_config_path(plugin_id: str) -> list[str] | None:
+    plug = _resolve_plugin(plugin_id)
+    return _plugin_config_path(plug) if plug is not None else None
+
+
 def _get_by_path(path: list[str]) -> Any:
     node: Any = EntariConfig.instance.plugin or {}
     for key in path:

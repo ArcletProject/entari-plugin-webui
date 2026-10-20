@@ -7,18 +7,17 @@ from typing import Any
 from arclet.entari.config.file import EntariConfig
 from arclet.entari.config.schema.registry import _schema_fragments
 from arclet.entari.plugin import (
-    disable_plugin,
-    enable_plugin,
     find_plugin,
     get_plugin_references,
     get_plugin_referents,
     get_plugins,
 )
 from arclet.entari.plugin import reload_plugin as _reload_plugin
+from arclet.entari.plugin import reload_subplugin as _reload_subplugin
 from arclet.entari.plugin.model import Plugin, PluginMetadata
 from arclet.entari.plugin.service import plugin_service
 
-from ..core.error import PluginNotFound
+from ..core.error import PluginError, PluginNotFound
 
 
 def _authors(meta: PluginMetadata) -> list[str]:
@@ -140,15 +139,58 @@ def get_plugin(plugin_id: str) -> dict[str, Any]:
     return serialize_plugin(plug, _force=True)
 
 
-async def toggle_plugin(plugin_id: str, *, enable: bool) -> bool:
-    return (await enable_plugin(plugin_id)) if enable else (await disable_plugin(plugin_id))
+def _plugin_entry(path: list[str]) -> dict[str, Any]:
+    node = EntariConfig.instance.data.setdefault("plugins", {})
+    for key in path[:-1]:
+        child = node.get(key)
+        if not isinstance(child, dict):
+            child = {}
+            node[key] = child
+        node = child
+    target = node.get(path[-1])
+    if not isinstance(target, dict):
+        target = {}
+        node[path[-1]] = target
+    return target
+
+
+async def toggle_plugin(plugin_id: str, *, enable: bool) -> dict[str, Any]:
+    plug = find_plugin(plugin_id)
+    if plug is None:
+        raise PluginNotFound(plugin_id)
+    if plug.is_static or plug.id.startswith("$"):
+        raise PluginError("Static or rootless plugin cannot be toggled")
+    parent = _subplugin_root(plug)
+    if parent:
+        parent_plug = plugin_service.plugins.get(parent)
+        if parent_plug is None or not parent_plug.is_available or parent in plugin_service._unloaded:
+            raise PluginError("Parent plugin is not available")
+    if enable:
+        plug.enable()
+    else:
+        plug.disable()
+    from . import config_service
+
+    path = config_service.get_plugin_config_path(plugin_id)
+    if path:
+        entry = _plugin_entry(path)
+        entry.pop("$optional", None)
+        if enable:
+            entry.pop("$disable", None)
+        else:
+            entry["$disable"] = True
+    EntariConfig.instance.save()
+    return serialize_plugin(plug, _force=True)
 
 
 async def reload_plugin(plugin_id: str) -> bool:
     plug = find_plugin(plugin_id)
     if plug is None:
         raise PluginNotFound(plugin_id)
-    result = await _reload_plugin(plug.id)
+    if _subplugin_root(plug) is not None:
+        result = await _reload_subplugin(plug.id)
+    else:
+        result = await _reload_plugin(plug.id)
     return bool(result)
 
 
