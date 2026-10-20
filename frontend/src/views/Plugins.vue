@@ -105,13 +105,48 @@ function firstVisibleUid(): string | undefined {
   return undefined;
 }
 
-const detailTarget = computed<any>(() => {
+type DetailTarget = {
+  id: string;
+  version?: string;
+  license?: string;
+  authors?: string | string[];
+  description?: string;
+  urls?: Record<string, string> | string[];
+  references?: string[];
+  referents?: string[];
+  readme?: string;
+};
+
+function asString(value: unknown): string | undefined {
+  return typeof value === "string" ? value : undefined;
+}
+
+function asStringList(value: unknown): string[] | undefined {
+  return Array.isArray(value) ? value.map(String) : undefined;
+}
+
+const detailTarget = computed<DetailTarget | null>(() => {
   const plugin = store.selectedPlugin;
   if (!plugin) return null;
+  const detail = store.detail ?? {};
+  const authors = detail.authors;
+  const urls = detail.urls;
   return {
-    ...plugin,
-    ...(store.detail ?? {}),
-    id: String(store.detail?.id ?? plugin.id ?? plugin.uid),
+    id: String(detail.id ?? plugin.id ?? plugin.uid),
+    version: asString(detail.version) ?? plugin.version,
+    license: asString(detail.license),
+    authors:
+      typeof authors === "string" || Array.isArray(authors)
+        ? (authors as string | string[])
+        : undefined,
+    description: asString(detail.description) ?? plugin.description,
+    urls:
+      urls && typeof urls === "object"
+        ? (urls as Record<string, string> | string[])
+        : undefined,
+    references: asStringList(detail.references),
+    referents: asStringList(detail.referents),
+    readme: asString(detail.readme),
   };
 });
 
