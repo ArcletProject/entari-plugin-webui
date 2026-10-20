@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from arclet.entari.config.file import EntariConfig
+from arclet.entari.config.schema.registry import _schema_fragments
 from arclet.entari.plugin import (
     disable_plugin,
     enable_plugin,
@@ -45,13 +46,38 @@ def is_project_module(module):
     return path.is_relative_to(PROJECT_ROOT) and not path.is_relative_to(ENV_ROOT)
 
 
+def _subplugin_root(plug: Plugin) -> str | None:
+    return plugin_service._subplugined.get(plug.id)
+
+
+def _relative_key(plug: Plugin) -> str | None:
+    root = _subplugin_root(plug)
+    return plug.id[len(root) :] if root else None
+
+
+def _fragment_parts(record_path: tuple[str, ...], relative_key: str) -> tuple[str, ...] | None:
+    if not record_path or record_path[0] != relative_key:
+        return None
+    return record_path[1:]
+
+
+def _has_own_schema(plug: Plugin) -> bool:
+    meta = plug.metadata
+    if meta is not None and getattr(meta, "config", None):
+        return True
+    # entari 0.19 没有公开的"按路径查询 fragment"API，只能读私有注册表
+    records = _schema_fragments.get(plug._config_key, [])
+    relative = _relative_key(plug)
+    if relative is None:
+        return bool(records)
+    return any(_fragment_parts(record.path, relative) is not None for record in records)
+
+
 def serialize_plugin(plug: Plugin, _force: bool = False) -> dict[str, Any]:
     meta = plug.metadata
-    if meta is None and not plug.id.startswith("$") and not _force:
-        return {}
     if plug.id == "$":
         return {}
-    configurable = bool(meta and getattr(meta, "config", None))
+    configurable = _has_own_schema(plug) or bool(plug.config)
     type = "common"
     if plug.id.startswith("$"):
         type = "rootless"
@@ -59,6 +85,13 @@ def serialize_plugin(plug: Plugin, _force: bool = False) -> dict[str, Any]:
         type = "built-in"
     elif is_project_module(plug.module):
         type = "local"
+    parent = plugin_service._subplugined.get(plug.id)
+    parent_plug = plugin_service.plugins.get(parent) if parent else None
+    parent_enabled = None
+    if parent:
+        parent_enabled = bool(parent_plug and parent_plug.is_available and parent not in plugin_service._unloaded)
+    disable = plug.config.get("$disable") if plug.config else None
+    state = "disabled" if disable else ("enabled" if plug.is_available else "unavailable")
     return {
         "id": plug.id,
         "uid": plug.uid,
@@ -83,7 +116,15 @@ def serialize_plugin(plug: Plugin, _force: bool = False) -> dict[str, Any]:
         "references": sorted(get_plugin_references(plug)),
         "referents": sorted(get_plugin_referents(plug)),
         "readme": meta.readme if meta else None,
-        "parent": plugin_service._subplugined.get(plug.id, None),
+        "parent": parent,
+        "has_metadata": meta is not None,
+        "has_config_schema": _has_own_schema(plug),
+        "config_key": plug._config_key,
+        "unloaded": False,
+        "can_unload": bool(not plug.is_static and not plug.id.startswith("$") and parent is None),
+        "state": state,
+        "disable_expr": disable if isinstance(disable, str) else None,
+        "parent_enabled": parent_enabled,
     }
 
 

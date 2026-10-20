@@ -6,29 +6,84 @@ from unittest.mock import MagicMock
 import pytest
 
 
-def _mk(pid="p1", available=True):
+def _mk(pid="p1", available=True, metadata=True):
     plug = MagicMock()
     plug.id = pid
     plug.path = "mod.path"
     plug.uid = None
+    plug._config_key = pid
     plug.is_available = available
     plug.available = True
     plug.is_static = False
     plug.reusable = True
-    plug.config = {"k": "v"}
+    plug.config = {}
     plug.subplugins = set()
-    meta = MagicMock()
-    meta.name = pid
-    meta.version = "1.0"
-    meta.description = "desc"
-    meta.license = "MIT"
-    meta.author = [{"name": "x"}]
-    meta.urls = None
-    meta.classifier = []
-    meta.requirements = []
-    meta.config = None
-    plug.metadata = meta
+    plug.module = SimpleNamespace(__file__=None)
+    if metadata:
+        meta = MagicMock()
+        meta.name = pid
+        meta.version = "1.0"
+        meta.description = "desc"
+        meta.license = "MIT"
+        meta.author = [{"name": "x"}]
+        meta.urls = None
+        meta.classifier = []
+        meta.requirements = []
+        meta.config = None
+        plug.metadata = meta
+    else:
+        plug.metadata = None
     return plug
+
+
+def test_fragment_parts_only_matches_first_segment(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    assert ps._fragment_parts((".bar",), ".bar") == ()
+    assert ps._fragment_parts((".bar", "baz"), ".bar") == ("baz",)
+    assert ps._fragment_parts((".bar.baz",), ".bar") is None
+
+
+def test_has_own_schema_for_child_fragment(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    monkeypatch.setattr(
+        ps,
+        "_schema_fragments",
+        {"parent": [SimpleNamespace(path=(".child",), fragment={}, replace=False)]},
+        raising=False,
+    )
+    monkeypatch.setattr(
+        ps,
+        "plugin_service",
+        SimpleNamespace(_subplugined={"parent.child": "parent"}, plugins={}, _unloaded=set()),
+    )
+    child = _mk("parent.child")
+    child._config_key = "parent"
+    assert ps._has_own_schema(child) is True
+
+
+def test_serialize_metadata_less_and_state(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
+    monkeypatch.setattr(ps, "get_plugin_references", lambda p: set())
+    monkeypatch.setattr(ps, "get_plugin_referents", lambda p: set())
+    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
+
+    s = ps.serialize_plugin(_mk("entari_plugin_plain", metadata=False))
+    assert s["has_metadata"] is False
+    assert s["has_config_schema"] is False
+    assert s["name"] == "entari_plugin_plain"
+    assert s["state"] == "enabled"
+    assert s["parent_enabled"] is None
+
+    p = _mk()
+    p.config = {"$disable": "os.name == 'nt'"}
+    p.is_available = False
+    s = ps.serialize_plugin(p)
+    assert s["state"] == "disabled"
+    assert s["disable_expr"] == "os.name == 'nt'"
 
 
 def test_serialize(monkeypatch):
