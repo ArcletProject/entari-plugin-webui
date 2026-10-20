@@ -6,6 +6,7 @@ from typing import Any
 
 from arclet.entari.config.file import EntariConfig
 from arclet.entari.config.schema.registry import _schema_fragments
+from arclet.entari.filter.parse import evaluate_disable
 from arclet.entari.plugin import (
     find_plugin,
     get_plugin_references,
@@ -95,7 +96,14 @@ def serialize_plugin(plug: Plugin, _force: bool = False) -> dict[str, Any]:
     if parent:
         parent_enabled = bool(parent_plug and parent_plug.is_available and parent not in plugin_service._unloaded)
     disable = plug.config.get("$disable") if plug.config else None
-    state = "disabled" if disable else ("enabled" if plug.is_available else "unavailable")
+    if isinstance(disable, str):
+        try:
+            disabled = evaluate_disable(disable)
+        except Exception:
+            disabled = not plug.is_available
+    else:
+        disabled = bool(disable)
+    state = "disabled" if disabled else ("enabled" if plug.is_available else "unavailable")
     return {
         "id": plug.id,
         "uid": plug.uid,

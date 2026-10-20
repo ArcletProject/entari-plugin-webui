@@ -81,9 +81,35 @@ def test_serialize_metadata_less_and_state(monkeypatch):
     p = _mk()
     p.config = {"$disable": "os.name == 'nt'"}
     p.is_available = False
+    monkeypatch.setattr(ps, "evaluate_disable", lambda expr: True)
     s = ps.serialize_plugin(p)
     assert s["state"] == "disabled"
     assert s["disable_expr"] == "os.name == 'nt'"
+
+
+def test_serialize_disable_expr_false_is_enabled(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    monkeypatch.setattr(ps, "get_plugin_references", lambda p: set())
+    monkeypatch.setattr(ps, "get_plugin_referents", lambda p: set())
+    monkeypatch.setattr(ps, "evaluate_disable", lambda expr: False)
+    p = _mk(available=True)
+    p.config = {"$disable": "os.name == 'nt'"}
+    s = ps.serialize_plugin(p)
+    assert s["state"] == "enabled"
+    assert s["disable_expr"] == "os.name == 'nt'"
+
+
+def test_serialize_disable_expr_true_is_disabled(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    monkeypatch.setattr(ps, "get_plugin_references", lambda p: set())
+    monkeypatch.setattr(ps, "get_plugin_referents", lambda p: set())
+    monkeypatch.setattr(ps, "evaluate_disable", lambda expr: True)
+    p = _mk(available=False)
+    p.config = {"$disable": "os.name == 'nt'"}
+    s = ps.serialize_plugin(p)
+    assert s["state"] == "disabled"
 
 
 def test_serialize(monkeypatch):
