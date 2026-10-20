@@ -254,7 +254,7 @@ async def unload_plugin(plugin_id: str) -> dict[str, Any]:
     return {**snapshot, "unloaded": True}
 
 
-def _module_path_for(key: str) -> str | None:
+def _module_path_for(key: str) -> str:
     if key.startswith("::"):
         return f"arclet.entari.builtins.{key[2:]}"
     if "." in key or key.startswith("entari_plugin_"):

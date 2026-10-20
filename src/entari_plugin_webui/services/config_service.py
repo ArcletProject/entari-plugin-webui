@@ -226,7 +226,7 @@ def get_schema_for_section(section: str) -> dict[str, Any]:
             schema = plugin_config_schema(plug, ref_root="/")
         else:
             meta = plug.metadata
-            if meta is not None and getattr(meta, "config", None):
+            if meta is not None and meta.config is not None:
                 schema = config_model_schema(meta.config, ref_root="/")
             else:
                 schema = {
