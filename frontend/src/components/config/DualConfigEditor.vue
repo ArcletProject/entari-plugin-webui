@@ -43,6 +43,15 @@ let editor: monaco.editor.IStandaloneCodeEditor | null = null;
 
 watch(formData, (v) => emit("update:modelValue", v), { deep: true });
 
+// 外部加载/保存后同步表单；代码视图下不覆盖用户正在编辑的文本
+watch(() => props.modelValue, (v) => {
+  if (view.value === "code") return;
+  const next = v ?? {};
+  if (JSON.stringify(next) !== JSON.stringify(formData.value)) {
+    formData.value = next;
+  }
+}, { deep: true });
+
 // 离开代码视图 → 解析覆盖表单
 watch(view, (v, old) => {
   if (old === "code" && v === "form" && editor) {

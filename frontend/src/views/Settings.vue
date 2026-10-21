@@ -133,9 +133,9 @@ const sectionTitle = computed(() => {
 });
 
 async function save() {
-  const ok = await store.save();
-  if (ok) ElMessage.success("设置已保存");
-  else ElMessage.error("保存失败");
+  const result = await store.save();
+  if (result.success) ElMessage.success(result.message);
+  else ElMessage.error(result.message);
 }
 
 function onManage() {

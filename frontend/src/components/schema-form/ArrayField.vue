@@ -47,8 +47,9 @@
           </div>
         </template>
         <ObjectField
-          v-model="model[i]"
+          :model-value="model[i]"
           :object-schema="resolvedItemsSchema!"
+          @update:model-value="setItem(i, $event)"
           :root-schema="rootSchema"
           :field-key="`${fieldKey}[${i}]`"
         />
@@ -78,8 +79,9 @@
           </div>
         </template>
         <OneOfField
-          v-model="model[i]"
+          :model-value="model[i]"
           :one-of="resolvedOneOf"
+          @update:model-value="setItem(i, $event)"
           :root-schema="rootSchema"
           :field-key="`${fieldKey}[${i}]`"
         />
@@ -130,6 +132,12 @@ function remove(i: number) {
   next.splice(i, 1);
   emit("update:modelValue", next);
 }
+function setItem(i: number, value: unknown) {
+  const next = model.value.slice();
+  // 数组项被“恢复默认”时保留位置，用空对象代替 undefined
+  next[i] = value === undefined ? {} : value;
+  emit("update:modelValue", next);
+}
 function addPrimitive() {
   if (newValue.value === "") return;
   const val = itemType.value === "integer" ? parseInt(newValue.value, 10) : itemType.value === "number" ? parseFloat(newValue.value) : newValue.value;
@@ -147,28 +155,8 @@ function addUnion() {
   }
   const props = first.properties as Record<string, unknown> | undefined;
   const type = ((props?.type as Record<string, unknown>)?.enum as unknown[])?.[0] as string;
-  emit("update:modelValue", [...model.value, type !== undefined ? { type } : defaultForSchema(first)]);
-}
-
-function defaultForSchema(schema: Record<string, unknown>): unknown {
-  if (schema.default !== undefined) return schema.default;
-  if (schema.const !== undefined) return schema.const;
-  if (schema.type === "object") {
-    const out: Record<string, unknown> = {};
-    const props = (schema.properties ?? {}) as Record<string, Record<string, unknown>>;
-    for (const [k, v] of Object.entries(props)) {
-      out[k] = v.default !== undefined ? v.default : defaultForSchema(v);
-    }
-    return out;
-  }
-  switch (schema.type) {
-    case "boolean": return false;
-    case "integer": return 0;
-    case "number": return 0;
-    case "string": return "";
-    case "array": return [];
-    default: return null;
-  }
+  // 只写类型判别字段；其余字段留空，由 placeholder 显示默认值
+  emit("update:modelValue", [...model.value, type !== undefined ? { type } : {}]);
 }
 </script>
 

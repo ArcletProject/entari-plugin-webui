@@ -58,6 +58,7 @@
       <el-select
         v-else-if="enumOptions"
         v-model="model"
+        :placeholder="placeholder"
         style="width:100%"
       >
         <el-option
@@ -68,15 +69,22 @@
         />
       </el-select>
       <!-- boolean -->
-      <el-switch
+      <div
         v-else-if="resolved.type === 'boolean'"
-        v-model="model"
-      />
+        class="switch-row"
+      >
+        <el-switch v-model="model" />
+        <span
+          v-if="modelValue === undefined && resolved.default !== undefined"
+          class="default-hint"
+        >默认: {{ resolved.default }}</span>
+      </div>
       <!-- integer -->
       <el-input-number
         v-else-if="resolved.type === 'integer'"
         v-model="model"
         :step="1"
+        :placeholder="placeholder"
         style="width:100%"
       />
       <!-- number -->
@@ -84,6 +92,7 @@
         v-else-if="resolved.type === 'number'"
         v-model="model"
         :step="0.1"
+        :placeholder="placeholder"
         style="width:100%"
       />
       <!-- array -->
@@ -214,7 +223,8 @@ const inputType = computed(() => {
 });
 
 const model = computed({
-  get: () => props.modelValue ?? defaultFor(resolved.value),
+  // 缺失值保持 undefined：默认值只用于 placeholder / 提示，不进入表单值
+  get: () => props.modelValue,
   set: (v) => emit("update:modelValue", v),
 });
 
@@ -232,20 +242,6 @@ function castItemsSchema(v: unknown): Record<string, unknown> | undefined { retu
 function castSchemas(v: unknown): Record<string, unknown>[] { return v as Record<string, unknown>[] }
 function castNumber(v: unknown): number { return v as number }
 
-function defaultFor(schema: Record<string, unknown>): unknown {
-  if (schema.default !== undefined) return schema.default;
-  if (schema.const !== undefined) return schema.const;
-  switch (schema.type) {
-    case "boolean": return false;
-    case "integer": return 0;
-    case "number": return 0;
-    case "string": return "";
-    case "array": return [];
-    case "object": return {};
-    default: return null;
-  }
-}
-
 const jsonEditing = ref(false);
 const jsonText = ref("");
 function onCmd(cmd: string) {
@@ -254,7 +250,8 @@ function onCmd(cmd: string) {
     jsonEditing.value = true;
   }
   if (cmd === "reset") {
-    emit("update:modelValue", defaultFor(resolved.value));
+    // undefined 让父级删除 key，回到“未设置、使用默认值”的状态
+    emit("update:modelValue", undefined);
   }
 }
 function applyJson() {
@@ -302,5 +299,14 @@ function applyJson() {
 }
 .field-control {
   width: 100%;
+}
+.switch-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.default-hint {
+  font-size: 12px;
+  color: var(--el-text-color-secondary);
 }
 </style>

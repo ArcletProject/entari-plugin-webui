@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware import Middleware
 from starlette.responses import JSONResponse
 
-from ..core.error import AppError, TooManyRequests
+from ..core.error import AppError, ConfigConflict, ConfigPreconditionRequired, TooManyRequests
 from ..utils import logger
 from .auth import router as auth_router
 from .config import router as config_router
@@ -53,7 +53,12 @@ async def _error_middleware(request: Request, call_next):
             headers={"Retry-After": str(e.retry_after) if e.retry_after else "60"},
         )
     except AppError as e:
-        return JSONResponse({"success": False, "code": e.code, "message": e.message}, status_code=e.status)
+        payload = {"success": False, "code": e.code, "message": e.message}
+        if isinstance(e, (ConfigConflict, ConfigPreconditionRequired)):
+            payload["etag"] = e.etag
+        if isinstance(e, ConfigConflict):
+            payload["data"] = e.data
+        return JSONResponse(payload, status_code=e.status)
     except HTTPException as e:
         return JSONResponse(
             {"success": False, "code": "http_error", "message": e.detail}, status_code=e.status_code, headers=e.headers

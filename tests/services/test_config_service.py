@@ -124,40 +124,124 @@ def test_get_section_rootless_uses_config_key(monkeypatch):
     assert cs.get_section("plugins:$.commands") == {"use_config_prefix": False}
 
 
-def test_update_section(monkeypatch):
+def _install_detached(monkeypatch, cs, data, *, etag="etag"):
+    import copy
+    from pathlib import Path
+    from types import SimpleNamespace
+
+    from arclet.entari.config.model import ApplyReport
+
+    live = _cfg(data)
+    live.path = Path("/tmp/entari.yml")
+    live.plugin_extra_files = []
+    live.remap_records = MagicMock()
+    live._root_plugin_keys = {k for k in data.get("plugins", {}) if not k.startswith("$")}
+    detached = _cfg(copy.deepcopy(data))
+    detached.path = live.path
+    detached.plugin_extra_files = []
+    detached.remap_records = MagicMock()
+    detached._root_plugin_keys = set(live._root_plugin_keys)
+
+    cfg_cls = MagicMock(instance=live)
+    cfg_cls.load = MagicMock(return_value=detached)
+    monkeypatch.setattr(cs, "EntariConfig", cfg_cls)
+    monkeypatch.setattr(cs, "compute_etag", lambda cfg: etag)
+
+    async def _post(event, **kwargs):
+        return SimpleNamespace(value=ApplyReport(ok=True, applied=True))
+
+    monkeypatch.setattr(cs, "post", _post)
+    return live, detached
+
+
+async def test_update_section(monkeypatch):
     from entari_plugin_webui.services import config_service as cs
 
-    cfg = _cfg({"basic": {"prefix": ["/"]}})
-    monkeypatch.setattr(cs, "EntariConfig", MagicMock(instance=cfg))
-    cs.update_section("basic", {"prefix": ["/a"]})
-    assert cfg.data["basic"]["prefix"] == ["/a"]
-    cfg.save.assert_called_once()
+    live, detached = _install_detached(monkeypatch, cs, {"basic": {"prefix": ["/"]}})
+    report = await cs.update_section("basic", {"prefix": ["/a"]}, if_match="etag")
+    assert report.applied
+    assert detached.data["basic"]["prefix"] == ["/a"]
+    detached.save.assert_called_once()
+    live.save.assert_not_called()
 
 
-def test_update_section_subplugin_writes_nested(monkeypatch):
+async def test_update_section_subplugin_writes_nested(monkeypatch):
     from entari_plugin_webui.services import config_service as cs
 
     parent = _plugin("demo_parent", "demo_parent", subplugins=["demo_parent.child"])
     child = _plugin("demo_parent.child", "demo_parent")
     _bind_plugins(monkeypatch, cs, [parent, child], {"demo_parent.child": "demo_parent"})
-    cfg = _cfg({"plugins": {"demo_parent": {"foo": 1, ".child": {"bar": 2}}}})
-    monkeypatch.setattr(cs, "EntariConfig", MagicMock(instance=cfg))
-    cs.update_section("plugins:demo_parent.child", {"bar": 3, "baz": 4})
-    assert cfg.data["plugins"]["demo_parent"][".child"] == {"bar": 3, "baz": 4}
-    assert "demo_parent.child" not in cfg.data["plugins"]
-    cfg.save.assert_called_once()
+    _, detached = _install_detached(
+        monkeypatch,
+        cs,
+        {"plugins": {"demo_parent": {"foo": 1, ".child": {"bar": 2}}}},
+    )
+    await cs.update_section("plugins:demo_parent.child", {"bar": 3, "baz": 4}, if_match="etag")
+    assert detached.data["plugins"]["demo_parent"][".child"] == {"bar": 3, "baz": 4}
+    assert "demo_parent.child" not in detached.data["plugins"]
+    detached.save.assert_called_once()
 
 
-def test_update_section_rootless_writes_config_key(monkeypatch):
+async def test_update_section_rootless_writes_config_key(monkeypatch):
     from entari_plugin_webui.services import config_service as cs
 
     plug = _plugin("$.commands", ".commands")
     _bind_plugins(monkeypatch, cs, [plug], {"$.commands": "$"})
-    cfg = _cfg({"plugins": {".commands": {"use_config_prefix": False}}})
+    _, detached = _install_detached(
+        monkeypatch,
+        cs,
+        {"plugins": {".commands": {"use_config_prefix": False}}},
+    )
+    await cs.update_section("plugins:$.commands", {"use_config_prefix": True}, if_match="etag")
+    assert detached.data["plugins"][".commands"]["use_config_prefix"] is True
+    detached.save.assert_called_once()
+
+
+async def test_update_section_requires_if_match(monkeypatch):
+    from entari_plugin_webui.core.error import ConfigPreconditionRequired
+    from entari_plugin_webui.services import config_service as cs
+
+    _install_detached(monkeypatch, cs, {"basic": {}})
+    try:
+        await cs.update_section("basic", {})
+    except ConfigPreconditionRequired as exc:
+        assert exc.status == 428
+        assert exc.etag == "etag"
+    else:
+        raise AssertionError("expected ConfigPreconditionRequired")
+
+
+async def test_update_section_rejects_stale_etag(monkeypatch):
+    from entari_plugin_webui.core.error import ConfigConflict
+    from entari_plugin_webui.services import config_service as cs
+
+    _install_detached(monkeypatch, cs, {"basic": {}})
+    try:
+        await cs.update_section("basic", {}, if_match="stale")
+    except ConfigConflict as exc:
+        assert exc.status == 409
+        assert exc.etag == "etag"
+    else:
+        raise AssertionError("expected ConfigConflict")
+
+
+async def test_update_section_skips_when_nothing_changed(monkeypatch):
+    from entari_plugin_webui.services import config_service as cs
+
+    _, detached = _install_detached(monkeypatch, cs, {"basic": {"prefix": ["/"]}})
+    report = await cs.update_section("basic", {"prefix": ["/"]}, if_match="etag")
+    assert report.ok
+    assert not report.applied
+    detached.save.assert_not_called()
+
+
+async def test_get_section_basic_returns_raw(monkeypatch):
+    from entari_plugin_webui.services import config_service as cs
+
+    cfg = _cfg({"basic": {"prefix": ["/"]}})
+    cfg.basic = {"prefix": ["/"], "nickname": "", "cmd_count": 4096}
     monkeypatch.setattr(cs, "EntariConfig", MagicMock(instance=cfg))
-    cs.update_section("plugins:$.commands", {"use_config_prefix": True})
-    assert cfg.data["plugins"][".commands"]["use_config_prefix"] is True
-    cfg.save.assert_called_once()
+    assert cs.get_section("basic") == {"prefix": ["/"]}
 
 
 class _DemoConfig(BaseModel):
@@ -171,7 +255,7 @@ def test_rootless_subplugin_config_path():
     assert _plugin_config_path(plug) == [".commands", ".extra"]
 
 
-def test_update_plugin_config_subplugin_writes_nested(monkeypatch):
+async def test_update_plugin_config_subplugin_writes_nested(monkeypatch):
     from entari_plugin_webui.services import config_service as cs
     from entari_plugin_webui.services import plugin_service as ps
 
@@ -179,12 +263,15 @@ def test_update_plugin_config_subplugin_writes_nested(monkeypatch):
     child = _plugin("demo_parent.child", "demo_parent")
     monkeypatch.setattr(ps, "find_plugin", lambda pid: {"demo_parent.child": child}.get(pid))
     _bind_plugins(monkeypatch, cs, [parent, child], {"demo_parent.child": "demo_parent"})
-    cfg = _cfg({"plugins": {"demo_parent": {"foo": 1, ".child": {"bar": 2}}}})
-    monkeypatch.setattr(cs, "EntariConfig", MagicMock(instance=cfg))
-    ps.update_plugin_config("demo_parent.child", {"bar": 5})
-    assert cfg.data["plugins"]["demo_parent"][".child"]["bar"] == 5
-    assert "demo_parent.child" not in cfg.data["plugins"]
-    cfg.save.assert_called_once()
+    _, detached = _install_detached(
+        monkeypatch,
+        cs,
+        {"plugins": {"demo_parent": {"foo": 1, ".child": {"bar": 2}}}},
+    )
+    await ps.update_plugin_config("demo_parent.child", {"bar": 5}, if_match="etag")
+    assert detached.data["plugins"]["demo_parent"][".child"]["bar"] == 5
+    assert "demo_parent.child" not in detached.data["plugins"]
+    detached.save.assert_called_once()
 
 
 def test_plugin_schema_uses_entari_meta(monkeypatch):
@@ -279,3 +366,47 @@ def test_rootless_plugin_schema_uses_top_level_path(monkeypatch):
     monkeypatch.setattr(cs, "plugin_config_schema", _fake_plugin_config_schema)
     out = cs.get_schema_for_section("plugins:$.commands")
     assert out["schema"]["properties"] == {"rootless_marker": {"type": "string"}}
+
+
+def test_compute_etag_hashes_directory_extra_files(monkeypatch, tmp_path):
+    from entari_plugin_webui.services import config_service as cs
+
+    root = tmp_path / "entari.yml"
+    root.write_text("plugins: {}\n", encoding="utf-8")
+    extra_dir = tmp_path / "extra"
+    extra_dir.mkdir()
+    child = extra_dir / "demo.yml"
+    child.write_text("demo:\n  value: 1\n", encoding="utf-8")
+
+    cfg = _cfg({"plugins": {}})
+    cfg.path = root
+    cfg.plugin_extra_files = ["extra"]
+
+    first = cs.compute_etag(cfg)
+    child.write_text("demo:\n  value: 2\n", encoding="utf-8")
+    second = cs.compute_etag(cfg)
+
+    assert first != second
+
+
+def test_target_for_extra_file_plugin_uses_extra_file(monkeypatch, tmp_path):
+    from entari_plugin_webui.services import config_service as cs
+
+    root = tmp_path / "entari.yml"
+    root.write_text("plugins:\n  $files:\n    - demo.yml\n", encoding="utf-8")
+    extra = tmp_path / "demo.yml"
+    extra.write_text("value: 1\n", encoding="utf-8")
+
+    cfg = _cfg({"plugins": {"$files": ["demo.yml"], "demo": {"value": 1}}})
+    cfg.path = root
+    cfg.plugin_extra_files = ["demo.yml"]
+    cfg._root_plugin_keys = set()
+
+    monkeypatch.setattr(cs, "find_plugin", lambda pid: None)
+    monkeypatch.setattr(cs, "get_plugins", lambda subplugged=False: [])
+
+    target, prefix, file_path = cs._target_for(cfg, "plugins:demo")
+
+    assert target == {"value": 1}
+    assert prefix == ()
+    assert file_path == extra.resolve()

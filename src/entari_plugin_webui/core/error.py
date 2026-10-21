@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
@@ -31,6 +32,21 @@ class PluginError(AppError):
 class ConfigSectionNotFound(AppError):
     code: str = "section_not_found"
     status: int = 404
+
+
+@dataclass
+class ConfigPreconditionRequired(AppError):
+    code: str = "config_precondition_required"
+    status: int = 428
+    etag: str = ""
+
+
+@dataclass
+class ConfigConflict(AppError):
+    code: str = "config_conflict"
+    status: int = 409
+    etag: str = ""
+    data: Any = None
 
 
 @dataclass

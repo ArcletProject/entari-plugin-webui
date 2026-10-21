@@ -292,7 +292,13 @@ async def test_reload(monkeypatch):
     assert await ps.reload_plugin("p1") is True
 
 
-def test_update_config(monkeypatch):
+async def test_update_config(monkeypatch):
+    import copy
+    from pathlib import Path
+    from types import SimpleNamespace
+
+    from arclet.entari.config.model import ApplyReport
+
     from entari_plugin_webui.services import config_service as cs
     from entari_plugin_webui.services import plugin_service as ps
 
@@ -301,16 +307,36 @@ def test_update_config(monkeypatch):
     monkeypatch.setattr(ps, "find_plugin", lambda i: p)
     monkeypatch.setattr(cs, "find_plugin", lambda i: p)
     monkeypatch.setattr(cs, "plugin_service", SimpleNamespace(_subplugined={}, plugins={"p1": p}), raising=False)
-    data = {"plugins": {"p1": {}}}
-    cfg = MagicMock()
-    cfg.basic = {}
-    cfg.plugin = data["plugins"]
-    cfg.data = data
-    cfg.save = MagicMock()
-    monkeypatch.setattr(cs, "EntariConfig", MagicMock(instance=cfg))
-    ps.update_plugin_config("p1", {"x": 1})
-    assert cfg.plugin["p1"] == {"x": 1}
-    cfg.save.assert_called_once()
+
+    lives = []
+    for _ in range(2):
+        cfg = MagicMock()
+        cfg.basic = {}
+        cfg.data = {"plugins": {"p1": {}}}
+        cfg.plugin = cfg.data["plugins"]
+        cfg.path = Path("/tmp/entari.yml")
+        cfg.plugin_extra_files = []
+        cfg.remap_records = MagicMock()
+        cfg.save = MagicMock()
+        lives.append(cfg)
+    live, detached = lives
+    detached.data = copy.deepcopy(live.data)
+    detached.plugin = detached.data["plugins"]
+
+    cfg_cls = MagicMock(instance=live)
+    cfg_cls.load = MagicMock(return_value=detached)
+    monkeypatch.setattr(cs, "EntariConfig", cfg_cls)
+    monkeypatch.setattr(cs, "compute_etag", lambda cfg: "etag")
+
+    async def _post(event, **kwargs):
+        return SimpleNamespace(value=ApplyReport(ok=True, applied=True))
+
+    monkeypatch.setattr(cs, "post", _post)
+    report = await ps.update_plugin_config("p1", {"x": 1}, if_match="etag")
+    assert report.applied
+    assert detached.plugin["p1"] == {"x": 1}
+    detached.save.assert_called_once()
+    live.save.assert_not_called()
 
 
 @pytest.mark.asyncio

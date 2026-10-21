@@ -4,7 +4,8 @@
       <SchemaField
         v-for="(prop, key) in (schema.properties as Record<string, unknown>)"
         :key="key"
-        v-model="model[key]"
+        :model-value="model[key]"
+        @update:model-value="setKey(String(key), $event)"
         :field-schema="prop as Record<string, unknown>"
         :root-schema="rootSchema"
         :field-key="String(key)"
@@ -43,6 +44,13 @@ const emit = defineEmits<{ "update:modelValue": [v: Record<string, unknown>] }>(
 
 const rootSchema = computed(() => props.schema ?? {});
 const model = ref<Record<string, unknown>>({ ...(props.modelValue ?? {}) });
+
+function setKey(key: string, value: unknown) {
+  const next = { ...model.value };
+  if (value === undefined) delete next[key];
+  else next[key] = value;
+  model.value = next;
+}
 
 watch(() => props.modelValue, (v) => {
   const next = v ?? {};

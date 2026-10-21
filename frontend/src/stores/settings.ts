@@ -89,6 +89,7 @@ export const useSettingsStore = defineStore("settings", () => {
   const isDirty = ref(false);
   const savePending = ref(false);
   const error = ref<string>("");
+  const etag = ref<string>("");
 
   interface SchemaCacheEntry { rawSchema: Record<string, unknown> | null; metaSchema: Record<string, unknown> | null; configSchema: Record<string, unknown> | null }
   const schemaCache = ref<Record<string, SchemaCacheEntry>>({});
@@ -153,6 +154,7 @@ export const useSettingsStore = defineStore("settings", () => {
       const { metaData: md, configData: cd } = splitData(rawData, split);
       metaData.value = md;
       configData.value = cd;
+      etag.value = dataR.data.etag ?? "";
       isDirty.value = false;
     } catch {
       error.value = "加载配置失败";
@@ -170,21 +172,44 @@ export const useSettingsStore = defineStore("settings", () => {
     isDirty.value = true;
   }
 
-  async function save() {
+  async function save(): Promise<{ success: boolean; message: string }> {
     savePending.value = true;
     error.value = "";
+    if (!etag.value) {
+      savePending.value = false;
+      error.value = "配置尚未加载完成，请刷新后重试";
+      return { success: false, message: error.value };
+    }
     const merged = { ...metaData.value, ...configData.value };
+    const headers = { "If-Match": etag.value };
     try {
-      if (isPluginSection.value) {
-        await api.put(`/api/plugins/${pluginId.value}/config`, { config: merged });
-      } else {
-        await api.put(`/api/config/${currentSection.value}`, { data: merged });
+      const r = isPluginSection.value
+        ? await api.put(`/api/plugins/${pluginId.value}/config`, { config: merged }, { headers })
+        : await api.put(`/api/config/${currentSection.value}`, { data: merged }, { headers });
+      const payload = r.data ?? {};
+      if (payload.etag) etag.value = payload.etag;
+      const report = payload.apply;
+      if (report && report.ok === false) {
+        const details = (report.errors ?? [])
+          .map((e: { plugin?: string; message?: string }) => `${e.plugin ?? "?"}: ${e.message ?? ""}`)
+          .join("; ");
+        error.value = `配置已写入，但应用失败${details ? `：${details}` : ""}`;
+        return { success: false, message: error.value };
       }
       isDirty.value = false;
-      return true;
-    } catch {
-      error.value = "保存失败";
-      return false;
+      return { success: true, message: payload.message || "设置已保存" };
+    } catch (e) {
+      const err = e as { response?: { status?: number; data?: { message?: string; etag?: string } } };
+      const status = err.response?.status;
+      if (status === 409) {
+        // 不要更新 etag：保留旧版本，避免用户再次保存时用旧数据覆盖外部修改
+        error.value = "配置已被外部修改，请刷新后重试";
+      } else if (status === 428) {
+        error.value = "缺少配置版本信息，请刷新后重试";
+      } else {
+        error.value = err.response?.data?.message || "保存失败";
+      }
+      return { success: false, message: error.value };
     } finally {
       savePending.value = false;
     }
@@ -212,6 +237,7 @@ export const useSettingsStore = defineStore("settings", () => {
     isDirty,
     savePending,
     error,
+    etag,
     isPluginSection,
     pluginId,
     currentPlugin,

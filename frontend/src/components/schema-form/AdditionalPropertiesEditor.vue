@@ -32,14 +32,16 @@
       </template>
       <SchemaField
         v-if="hasValueSchema"
-        v-model="model[String(k)]"
+        :model-value="model[String(k)]"
         :field-schema="valueSchema!"
         :root-schema="rootSchema"
         :field-key="String(k)"
+        @update:model-value="setValue(String(k), $event)"
       />
       <el-input
         v-else
-        v-model="model[String(k)]"
+        :model-value="model[String(k)]"
+        @update:model-value="setValue(String(k), $event)"
       />
     </el-card>
     <div class="add-row">
@@ -84,12 +86,27 @@ watch(extra, (val) => {
   renameMap.value = Object.fromEntries(Object.keys(val).map(k => [k, k]));
 }, { immediate: true });
 
+function emptyFor(schema: Record<string, unknown>): unknown {
+  switch (schema.type) {
+    case "boolean": return false;
+    case "integer":
+    case "number": return 0;
+    case "object": return {};
+    case "array": return [];
+    default: return "";
+  }
+}
+function setValue(k: string, v: unknown) {
+  const next = { ...model.value };
+  if (v === undefined) delete next[k];
+  else next[k] = v;
+  emit("update:modelValue", next);
+}
 function add() {
   if (!newKey.value) return;
   const vs = resolveRef(props.valueSchema ?? {}, props.rootSchema ?? {});
-  const type = vs.type;
-  const defaultValue = type === "boolean" ? false : type === "object" ? {} : type === "array" ? [] : "";
-  model.value[newKey.value] = defaultValue;
+  const next = { ...model.value, [newKey.value]: emptyFor(vs) };
+  emit("update:modelValue", next);
   newKey.value = "";
 }
 function remove(k: string) {

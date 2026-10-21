@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Header
 from pydantic import BaseModel
 
 from ..api.deps import require_auth
 from ..services import market_service
+from ..services.config_service import get_etag, get_section, report_to_dict
 from ..services.plugin_service import (
     get_plugin,
     list_plugins,
@@ -78,6 +79,17 @@ async def uninstall(plugin_id: str):
 
 
 @router.put("/{plugin_id}/config")
-async def put_config(plugin_id: str, body: ConfigBody):
-    update_plugin_config(plugin_id, body.config)
-    return {"success": True}
+async def put_config(
+    plugin_id: str,
+    body: ConfigBody,
+    if_match: str | None = Header(default=None, alias="If-Match"),
+):
+    report = await update_plugin_config(plugin_id, body.config, if_match=if_match)
+    section = f"plugins:{plugin_id}"
+    return {
+        "success": report.ok,
+        "message": "已保存" if report.ok else "部分配置未生效",
+        "apply": report_to_dict(report),
+        "data": get_section(section),
+        "etag": get_etag(),
+    }

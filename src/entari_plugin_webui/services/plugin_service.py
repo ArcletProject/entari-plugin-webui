@@ -197,7 +197,7 @@ async def toggle_plugin(plugin_id: str, *, enable: bool) -> dict[str, Any]:
         tasks = plug.enable()
     else:
         tasks = plug.disable()
-    if tasks:
+    if isinstance(tasks, (list, tuple, set)) and tasks:
         await asyncio.wait(tasks)
     from . import config_service
 
@@ -375,11 +375,16 @@ async def uninstall_plugin(plugin_id: str) -> str:
     return await market_service.start_uninstall(entry["name"])
 
 
-def update_plugin_config(plugin_id: str, config: dict[str, Any]) -> None:
+async def update_plugin_config(
+    plugin_id: str,
+    config: dict[str, Any],
+    *,
+    if_match: str | None = None,
+):
     plug = find_plugin(plugin_id)
     if plug is None:
         raise PluginNotFound(plugin_id)
     # 复用 config_service 的路径解析，子插件写到父配置的 `.child` 下
     from .config_service import update_section
 
-    update_section(f"plugins:{plugin_id}", config)
+    return await update_section(f"plugins:{plugin_id}", config, if_match=if_match)

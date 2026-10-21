@@ -1,21 +1,34 @@
 from __future__ import annotations
 
+import asyncio
+import hashlib
+from pathlib import Path
 from typing import Any, TypedDict
 
 from arclet.entari.config import config_model_schema
+from arclet.entari.config.action import config_model_dump, config_model_validate
 from arclet.entari.config.file import EntariConfig
-from arclet.entari.config.model import BasicConfig
+from arclet.entari.config.model import ApplyReport, BasicConfig
 from arclet.entari.config.schema.plugin import PLUGIN_META_PROPERTIES, plugin_config_schema
 from arclet.entari.config.schema.rebase import update_schema
 from arclet.entari.config.schema.registry import _schema_fragments
+from arclet.entari.event.config import ConfigModify
 from arclet.entari.plugin import find_plugin, get_plugins
 from arclet.entari.plugin.model import Plugin
 from arclet.entari.plugin.service import plugin_service
+from arclet.letoderea import post
 from ruamel.yaml import CommentedMap
-from tarina.tools import nest_dict_update, nest_list_update
 
-from ..core.error import ConfigSectionNotFound
+from ..core.error import (
+    AppError,
+    ConfigConflict,
+    ConfigPreconditionRequired,
+    ConfigSectionNotFound,
+)
+from . import config_ops
 from .plugin_service import _fragment_parts, _relative_key
+
+_save_lock = asyncio.Lock()
 
 
 def _unwrap(obj: Any) -> Any:
@@ -69,8 +82,8 @@ def get_plugin_config_path(plugin_id: str) -> list[str] | None:
     return _plugin_config_path(plug) if plug is not None else None
 
 
-def _get_by_path(path: list[str]) -> Any:
-    node: Any = EntariConfig.instance.plugin or {}
+def _get_by_path(cfg: EntariConfig, path: list[str]) -> Any:
+    node: Any = cfg.plugin or {}
     for key in path:
         if not isinstance(node, dict):
             return {}
@@ -80,19 +93,88 @@ def _get_by_path(path: list[str]) -> Any:
     return _unwrap(node)
 
 
-def _update_by_path(path: list[str], data: Any) -> None:
-    node = EntariConfig.instance.data.setdefault("plugins", {})
-    for key in path[:-1]:
-        child = node.get(key)
-        if not isinstance(child, dict):
-            child = {}
-            node[key] = child
-        node = child
-    target = node.get(path[-1])
-    if not isinstance(target, dict):
-        target = {}
-        node[path[-1]] = target
-    nest_dict_update(target, data)
+def read_section(cfg: EntariConfig, section: str) -> Any:
+    """读取任意 EntariConfig 实例上的 raw 配置（不含模型默认值）。"""
+    if section == "basic":
+        return _unwrap(cfg.data.get("basic", {}))
+    if section == "adapters":
+        return _unwrap(cfg.data.get("adapters", []))
+    if section == "plugins":
+        return _unwrap(cfg.plugin or {})
+    if section.startswith("plugins:"):
+        key = section[len("plugins:") :]
+        plug = _resolve_plugin(key)
+        if plug is None:
+            return _unwrap((cfg.plugin or {}).get(key, {}))
+        path = _plugin_config_path(plug)
+        if not path:
+            return _unwrap(cfg.plugin or {})
+        return _get_by_path(cfg, path)
+    raise ConfigSectionNotFound(message=f"Section not found: {section}")
+
+
+def _extra_files(cfg: EntariConfig) -> list[Path]:
+    root = Path(cfg.path).resolve().parent
+    files: list[Path] = []
+    for raw in cfg.plugin_extra_files or []:
+        path = Path(raw)
+        if not path.is_absolute():
+            path = root / path
+        files.append(path.resolve())
+    return files
+
+
+def _hash_path(digest: Any, path: Path) -> None:
+    digest.update(path.as_posix().encode())
+    digest.update(b"\0")
+    if path.is_dir():
+        children = sorted(
+            child
+            for child in path.rglob("*")
+            if child.is_file() and not child.name.endswith(".schema.json")
+        )
+        for child in children:
+            digest.update(child.relative_to(path).as_posix().encode())
+            digest.update(b"\0")
+            digest.update(child.read_bytes())
+            digest.update(b"\0")
+        digest.update(b"<directory>")
+    else:
+        try:
+            digest.update(path.read_bytes())
+        except FileNotFoundError:
+            digest.update(b"<missing>")
+    digest.update(b"\0")
+
+
+def compute_etag(cfg: EntariConfig) -> str:
+    digest = hashlib.sha256()
+    for path in [Path(cfg.path).resolve(), *_extra_files(cfg)]:
+        _hash_path(digest, path)
+    return digest.hexdigest()
+
+
+def get_etag() -> str:
+    return compute_etag(EntariConfig.instance)
+
+
+def _effective(section: str) -> Any:
+    cfg = EntariConfig.instance
+    if section == "basic":
+        try:
+            return config_model_dump(cfg.basic)
+        except (AttributeError, TypeError):
+            return cfg.basic if isinstance(cfg.basic, dict) else {}
+    if section.startswith("plugins:"):
+        key = section[len("plugins:") :]
+        plug = _resolve_plugin(key)
+        if plug is None or plug.metadata is None or plug.metadata.config is None:
+            return {}
+        raw = read_section(cfg, section)
+        if not isinstance(raw, dict):
+            return {}
+        return config_model_dump(config_model_validate(plug.metadata.config, raw))
+    return {}
 
 
 def list_sections() -> dict[str, Any]:
@@ -112,43 +194,149 @@ def list_sections() -> dict[str, Any]:
 
 
 def get_section(section: str) -> Any:
-    cfg = EntariConfig.instance
-    if section == "basic":
-        return _unwrap(cfg.basic)
-    if section == "adapters":
-        return _unwrap(cfg.data.get("adapters", []))
-    if section == "plugins":
-        return _unwrap(cfg.plugin)
+    return read_section(EntariConfig.instance, section)
+
+
+def _section_path(section: str) -> list[str]:
+    if section in ("basic", "adapters", "plugins"):
+        return [section]
     if section.startswith("plugins:"):
         key = section[len("plugins:") :]
         plug = _resolve_plugin(key)
-        if plug is None:
-            return _unwrap((cfg.plugin or {}).get(key, {}))
-        path = _plugin_config_path(plug)
-        if not path:
-            return _unwrap(cfg.plugin or {})
-        return _get_by_path(path)
+        return _plugin_config_path(plug) if plug is not None else [key]
     raise ConfigSectionNotFound(message=f"Section not found: {section}")
 
 
-def update_section(section: str, data: Any) -> None:
-    cfg = EntariConfig.instance
+def _ensure_mapping(node: Any) -> dict[str, Any]:
+    if isinstance(node, CommentedMap):
+        return node
+    if isinstance(node, dict):
+        return node
+    raise AppError(message="Configuration node is not a mapping", code="config_invalid", status=422)
+
+
+def _target_for(cfg: EntariConfig, section: str) -> tuple[Any, tuple[str, ...], Path]:
+    """返回 (目标子树, 目标在所属文件中的记录前缀, 所属文件)。"""
     if section == "basic":
-        nest_dict_update(cfg.data["basic"], data)
-    elif section == "adapters":
-        nest_list_update(cfg.data["adapters"], data)
-    elif section == "plugins":
-        nest_dict_update(cfg.data["plugins"], data)
-    elif section.startswith("plugins:"):
-        key = section[len("plugins:") :]
-        plug = _resolve_plugin(key)
-        path = _plugin_config_path(plug) if plug is not None else [key]
-        if not path:
-            raise ConfigSectionNotFound(message=f"Section not found: {section}")
-        _update_by_path(path, data)
-    else:
+        return _ensure_mapping(cfg.data.setdefault("basic", {})), ("basic",), Path(cfg.path)
+    if section == "adapters":
+        adapters = cfg.data.setdefault("adapters", [])
+        if not isinstance(adapters, list):
+            raise AppError(message="adapters is not a list", code="config_invalid", status=422)
+        return adapters, ("adapters",), Path(cfg.path)
+    if section == "plugins":
+        return _ensure_mapping(cfg.data.setdefault("plugins", {})), ("plugins",), Path(cfg.path)
+
+    path = _section_path(section)
+    if not path:
         raise ConfigSectionNotFound(message=f"Section not found: {section}")
-    cfg.save()
+    root = path[0]
+    root_keys = getattr(cfg, "_root_plugin_keys", None)
+    is_extra = isinstance(cfg.plugin, dict) and root in cfg.plugin and (root_keys is None or root not in root_keys)
+    if is_extra:
+        node: Any = cfg.plugin
+        file_path = _extra_file_for_stem(cfg, root)
+        prefix: tuple[str, ...] = ()
+    else:
+        node = _ensure_mapping(cfg.data.setdefault("plugins", {}))
+        file_path = Path(cfg.path)
+        prefix = ("plugins",)
+    for key in path[:-1]:
+        child = node.get(key)
+        if not isinstance(child, dict):
+            child = {}
+            node[key] = child
+        node = child
+    last = path[-1]
+    if not isinstance(node.get(last), dict):
+        node[last] = {}
+    record_prefix = tuple(path[1:]) if is_extra else (*prefix, *path)
+    return node[last], record_prefix, file_path
+
+
+def _extra_file_for_stem(cfg: EntariConfig, stem: str) -> Path:
+    for entry in _extra_files(cfg):
+        if entry.is_file() and entry.stem == stem:
+            return entry
+        if entry.is_dir():
+            for candidate in entry.glob(f"{stem}.*"):
+                if candidate.name.endswith(".schema.json"):
+                    continue
+                return candidate.resolve()
+    return Path(cfg.path)
+
+
+def _remap_records(cfg: EntariConfig, result: config_ops.DiffResult, prefix: tuple[str, ...], file_path: Path) -> None:
+    mapper = config_ops.make_remapper(result)
+
+    def record_mapper(parts: tuple[str, ...]):
+        if prefix:
+            if parts[: len(prefix)] != prefix:
+                return parts
+            mapped = mapper(parts[len(prefix) :])
+            return None if mapped is None else (*prefix, *mapped)
+        mapped = mapper(parts)
+        return mapped
+
+    cfg.remap_records(file_path, record_mapper)
+
+
+def report_to_dict(report: ApplyReport) -> dict[str, Any]:
+    return {
+        "ok": report.ok,
+        "applied": report.applied,
+        "changed_basic": list(report.changed_basic),
+        "changed_plugins": list(report.changed_plugins),
+        "loaded": list(report.loaded),
+        "unloaded": list(report.unloaded),
+        "reloaded": list(report.reloaded),
+        "skipped": list(report.skipped),
+        "ignored": report.ignored,
+        "errors": [
+            {"plugin": error.plugin, "message": error.message}
+            for error in report.errors
+        ],
+    }
+
+
+async def update_section(section: str, data: Any, *, if_match: str | None = None) -> ApplyReport:
+    cfg = EntariConfig.instance
+    _section_path(section)  # validate before touching files
+
+    async with _save_lock:
+        current_etag = compute_etag(cfg)
+        if if_match is None:
+            raise ConfigPreconditionRequired(
+                message="If-Match header is required",
+                etag=current_etag,
+            )
+        if if_match != current_etag:
+            raise ConfigConflict(
+                message="Configuration changed since it was loaded",
+                etag=current_etag,
+                data=get_section(section),
+            )
+
+        tmp = EntariConfig.load(cfg.path, detach=True)
+        raw = read_section(tmp, section)
+        desired = config_ops.strip_new_defaults(raw, data, _effective(section))
+        result = config_ops.diff(raw, desired)
+        if not result.ops:
+            return ApplyReport(ok=True, applied=False)
+
+        target, prefix, file_path = _target_for(tmp, section)
+        config_ops.apply_ops(target, result.ops)
+        _remap_records(tmp, result, prefix, file_path)
+        tmp.save()
+
+        res = await post(ConfigModify(tmp.path, source="webui"), validate=True)
+        if res is None:
+            raise AppError(
+                message="ConfigModify has no handler; entari core may be too old",
+                code="config_handler_missing",
+                status=503,
+            )
+        return res.value
 
 
 ADAPTER_SCHEMA = {
