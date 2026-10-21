@@ -55,11 +55,16 @@ const emit = defineEmits<{
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 24px;
   padding: 16px;
   border: 1px solid var(--el-border-color);
   border-radius: 8px;
   background: var(--el-bg-color);
   margin-bottom: 16px;
+}
+.info {
+  flex: 1;
+  min-width: 0;
 }
 .info h3 {
   margin: 0 0 8px;
@@ -68,17 +73,20 @@ const emit = defineEmits<{
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
   color: var(--el-text-color-secondary);
   font-size: 14px;
 }
 .description {
+  flex: 1;
+  min-width: 0;
   white-space: normal;
   word-break: break-word;
-  flex: 1;
 }
 .actions {
   display: flex;
   align-items: center;
   gap: 12px;
+  flex-shrink: 0;
 }
 </style>

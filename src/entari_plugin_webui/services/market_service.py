@@ -6,7 +6,7 @@ import re
 import time
 import uuid
 from dataclasses import dataclass
-from importlib.metadata import packages_distributions
+from importlib.metadata import PackageNotFoundError, distribution, packages_distributions
 from pathlib import Path
 from typing import Any
 
@@ -117,9 +117,17 @@ def _normalize(name: str) -> str:
     return re.sub(r"[-_.]+", "-", name.lower())
 
 
+def _is_dist_installed(name: str) -> bool:
+    """不启动外部包管理器，直接查询已安装 distribution。"""
+    try:
+        distribution(name)
+    except (PackageNotFoundError, ValueError):
+        return False
+    return True
+
+
 async def find_market_entry(plugin_id: str, module_name: str) -> dict[str, str] | None:
     catalog = await _ensure_catalog()
-    installed = {_normalize(x) for x in await _installed_pip_names()}
     candidates: set[str] = set()
     for package in {plugin_id, module_name, module_name.split(".")[0]}:
         for dist in packages_distributions().get(package, []):
@@ -127,12 +135,12 @@ async def find_market_entry(plugin_id: str, module_name: str) -> dict[str, str] 
     entries = list(catalog.get("plugins", {}).values())
     for p in entries:
         pip_name = p.get("pip_name", "")
-        if _normalize(pip_name) in candidates and _normalize(pip_name) in installed:
+        if _normalize(pip_name) in candidates and _is_dist_installed(pip_name):
             return {"name": p["name"], "pip_name": pip_name}
     names = {_normalize(plugin_id), _normalize(module_name), _normalize(module_name.split(".")[0])}
     for p in entries:
         pip_name = p.get("pip_name", "")
-        if _normalize(pip_name) not in installed:
+        if not _is_dist_installed(pip_name):
             continue
         aliases = {
             _normalize(p.get("name", "")),

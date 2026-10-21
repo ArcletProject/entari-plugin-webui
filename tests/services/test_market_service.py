@@ -108,7 +108,26 @@ async def test_find_market_entry_by_distribution(monkeypatch):
         return {"entari-demo"}
 
     monkeypatch.setattr(ms, "_ensure_catalog", catalog)
-    monkeypatch.setattr(ms, "_installed_pip_names", installed)
+    monkeypatch.setattr(ms, "_is_dist_installed", lambda name: name == "entari-demo")
     monkeypatch.setattr(ms, "packages_distributions", lambda: {"entari_plugin_demo": ["entari-demo"]})
+    out = await ms.find_market_entry("entari_plugin_demo", "entari_plugin_demo")
+    assert out == {"name": "demo", "pip_name": "entari-demo"}
+
+
+@pytest.mark.asyncio
+async def test_find_market_entry_does_not_run_package_manager(monkeypatch):
+    from entari_plugin_webui.services import market_service as ms
+
+    async def catalog():
+        return {"plugins": {"entari-demo": {"name": "demo", "pip_name": "entari-demo"}}, "__fallback": False}
+
+    async def no_list():
+        raise AssertionError("find_market_entry must not spawn `pip list`")
+
+    monkeypatch.setattr(ms, "_ensure_catalog", catalog)
+    monkeypatch.setattr(ms, "_installed_pip_names", no_list)
+    monkeypatch.setattr(ms, "_is_dist_installed", lambda name: True)
+    monkeypatch.setattr(ms, "packages_distributions", lambda: {})
+
     out = await ms.find_market_entry("entari_plugin_demo", "entari_plugin_demo")
     assert out == {"name": "demo", "pip_name": "entari-demo"}

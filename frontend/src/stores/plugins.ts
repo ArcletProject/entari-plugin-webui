@@ -64,6 +64,7 @@ export const usePluginsStore = defineStore("plugins", () => {
 
   async function refreshDetail() {
     const plugin = selectedPlugin.value;
+    const uid = plugin?.uid;
     if (!plugin) {
       detail.value = null;
       return;
@@ -74,15 +75,21 @@ export const usePluginsStore = defineStore("plugins", () => {
     }
     try {
       const r = await api.get(`/api/plugins/${plugin.id}`);
+      // 快速切换插件时，旧请求可能晚于新选择返回，丢弃过期结果
+      if (selectedUid.value !== uid) return;
       detail.value = r.data.data ?? { ...plugin };
     } catch {
+      if (selectedUid.value !== uid) return;
       detail.value = { ...plugin };
       error.value = "加载插件详情失败";
     }
   }
 
   async function select(uid: string) {
+    const changed = selectedUid.value !== uid;
     selectedUid.value = uid;
+    // 先清掉上一个插件的详情，避免新请求返回前继续显示旧元数据
+    if (changed) detail.value = null;
     await refreshDetail();
   }
 
