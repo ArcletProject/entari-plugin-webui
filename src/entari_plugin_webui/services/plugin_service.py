@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import asyncio
 import sys
 from pathlib import Path
 from typing import Any
@@ -68,7 +69,7 @@ def _fragment_parts(record_path: tuple[str, ...], relative_key: str) -> tuple[st
 
 def _has_own_schema(plug: Plugin) -> bool:
     meta = plug.metadata
-    if meta is not None and getattr(meta, "config", None):
+    if meta is not None and meta.config is not None:
         return True
     # entari 0.19 没有公开的"按路径查询 fragment"API，只能读私有注册表
     records = _schema_fragments.get(plug._config_key, [])
@@ -193,9 +194,11 @@ async def toggle_plugin(plugin_id: str, *, enable: bool) -> dict[str, Any]:
         if parent_plug is None or not parent_plug.is_available or parent in plugin_service._unloaded:
             raise PluginError("Parent plugin is not available")
     if enable:
-        plug.enable()
+        tasks = plug.enable()
     else:
-        plug.disable()
+        tasks = plug.disable()
+    if tasks:
+        await asyncio.wait(tasks)
     from . import config_service
 
     path = config_service.get_plugin_config_path(plugin_id)
@@ -262,6 +265,9 @@ def _module_path_for(key: str) -> str:
     names = EntariConfig.instance._plugin_names.get(key)
     if names:
         return names[0]
+    if key in EntariConfig.instance.plugin_prefixes:
+        prefix = EntariConfig.instance.plugin_prefixes[key][0]
+        return f"{prefix}{key}"
     return f"entari_plugin_{key}"
 
 
