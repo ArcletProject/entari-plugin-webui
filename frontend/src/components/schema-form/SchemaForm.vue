@@ -5,11 +5,11 @@
         v-for="(prop, key) in (schema.properties as Record<string, unknown>)"
         :key="key"
         :model-value="model[key]"
-        @update:model-value="setKey(String(key), $event)"
         :field-schema="prop as Record<string, unknown>"
         :root-schema="rootSchema"
         :field-key="String(key)"
         :required="(schema.required as string[])?.includes(String(key))"
+        @update:model-value="setKey(String(key), $event)"
       />
     </template>
     <ObjectField

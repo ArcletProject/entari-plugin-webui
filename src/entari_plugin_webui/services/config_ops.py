@@ -1,8 +1,9 @@
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableMapping, MutableSequence, Sequence
+from collections.abc import Mapping, MutableSequence, Sequence
 from dataclasses import dataclass, field
 from typing import Any, Literal
+from typing_extensions import TypeIs
 
 from ruamel.yaml import CommentedMap, CommentedSeq
 
@@ -26,11 +27,11 @@ class DiffResult:
     remap: dict[Path, Path | None] = field(default_factory=dict)
 
 
-def _is_mapping(value: Any) -> bool:
+def _is_mapping(value: Any) -> TypeIs[Mapping]:
     return isinstance(value, Mapping)
 
 
-def _is_sequence(value: Any) -> bool:
+def _is_sequence(value: Any) -> TypeIs[Sequence]:
     return isinstance(value, Sequence) and not isinstance(value, (str, bytes, bytearray))
 
 
@@ -197,7 +198,7 @@ def apply_ops(root: Any, ops: list[Op]) -> None:
             del parent[key]
         elif op.kind == "replace":
             parent[key] = _wrap(op.value)
-        elif op.kind == "move":
+        elif op.kind == "move" and op.to is not None:
             item = parent.pop(int(key))
             parent.insert(int(op.to), item)
         else:  # pragma: no cover - guarded by Literal

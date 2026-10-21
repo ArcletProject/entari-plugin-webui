@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import asyncio
 import sys
 from pathlib import Path
 from typing import Any
@@ -14,8 +13,6 @@ from arclet.entari.plugin import (
     get_plugin_references,
     get_plugin_referents,
     get_plugins,
-    load_plugin,
-    unload_plugin_async,
 )
 from arclet.entari.plugin import reload_plugin as _reload_plugin
 from arclet.entari.plugin import reload_subplugin as _reload_subplugin

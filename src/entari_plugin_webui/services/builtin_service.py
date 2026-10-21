@@ -5,7 +5,6 @@ import pkgutil
 from pathlib import Path
 from typing import Any
 
-from arclet.entari.config.file import EntariConfig
 from arclet.entari.plugin import find_plugin
 from arclet.entari.plugin.model import Plugin
 

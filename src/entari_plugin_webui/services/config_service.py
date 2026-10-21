@@ -2,8 +2,9 @@ from __future__ import annotations
 
 import asyncio
 import hashlib
+from collections.abc import Callable
 from pathlib import Path
-from typing import Any, Callable, TypedDict
+from typing import Any, TypedDict
 
 from arclet.entari.config import config_model_schema
 from arclet.entari.config.action import config_model_dump, config_model_validate
@@ -129,9 +130,7 @@ def _hash_path(digest: Any, path: Path) -> None:
     digest.update(b"\0")
     if path.is_dir():
         children = sorted(
-            child
-            for child in path.rglob("*")
-            if child.is_file() and not child.name.endswith(".schema.json")
+            child for child in path.rglob("*") if child.is_file() and not child.name.endswith(".schema.json")
         )
         for child in children:
             digest.update(child.relative_to(path).as_posix().encode())
@@ -278,7 +277,7 @@ def _remap_records(cfg: EntariConfig, result: config_ops.DiffResult, prefix: tup
         mapped = mapper(parts)
         return mapped
 
-    cfg.remap_records(file_path, record_mapper)
+    cfg.remap_records(file_path, record_mapper)  # type: ignore
 
 
 def report_to_dict(report: ApplyReport) -> dict[str, Any]:
@@ -292,10 +291,7 @@ def report_to_dict(report: ApplyReport) -> dict[str, Any]:
         "reloaded": list(report.reloaded),
         "skipped": list(report.skipped),
         "ignored": report.ignored,
-        "errors": [
-            {"plugin": error.plugin, "message": error.message}
-            for error in report.errors
-        ],
+        "errors": [{"plugin": error.plugin, "message": error.message} for error in report.errors],
     }
 
 

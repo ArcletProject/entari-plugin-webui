@@ -13,11 +13,11 @@
             v-for="(p, k) in objectSchema.properties"
             :key="k"
             :model-value="model[k]"
-            @update:model-value="setKey(String(k), $event)"
             :field-schema="p"
             :root-schema="rootSchema"
             :field-key="String(k)"
             :required="(objectSchema.required as string[])?.includes(String(k))"
+            @update:model-value="setKey(String(k), $event)"
           />
           <AdditionalPropertiesEditor
             v-if="objectSchema.additionalProperties"
@@ -33,11 +33,11 @@
           v-for="(p, k) in objectSchema.properties"
           :key="k"
           :model-value="model[k]"
-          @update:model-value="setKey(String(k), $event)"
           :field-schema="p"
           :root-schema="rootSchema"
           :field-key="String(k)"
           :required="(objectSchema.required as string[])?.includes(String(k))"
+          @update:model-value="setKey(String(k), $event)"
         />
         <AdditionalPropertiesEditor
           v-if="objectSchema.additionalProperties"

@@ -3,6 +3,7 @@ from __future__ import annotations
 from types import SimpleNamespace
 from unittest.mock import MagicMock
 
+import pytest
 from pydantic import BaseModel
 
 
@@ -202,13 +203,10 @@ async def test_update_section_requires_if_match(monkeypatch):
     from entari_plugin_webui.services import config_service as cs
 
     _install_detached(monkeypatch, cs, {"basic": {}})
-    try:
+    with pytest.raises(ConfigPreconditionRequired) as exc_info:
         await cs.update_section("basic", {})
-    except ConfigPreconditionRequired as exc:
-        assert exc.status == 428
-        assert exc.etag == "etag"
-    else:
-        raise AssertionError("expected ConfigPreconditionRequired")
+    assert exc_info.value.status == 428
+    assert exc_info.value.etag == "etag"
 
 
 async def test_update_section_rejects_stale_etag(monkeypatch):
@@ -216,13 +214,10 @@ async def test_update_section_rejects_stale_etag(monkeypatch):
     from entari_plugin_webui.services import config_service as cs
 
     _install_detached(monkeypatch, cs, {"basic": {}})
-    try:
+    with pytest.raises(ConfigConflict) as exc_info:
         await cs.update_section("basic", {}, if_match="stale")
-    except ConfigConflict as exc:
-        assert exc.status == 409
-        assert exc.etag == "etag"
-    else:
-        raise AssertionError("expected ConfigConflict")
+    assert exc_info.value.status == 409
+    assert exc_info.value.etag == "etag"
 
 
 async def test_update_section_skips_when_nothing_changed(monkeypatch):

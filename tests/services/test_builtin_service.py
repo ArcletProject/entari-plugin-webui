@@ -45,7 +45,7 @@ def _bind(monkeypatch, bs, cfg, modules, plugins=None, load_error=None, mutate_o
 
     from entari_plugin_webui.services import config_service
 
-    monkeypatch.setattr(bs, "EntariConfig", SimpleNamespace(instance=cfg))
+    monkeypatch.setattr(config_service, "EntariConfig", SimpleNamespace(instance=cfg))
     monkeypatch.setattr(bs, "_iter_builtin_modules", lambda: modules)
     monkeypatch.setattr(bs, "find_plugin", lambda pid: (plugins or {}).get(pid))
 

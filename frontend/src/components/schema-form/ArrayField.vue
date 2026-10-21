@@ -49,9 +49,9 @@
         <ObjectField
           :model-value="model[i]"
           :object-schema="resolvedItemsSchema!"
-          @update:model-value="setItem(i, $event)"
           :root-schema="rootSchema"
           :field-key="`${fieldKey}[${i}]`"
+          @update:model-value="setItem(i, $event)"
         />
       </el-card>
       <el-button @click="addObject">
@@ -81,9 +81,9 @@
         <OneOfField
           :model-value="model[i]"
           :one-of="resolvedOneOf"
-          @update:model-value="setItem(i, $event)"
           :root-schema="rootSchema"
           :field-key="`${fieldKey}[${i}]`"
+          @update:model-value="setItem(i, $event)"
         />
       </el-card>
       <el-button @click="addUnion">
