@@ -235,6 +235,29 @@ async def test_update_section_skips_when_nothing_changed(monkeypatch):
     detached.save.assert_not_called()
 
 
+async def test_mutate_section_applies_mutation_without_etag(monkeypatch):
+    from entari_plugin_webui.services import config_service as cs
+
+    _, detached = _install_detached(monkeypatch, cs, {"plugins": {"demo": {"x": 1}}})
+    report = await cs.mutate_section(
+        "plugins:demo",
+        lambda entry: {**entry, "$optional": True},
+    )
+    assert report.applied
+    assert detached.data["plugins"]["demo"] == {"x": 1, "$optional": True}
+    detached.save.assert_called_once()
+
+
+async def test_mutate_section_create_writes_empty_entry(monkeypatch):
+    from entari_plugin_webui.services import config_service as cs
+
+    _, detached = _install_detached(monkeypatch, cs, {"plugins": {}})
+    report = await cs.mutate_section("plugins:demo", lambda entry: entry, create=True)
+    assert report.applied
+    assert detached.data["plugins"]["demo"] == {}
+    detached.save.assert_called_once()
+
+
 async def test_get_section_basic_returns_raw(monkeypatch):
     from entari_plugin_webui.services import config_service as cs
 

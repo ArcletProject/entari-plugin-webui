@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from arclet.entari.config.file import EntariConfig
-from arclet.entari.plugin import enable_plugin, find_plugin, load_plugin, unload_plugin_async
+from arclet.entari.plugin import find_plugin
 from arclet.entari.plugin.model import Plugin
 
 from ..core.error import MarketError
@@ -98,76 +98,67 @@ def _find_builtin(name: str) -> Plugin | None:
     return find_plugin(f"{BUILTIN_PREFIX}{name}")
 
 
+def _errors(report: Any) -> str:
+    return "; ".join(f"{error.plugin}: {error.message}" for error in report.errors if error.message)
+
+
 async def set_builtin_enabled(name: str, enable: bool) -> None:
     if name not in {mod_name for mod_name, _ in _iter_builtin_modules()}:
         raise MarketError(f"Unknown builtin plugin: {name}")
 
-    cfg = EntariConfig.instance
-    plugins = cfg.data.setdefault("plugins", {})
     key = f"::{name}"
-    raw = _raw_key(plugins, key)
     plug = _find_builtin(name)
 
-    if enable:
-        entry = _clean_entry(plugins.get(raw, {}) if raw is not None else {})
-        if plug is None:
-            result = load_plugin(key, entry)
-            if not result:
-                raise MarketError(f"Failed to load builtin plugin {name}: {result.error}")
-        elif not plug.is_available:
-            await enable_plugin(key)
-        if raw is not None:
-            plugins.pop(raw, None)
-        plugins[key] = entry
-        cfg.save()
-        return
-
-    if plug is not None and plug.is_static:
+    if not enable and plug is not None and plug.is_static:
         raise MarketError(f"Builtin plugin {name} is static and cannot be disabled")
-    entry = _clean_entry(plugins.get(raw, {}) if raw is not None else {})
-    if raw is not None:
-        plugins.pop(raw, None)
-    plugins[f"~{key}"] = entry
-    cfg.save()
-    if plug is not None:
-        plug.disable()
+
+    def mutate(entry: dict[str, Any]) -> dict[str, Any]:
+        entry = _clean_entry(entry)
+        if not enable:
+            entry["$disable"] = True
+        return entry
+
+    from .config_service import mutate_section
+
+    report = await mutate_section(f"plugins:{key}", mutate, create=True)
+    if not report.ok:
+        verb = "load" if enable else "disable"
+        raise MarketError(f"Failed to {verb} builtin plugin {name}: {_errors(report)}")
 
 
 async def set_builtin_unloaded(name: str) -> None:
     if name not in {mod_name for mod_name, _ in _iter_builtin_modules()}:
         raise MarketError(f"Unknown builtin plugin: {name}")
 
-    cfg = EntariConfig.instance
-    plugins = cfg.data.setdefault("plugins", {})
     key = f"::{name}"
-    raw = _raw_key(plugins, key)
     plug = _find_builtin(name)
-
     if plug is not None and plug.is_static:
         raise MarketError(f"Builtin plugin {name} is static and cannot be unloaded")
-    entry = _clean_entry(plugins.get(raw, {}) if raw is not None else {})
-    if raw is not None:
-        plugins.pop(raw, None)
-    plugins[f"?{key}"] = entry
-    cfg.save()
-    if plug is not None:
-        await unload_plugin_async(key)
+
+    def mutate(entry: dict[str, Any]) -> dict[str, Any]:
+        entry = _clean_entry(entry)
+        entry["$optional"] = True
+        return entry
+
+    from .config_service import mutate_section
+
+    report = await mutate_section(f"plugins:{key}", mutate, create=True)
+    if not report.ok:
+        raise MarketError(f"Failed to unload builtin plugin {name}: {_errors(report)}")
 
 
 async def load_builtin(name: str) -> bool:
     if name not in {mod_name for mod_name, _ in _iter_builtin_modules()}:
         raise MarketError(f"Unknown builtin plugin: {name}")
 
-    cfg = EntariConfig.instance
-    plugins = cfg.data.setdefault("plugins", {})
     key = f"::{name}"
-    raw = _raw_key(plugins, key)
-    entry = _clean_entry(plugins.get(raw, {}) if raw is not None else {})
-    result = load_plugin(key, entry)
-    if not result:
-        raise MarketError(f"Failed to load builtin plugin {name}: {result.error}")
-    if raw is not None:
-        plugins.pop(raw, None)
-    plugins[key] = entry
-    cfg.save()
-    return True
+
+    def mutate(entry: dict[str, Any]) -> dict[str, Any]:
+        return _clean_entry(entry)
+
+    from .config_service import mutate_section
+
+    report = await mutate_section(f"plugins:{key}", mutate, create=True)
+    if not report.ok:
+        raise MarketError(f"Failed to load builtin plugin {name}: {_errors(report)}")
+    return _find_builtin(name) is not None

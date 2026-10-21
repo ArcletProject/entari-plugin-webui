@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 
 from arclet.entari.config.file import EntariConfig
+from arclet.entari.config.model import ApplyReport
 from arclet.entari.config.schema.registry import _schema_fragments
 from arclet.entari.filter.parse import evaluate_disable
 from arclet.entari.plugin import (
@@ -25,6 +26,10 @@ from ..core.error import PluginError, PluginNotFound
 from . import market_service
 
 _unloaded_snapshots: dict[str, dict[str, Any]] = {}
+
+
+def _report_error(report: ApplyReport) -> str:
+    return "; ".join(f"{error.plugin}: {error.message}" for error in report.errors if error.message)
 
 
 def _authors(meta: PluginMetadata) -> list[str]:
@@ -193,33 +198,21 @@ async def toggle_plugin(plugin_id: str, *, enable: bool) -> dict[str, Any]:
         parent_plug = plugin_service.plugins.get(parent)
         if parent_plug is None or not parent_plug.is_available or parent in plugin_service._unloaded:
             raise PluginError("Parent plugin is not available")
-    if enable:
-        tasks = plug.enable()
-    else:
-        tasks = plug.disable()
-    if isinstance(tasks, (list, tuple, set)) and tasks:
-        await asyncio.wait(tasks)
-    from . import config_service
+    from .config_service import mutate_section
 
-    path = config_service.get_plugin_config_path(plugin_id)
-    if path:
-        if len(path) == 1:
-            key = path[0]
-            plugins = EntariConfig.instance.data.setdefault("plugins", {})
-            entry, raw_key = _find_plugin_entry(plugins, key)
-            body = {} if entry is None else {k: v for k, v in entry.items() if k not in ("$disable", "$optional")}
-            if raw_key != key:
-                plugins.pop(raw_key, None)
-            plugins[key] = {**body, "$disable": True} if not enable else body
+    def mutate(entry: dict[str, Any]) -> dict[str, Any]:
+        entry = dict(entry)
+        entry.pop("$optional", None)
+        if enable:
+            entry.pop("$disable", None)
         else:
-            entry = _plugin_entry(path)
-            entry.pop("$optional", None)
-            if enable:
-                entry.pop("$disable", None)
-            else:
-                entry["$disable"] = True
-    EntariConfig.instance.save()
-    return serialize_plugin(plug, _force=True)
+            entry["$disable"] = True
+        return entry
+
+    report = await mutate_section(f"plugins:{plugin_id}", mutate)
+    if not report.ok:
+        raise PluginError(_report_error(report) or f"Failed to toggle plugin: {plugin_id}")
+    return get_plugin(plugin_id)
 
 
 async def reload_plugin(plugin_id: str) -> bool:
@@ -242,18 +235,19 @@ async def unload_plugin(plugin_id: str) -> dict[str, Any]:
     from . import config_service
 
     path = config_service.get_plugin_config_path(plugin_id)
-    snapshot = serialize_plugin(plug, _force=True)
-    cfg = EntariConfig.instance
-    plugins = cfg.data.setdefault("plugins", {})
     key = path[0] if path else plug._config_key
-    entry, raw_key = _find_plugin_entry(plugins, key)
-    body = {} if entry is None else {k: v for k, v in entry.items() if k not in ("$disable", "$optional")}
-    if raw_key != key:
-        plugins.pop(raw_key, None)
-    plugins[key] = {**body, "$optional": True}
-    cfg.save()
+    snapshot = serialize_plugin(plug, _force=True)
+
+    def mutate(entry: dict[str, Any]) -> dict[str, Any]:
+        entry = dict(entry)
+        entry.pop("$disable", None)
+        entry["$optional"] = True
+        return entry
+
+    report = await config_service.mutate_section(f"plugins:{plugin_id}", mutate)
+    if not report.ok:
+        raise PluginError(_report_error(report) or f"Failed to unload plugin: {plugin_id}")
     _unloaded_snapshots[key] = snapshot
-    await unload_plugin_async(plug.id)
     return {**snapshot, "unloaded": True}
 
 
@@ -311,44 +305,23 @@ def list_unloaded_plugins() -> list[dict[str, Any]]:
 
 
 async def load_unloaded(key: str) -> dict[str, Any]:
-    cfg = EntariConfig.instance
-    plugins = cfg.data.setdefault("plugins", {})
-    entry = plugins.get(key)
-    raw_key = key
-    if entry is None:
-        qkey = f"?{key}"
-        if qkey in plugins:
-            entry = plugins[qkey]
-            raw_key = qkey
-    if entry is None or not isinstance(entry, dict):
-        raise PluginError(f"Unloaded plugin not found: {key}")
-    clean = {k: v for k, v in entry.items() if k not in ("$optional", "$disable")}
-    module_path = _module_path_for(key)
-    original_names = cfg._plugin_names.get(key)
-    cfg._plugin_names[key] = [module_path]
-    try:
-        result = load_plugin(key, clean)
-    except Exception:
-        result = None
-    if result is None or getattr(result, "plugin", None) is None:
-        if raw_key != key:
-            plugins.pop(key, None)
-        plugins[raw_key] = entry
-        cfg.save()
-        if original_names is None:
-            cfg._plugin_names.pop(key, None)
-        else:
-            cfg._plugin_names[key] = original_names
-        raise PluginError(f"Failed to load plugin: {key}")
-    plugins.pop(raw_key, None)
-    plugins[key] = clean
-    cfg.save()
-    if original_names is None:
-        cfg._plugin_names.pop(key, None)
-    else:
-        cfg._plugin_names[key] = original_names
+    from . import config_service
+
+    def mutate(entry: dict[str, Any]) -> dict[str, Any]:
+        entry = dict(entry)
+        entry.pop("$optional", None)
+        entry.pop("$disable", None)
+        return entry
+
+    report = await config_service.mutate_section(f"plugins:{key}", mutate)
+    if not report.ok:
+        raise PluginError(_report_error(report) or f"Failed to load plugin: {key}")
     _unloaded_snapshots.pop(key, None)
-    return serialize_plugin(result.plugin, _force=True)
+    module_path = _module_path_for(key)
+    plug = find_plugin(module_path) or find_plugin(key)
+    if plug is None:
+        raise PluginError(f"Failed to load plugin: {key}")
+    return serialize_plugin(plug, _force=True)
 
 
 async def unload_market_plugin(market_name: str) -> str | None:

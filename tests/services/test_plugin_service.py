@@ -123,92 +123,59 @@ def test_serialize(monkeypatch):
     assert s["configurable"] is False
 
 
-@pytest.mark.asyncio
-async def test_toggle_top_level_persists_disable(monkeypatch):
-    from entari_plugin_webui.services import plugin_service as ps
+def _capture_mutation(monkeypatch, ps, entry):
+    from arclet.entari.config.model import ApplyReport
 
-    p = _mk()
-    p.disable = MagicMock()
-    monkeypatch.setattr(ps, "find_plugin", lambda i: p)
-    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
-    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
-    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
-    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
-    cfg = MagicMock()
-    cfg.data = {"plugins": {"p1": {}}}
-    cfg.save = MagicMock()
-    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
+    captured = {}
+
+    async def fake_mutate(section, mutate, **kwargs):
+        captured["section"] = section
+        captured["entry"] = mutate(entry)
+        return ApplyReport(ok=True, applied=True)
+
     from entari_plugin_webui.services import config_service as cs
 
-    monkeypatch.setattr(cs, "get_plugin_config_path", lambda pid: ["p1"])
-
-    await ps.toggle_plugin("p1", enable=False)
-    assert cfg.data["plugins"]["p1"]["$disable"] is True
-    cfg.save.assert_called_once()
-    p.disable.assert_called_once()
+    monkeypatch.setattr(cs, "mutate_section", fake_mutate)
+    return captured
 
 
 @pytest.mark.asyncio
-async def test_toggle_top_level_resolves_raw_disable_key_on_enable(monkeypatch):
+async def test_toggle_top_level_writes_disable_via_config(monkeypatch):
     from entari_plugin_webui.services import plugin_service as ps
 
     p = _mk("demo")
-    p.enable = MagicMock()
     monkeypatch.setattr(ps, "find_plugin", lambda i: p)
-    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
-    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
-    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
-    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
-    cfg = MagicMock()
-    cfg.data = {"plugins": {"~demo": {"x": 1}}}
-    cfg.save = MagicMock()
-    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
-    from entari_plugin_webui.services import config_service as cs
-
-    monkeypatch.setattr(cs, "get_plugin_config_path", lambda pid: ["demo"])
-
-    await ps.toggle_plugin("demo", enable=True)
-    assert cfg.data["plugins"]["demo"] == {"x": 1}
-    assert "~demo" not in cfg.data["plugins"]
-    assert "$disable" not in cfg.data["plugins"]["demo"]
-    assert "$optional" not in cfg.data["plugins"]["demo"]
-    p.enable.assert_called_once()
-
-
-@pytest.mark.asyncio
-async def test_toggle_top_level_resolves_raw_optional_key_on_disable(monkeypatch):
-    from entari_plugin_webui.services import plugin_service as ps
-
-    p = _mk("demo")
-    p.disable = MagicMock()
-    monkeypatch.setattr(ps, "find_plugin", lambda i: p)
-    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
-    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
-    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
-    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
-    cfg = MagicMock()
-    cfg.data = {"plugins": {"?demo": {"x": 1}}}
-    cfg.save = MagicMock()
-    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
-    from entari_plugin_webui.services import config_service as cs
-
-    monkeypatch.setattr(cs, "get_plugin_config_path", lambda pid: ["demo"])
+    monkeypatch.setattr(ps, "get_plugin", lambda pid: {"id": pid})
+    captured = _capture_mutation(monkeypatch, ps, {"x": 1})
 
     await ps.toggle_plugin("demo", enable=False)
-    assert cfg.data["plugins"]["demo"] == {"x": 1, "$disable": True}
-    assert "?demo" not in cfg.data["plugins"]
-    assert "$optional" not in cfg.data["plugins"]["demo"]
-    p.disable.assert_called_once()
+
+    assert captured["section"] == "plugins:demo"
+    assert captured["entry"] == {"x": 1, "$disable": True}
 
 
 @pytest.mark.asyncio
-async def test_toggle_child_writes_nested_and_clears_optional(monkeypatch):
+async def test_toggle_top_level_enable_clears_disable_and_optional(monkeypatch):
+    from entari_plugin_webui.services import plugin_service as ps
+
+    p = _mk("demo")
+    monkeypatch.setattr(ps, "find_plugin", lambda i: p)
+    monkeypatch.setattr(ps, "get_plugin", lambda pid: {"id": pid})
+    captured = _capture_mutation(monkeypatch, ps, {"x": 1, "$disable": True, "$optional": True})
+
+    await ps.toggle_plugin("demo", enable=True)
+
+    assert captured["section"] == "plugins:demo"
+    assert captured["entry"] == {"x": 1}
+
+
+@pytest.mark.asyncio
+async def test_toggle_child_uses_child_section(monkeypatch):
     from entari_plugin_webui.services import plugin_service as ps
 
     parent = _mk("demo_parent")
     child = _mk("demo_parent.child")
     child._config_key = "demo_parent"
-    child.enable = MagicMock()
     child.config = {"$optional": True}
     monkeypatch.setattr(ps, "find_plugin", lambda i: child)
     monkeypatch.setattr(
@@ -220,22 +187,13 @@ async def test_toggle_child_writes_nested_and_clears_optional(monkeypatch):
             _unloaded=set(),
         ),
     )
-    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
-    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
-    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
-    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
-    cfg = MagicMock()
-    cfg.data = {"plugins": {"demo_parent": {".child": {"$optional": True}}}}
-    cfg.save = MagicMock()
-    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
-    from entari_plugin_webui.services import config_service as cs
-
-    monkeypatch.setattr(cs, "get_plugin_config_path", lambda pid: ["demo_parent", ".child"])
+    monkeypatch.setattr(ps, "get_plugin", lambda pid: {"id": pid})
+    captured = _capture_mutation(monkeypatch, ps, {"$optional": True})
 
     await ps.toggle_plugin("demo_parent.child", enable=True)
-    assert cfg.data["plugins"]["demo_parent"][".child"] == {}
-    cfg.save.assert_called_once()
-    child.enable.assert_called_once()
+
+    assert captured["section"] == "plugins:demo_parent.child"
+    assert captured["entry"] == {}
 
 
 @pytest.mark.asyncio
@@ -340,31 +298,23 @@ async def test_update_config(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_unload_writes_optional_and_snapshot(monkeypatch):
+async def test_unload_writes_optional_via_config(monkeypatch):
+    from entari_plugin_webui.services import config_service as cs
     from entari_plugin_webui.services import plugin_service as ps
 
     p = _mk("demo")
     p.path = "entari_plugin_demo"
     monkeypatch.setattr(ps, "find_plugin", lambda i: p)
-    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
-    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
-    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
-    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
-    cfg = MagicMock()
-    cfg.data = {"plugins": {"demo": {"x": 1}}}
-    cfg.save = MagicMock()
-    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
-    unload = AsyncMock(return_value=True)
-    monkeypatch.setattr(ps, "unload_plugin_async", unload)
-    from entari_plugin_webui.services import config_service as cs
-
+    monkeypatch.setattr(ps, "serialize_plugin", lambda plug, _force=False: {"id": plug.id, "path": plug.path})
     monkeypatch.setattr(cs, "get_plugin_config_path", lambda pid: ["demo"])
+    captured = _capture_mutation(monkeypatch, ps, {"x": 1, "$disable": True})
+    ps._unloaded_snapshots.clear()
 
     out = await ps.unload_plugin("demo")
+
+    assert captured["section"] == "plugins:demo"
+    assert captured["entry"] == {"x": 1, "$optional": True}
     assert out["unloaded"] is True
-    assert cfg.data["plugins"]["demo"]["$optional"] is True
-    assert "$disable" not in cfg.data["plugins"]["demo"]
-    unload.assert_awaited_once_with("demo")
     assert "demo" in ps._unloaded_snapshots
 
 
@@ -386,45 +336,52 @@ def test_list_unloaded_plugins_reads_optional(monkeypatch):
 
 
 @pytest.mark.asyncio
-async def test_load_unloaded_restores_plain_entry(monkeypatch):
+async def test_load_unloaded_clears_optional_via_config(monkeypatch):
     from entari_plugin_webui.services import plugin_service as ps
 
     cfg = MagicMock()
-    cfg.plugin = {"demo": {"$optional": True, "x": 1}}
-    cfg.data = {"plugins": {"demo": {"$optional": True, "x": 1}}}
     cfg._plugin_names = {}
-    cfg.save = MagicMock()
+    cfg.plugin_prefixes = {}
     monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
-    loaded = _mk("demo")
+    loaded = _mk("entari_plugin_demo")
     loaded.is_available = True
-    monkeypatch.setattr(ps, "load_plugin", MagicMock(return_value=SimpleNamespace(plugin=loaded, error=None)))
-    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
-    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
-    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
-    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
+    monkeypatch.setattr(
+        ps,
+        "find_plugin",
+        lambda pid: loaded if pid == "entari_plugin_demo" else None,
+    )
+    monkeypatch.setattr(ps, "serialize_plugin", lambda plug, _force=False: {"id": plug.id})
+    captured = _capture_mutation(monkeypatch, ps, {"$optional": True, "x": 1})
 
     out = await ps.load_unloaded("demo")
-    assert out["id"] == "demo"
-    assert cfg.data["plugins"]["demo"] == {"x": 1}
-    assert "$optional" not in cfg.data["plugins"]["demo"]
+
+    assert captured["section"] == "plugins:demo"
+    assert captured["entry"] == {"x": 1}
+    assert out["id"] == "entari_plugin_demo"
 
 
 @pytest.mark.asyncio
-async def test_load_unloaded_failure_restores_optional(monkeypatch):
+async def test_load_unloaded_failure_raises(monkeypatch):
+    from arclet.entari.config.model import ApplyError, ApplyReport
+
     from entari_plugin_webui.core.error import PluginError
+    from entari_plugin_webui.services import config_service as cs
     from entari_plugin_webui.services import plugin_service as ps
 
     cfg = MagicMock()
-    cfg.plugin = {"demo": {"$optional": True, "x": 1}}
-    cfg.data = {"plugins": {"demo": {"$optional": True, "x": 1}}}
     cfg._plugin_names = {}
-    cfg.save = MagicMock()
+    cfg.plugin_prefixes = {}
     monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
-    monkeypatch.setattr(ps, "load_plugin", MagicMock(return_value=SimpleNamespace(plugin=None, error="boom")))
+    monkeypatch.setattr(ps, "find_plugin", lambda pid: None)
+
+    async def fake_mutate(section, mutate, **kwargs):
+        mutate({"$optional": True, "x": 1})
+        return ApplyReport(ok=False, applied=True, errors=[ApplyError("demo", "boom")])
+
+    monkeypatch.setattr(cs, "mutate_section", fake_mutate)
 
     with pytest.raises(PluginError):
         await ps.load_unloaded("demo")
-    assert cfg.data["plugins"]["demo"]["$optional"] is True
 
 
 @pytest.mark.asyncio
@@ -435,23 +392,14 @@ async def test_unload_disabled_plugin_preserves_body(monkeypatch):
     p = _mk("demo")
     p.path = "entari_plugin_demo"
     monkeypatch.setattr(ps, "find_plugin", lambda i: p)
-    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
-    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
-    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
-    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
-    plugins = {"~demo": {"x": 1, "$disable": True}}
-    cfg = MagicMock()
-    cfg.data = {"plugins": plugins}
-    cfg.plugin = plugins
-    cfg.save = MagicMock()
-    monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
-    monkeypatch.setattr(ps, "unload_plugin_async", AsyncMock(return_value=True))
+    monkeypatch.setattr(ps, "serialize_plugin", lambda plug, _force=False: {"id": plug.id})
     monkeypatch.setattr(cs, "get_plugin_config_path", lambda pid: ["demo"])
+    captured = _capture_mutation(monkeypatch, ps, {"x": 1, "$disable": True})
 
     await ps.unload_plugin("demo")
 
-    assert "~demo" not in plugins
-    assert plugins["demo"] == {"x": 1, "$optional": True}
+    assert captured["section"] == "plugins:demo"
+    assert captured["entry"] == {"x": 1, "$optional": True}
 
 
 @pytest.mark.asyncio
@@ -463,30 +411,22 @@ async def test_unload_snapshot_keyed_by_config_key(monkeypatch):
     p._config_key = "demo"
     p.path = "entari_plugin_demo"
     monkeypatch.setattr(ps, "find_plugin", lambda i: p)
-    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
-    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
-    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
-    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
+    monkeypatch.setattr(ps, "serialize_plugin", lambda plug, _force=False: {"id": plug.id, "name": plug.id})
     monkeypatch.setattr(ps, "plugin_service", SimpleNamespace(plugins={}, _subplugined={}, _unloaded=set()))
     plugins = {"demo": {"x": 1}}
     cfg = MagicMock()
     cfg.data = {"plugins": plugins}
     cfg.plugin = plugins
     cfg._plugin_names = {}
-    cfg.save = MagicMock()
     monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
-    monkeypatch.setattr(ps, "unload_plugin_async", AsyncMock(return_value=True))
     monkeypatch.setattr(cs, "get_plugin_config_path", lambda pid: ["demo"])
+    _capture_mutation(monkeypatch, ps, {"x": 1})
     ps._unloaded_snapshots.clear()
 
     await ps.unload_plugin("entari_plugin_demo")
 
     assert "demo" in ps._unloaded_snapshots
     assert "entari_plugin_demo" not in ps._unloaded_snapshots
-    out = ps.list_unloaded_plugins()
-    assert out[0]["key"] == "demo"
-    assert out[0]["id"] == "entari_plugin_demo"
-    assert out[0]["name"] == "entari_plugin_demo"
 
 
 @pytest.mark.asyncio
@@ -534,22 +474,22 @@ async def test_load_unloaded_raw_question_mark(monkeypatch):
     from entari_plugin_webui.services import plugin_service as ps
 
     cfg = MagicMock()
-    cfg.plugin = {"?demo": {"x": 1}}
-    cfg.data = {"plugins": {"?demo": {"x": 1}}}
     cfg._plugin_names = {}
-    cfg.save = MagicMock()
+    cfg.plugin_prefixes = {}
     monkeypatch.setattr(ps, "EntariConfig", MagicMock(instance=cfg))
-    loaded = _mk("demo")
-    monkeypatch.setattr(ps, "load_plugin", MagicMock(return_value=SimpleNamespace(plugin=loaded, error=None)))
-    monkeypatch.setattr(ps, "get_plugin_references", lambda x: set())
-    monkeypatch.setattr(ps, "get_plugin_referents", lambda x: set())
-    monkeypatch.setattr(ps, "is_project_module", lambda m: False)
-    monkeypatch.setattr(ps, "_schema_fragments", {}, raising=False)
+    loaded = _mk("entari_plugin_demo")
+    monkeypatch.setattr(
+        ps,
+        "find_plugin",
+        lambda pid: loaded if pid == "entari_plugin_demo" else None,
+    )
+    monkeypatch.setattr(ps, "serialize_plugin", lambda plug, _force=False: {"id": plug.id})
+    captured = _capture_mutation(monkeypatch, ps, {"$optional": True, "x": 1})
 
     out = await ps.load_unloaded("demo")
-    assert out["id"] == "demo"
-    assert cfg.data["plugins"] == {"demo": {"x": 1}}
-    assert "?demo" not in cfg.data["plugins"]
+
+    assert out["id"] == "entari_plugin_demo"
+    assert captured["entry"] == {"x": 1}
 
 
 @pytest.mark.asyncio

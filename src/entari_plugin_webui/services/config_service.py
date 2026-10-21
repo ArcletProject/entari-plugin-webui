@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 import hashlib
 from pathlib import Path
-from typing import Any, TypedDict
+from typing import Any, Callable, TypedDict
 
 from arclet.entari.config import config_model_schema
 from arclet.entari.config.action import config_model_dump, config_model_validate
@@ -299,29 +299,42 @@ def report_to_dict(report: ApplyReport) -> dict[str, Any]:
     }
 
 
-async def update_section(section: str, data: Any, *, if_match: str | None = None) -> ApplyReport:
+async def _update_section(
+    section: str,
+    payload: Any,
+    *,
+    if_match: str | None,
+    check_etag: bool,
+    mutate: bool,
+    create: bool,
+    source: str,
+) -> ApplyReport:
     cfg = EntariConfig.instance
     _section_path(section)  # validate before touching files
 
     async with _save_lock:
         current_etag = compute_etag(cfg)
-        if if_match is None:
-            raise ConfigPreconditionRequired(
-                message="If-Match header is required",
-                etag=current_etag,
-            )
-        if if_match != current_etag:
-            raise ConfigConflict(
-                message="Configuration changed since it was loaded",
-                etag=current_etag,
-                data=get_section(section),
-            )
+        if check_etag:
+            if if_match is None:
+                raise ConfigPreconditionRequired(
+                    message="If-Match header is required",
+                    etag=current_etag,
+                )
+            if if_match != current_etag:
+                raise ConfigConflict(
+                    message="Configuration changed since it was loaded",
+                    etag=current_etag,
+                    data=get_section(section),
+                )
 
         tmp = EntariConfig.load(cfg.path, detach=True)
         raw = read_section(tmp, section)
-        desired = config_ops.strip_new_defaults(raw, data, _effective(section))
+        desired = payload(_unwrap(raw)) if mutate else payload
+        if desired is None:
+            desired = {}
+        desired = config_ops.strip_new_defaults(raw, desired, _effective(section))
         result = config_ops.diff(raw, desired)
-        if not result.ops:
+        if not result.ops and not create:
             return ApplyReport(ok=True, applied=False)
 
         target, prefix, file_path = _target_for(tmp, section)
@@ -329,7 +342,7 @@ async def update_section(section: str, data: Any, *, if_match: str | None = None
         _remap_records(tmp, result, prefix, file_path)
         tmp.save()
 
-        res = await post(ConfigModify(tmp.path, source="webui"), validate=True)
+        res = await post(ConfigModify(tmp.path, source=source), validate=True)
         if res is None:
             raise AppError(
                 message="ConfigModify has no handler; entari core may be too old",
@@ -337,6 +350,37 @@ async def update_section(section: str, data: Any, *, if_match: str | None = None
                 status=503,
             )
         return res.value
+
+
+async def update_section(section: str, data: Any, *, if_match: str | None = None) -> ApplyReport:
+    return await _update_section(
+        section,
+        data,
+        if_match=if_match,
+        check_etag=True,
+        mutate=False,
+        create=False,
+        source="webui",
+    )
+
+
+async def mutate_section(
+    section: str,
+    mutate: Callable[[Any], Any],
+    *,
+    create: bool = False,
+    source: str = "webui",
+) -> ApplyReport:
+    """在 detached 配置上执行内部变更，不要求 If-Match（供生命周期操作使用）。"""
+    return await _update_section(
+        section,
+        mutate,
+        if_match=None,
+        check_etag=False,
+        mutate=True,
+        create=create,
+        source=source,
+    )
 
 
 ADAPTER_SCHEMA = {
