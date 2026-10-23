@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from arclet.entari import metadata, plugin
+from arclet.entari import AccountUpdate, MessageCreatedEvent, metadata, plugin
 from arclet.entari.event.lifespan import Startup
 from arclet.entari.event.send import SendResponse
 from arclet.entari.plugin import PluginRole, plugin_config
@@ -14,6 +14,7 @@ from fastapi.staticfiles import StaticFiles
 from starlette.responses import FileResponse, Response
 
 from .config import Config
+from .core.accounts import account_registry
 from .core.extension import MenuItem as MenuItem
 from .core.extension import WebUIExtension as WebUIExtension
 from .core.extension import get_all_extension_routes
@@ -109,11 +110,23 @@ add_route("/favicon.svg", methods=["GET"], include_in_schema=False)(_root)
 # ---------- SendResponse listener (message counting) ----------
 @plugin.listen(SendResponse)
 async def _on_message_sent(event: SendResponse) -> None:
+    account_registry.record_sent(event.account)
     platform = event.account.platform
     try:
         await increment(platform)
     except Exception:  # noqa: BLE001
         logger.debug("消息计数失败")
+
+
+# ---------- Account listeners ----------
+@plugin.listen(AccountUpdate)
+async def _on_account_update(event: AccountUpdate) -> None:
+    account_registry.update(event.account, event.status)
+
+
+@plugin.listen(MessageCreatedEvent)
+async def _on_message_received(event: MessageCreatedEvent) -> None:
+    account_registry.record_received(event.account)
 
 
 # ---------- Startup listener ----------

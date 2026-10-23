@@ -277,7 +277,7 @@ def _remap_records(cfg: EntariConfig, result: config_ops.DiffResult, prefix: tup
         mapped = mapper(parts)
         return mapped
 
-    cfg.remap_records(file_path, record_mapper)  # type: ignore
+    cfg.remap_records(file_path, record_mapper)
 
 
 def report_to_dict(report: ApplyReport) -> dict[str, Any]:

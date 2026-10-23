@@ -6,6 +6,21 @@ export default {
   },
   health: { reconnecting: "正在连接后端…", offline: "后端已断开", retry: "手动重连" },
   common: { save: "保存", cancel: "取消", refresh: "刷新", confirm: "确定" },
+  statusBar: {
+    system: "系统",
+    cpu: "CPU",
+    python: "Python",
+    entariVersion: "Entari 版本",
+    webuiVersion: "WebUI 版本",
+    noAccounts: "暂无账号",
+    status: {
+      online: "在线",
+      connect: "连接中",
+      reconnect: "重连中",
+      disconnect: "断开中",
+      offline: "离线",
+    },
+  },
   config: { code_invalid_note: "代码视图内容非法，已禁用表单编辑" },
   meta: {
     "$prefix": "前缀配置",

@@ -63,6 +63,12 @@
         </el-dropdown>
       </el-header>
       <el-main><slot /></el-main>
+      <el-footer
+        class="app-footer"
+        height="32px"
+      >
+        <StatusBar />
+      </el-footer>
     </el-container>
   </el-container>
 </template>
@@ -73,6 +79,7 @@ import { useI18n } from "vue-i18n";
 import { Fold } from "@element-plus/icons-vue";
 import Icon from "@/components/AppIcon.vue";
 import ThemeToggle from "@/components/ThemeToggle.vue";
+import StatusBar from "@/components/StatusBar.vue";
 import { useMenuStore } from "@/stores/menu";
 import { useAuthStore } from "@/stores/auth";
 
@@ -120,6 +127,10 @@ async function doLogout() { await auth.logout(); router.push("/login"); }
   border-bottom: 1px solid var(--el-border-color);
 }
 .spacer { flex: 1; }
+.app-footer {
+  padding: 0;
+  border-top: 1px solid var(--el-border-color);
+}
 .logo-fade-enter-active,
 .logo-fade-leave-active {
   transition: opacity 200ms ease;

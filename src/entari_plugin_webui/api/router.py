@@ -7,6 +7,7 @@ from starlette.responses import JSONResponse
 
 from ..core.error import AppError, ConfigConflict, ConfigPreconditionRequired, TooManyRequests
 from ..utils import logger
+from .accounts import router as accounts_router
 from .auth import router as auth_router
 from .config import router as config_router
 from .extensions import router as extensions_router
@@ -15,6 +16,7 @@ from .market import router as market_router
 from .menus import router as menu_router
 from .plugins import router as plugins_router
 from .stats import router as stats_router
+from .system import router as system_router
 
 SAFE_METHODS = {"GET", "HEAD", "OPTIONS"}
 _SECURITY_HEADERS = {
@@ -95,6 +97,7 @@ def create_app() -> FastAPI:
     app.middleware("http")(_csrf_middleware)
     app.middleware("http")(_security_headers_middleware)
     app.middleware("http")(_error_middleware)
+    app.include_router(accounts_router)
     app.include_router(auth_router)
     app.include_router(config_router)
     app.include_router(extensions_router)
@@ -103,4 +106,5 @@ def create_app() -> FastAPI:
     app.include_router(menu_router)
     app.include_router(plugins_router)
     app.include_router(stats_router)
+    app.include_router(system_router)
     return app
