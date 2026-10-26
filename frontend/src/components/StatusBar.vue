@@ -88,7 +88,7 @@
           </el-avatar>
           <div class="account-meta">
             <span class="account-name">{{ a.name }}</span>
-            <span class="account-sub">{{ a.adapter }} · {{ statusLabel(a.status) }}</span>
+            <span class="account-sub">{{ a.platform }} · {{ a.adapter }} · {{ statusLabel(a.status) }}</span>
           </div>
           <span class="account-rates">
             ↑ {{ a.sent_per_min }}/min<br>

@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.1"
-content_hash = "sha256:2210d17aab12c71d73d0ab119056b1f435fbe07abdb4c86a202c04671e2d568c"
+content_hash = "sha256:0c3787a0281bf3624d6070ed70c8df8aaa6ad71cf0661e24799282304b461775"
 
 [[metadata.targets]]
 requires_python = ">=3.11"
@@ -309,7 +309,7 @@ files = [
 
 [[package]]
 name = "arclet-entari"
-version = "0.19.3"
+version = "0.19.3.post1"
 requires_python = ">=3.11"
 summary = "Simple IM Framework based on satori-python"
 groups = ["default", "dev"]
@@ -318,46 +318,46 @@ dependencies = [
     "arclet-alconna<2.0.0,>=1.8.44",
     "arclet-letoderea<0.23.0,>=0.22.1",
     "nonestorage>=0.1.0",
-    "satori-python-client<1.4.0,>=1.3.10",
-    "satori-python-core<1.4.0,>=1.3.10",
+    "satori-python-client<1.4.0,>=1.3.11",
+    "satori-python-core<1.4.0,>=1.3.11",
     "simpleeval>=1.0.8",
 ]
 files = [
-    {file = "arclet_entari-0.19.3-py3-none-any.whl", hash = "sha256:aa3903649a1f8edc14b49e917cae7ce570ca74a6d2e2ae8d4e2b95ec62e07589"},
-    {file = "arclet_entari-0.19.3.tar.gz", hash = "sha256:2eca0310e3373410969ac18e6e3ae0d2bf39c169fcae13d62afb5c8b876a5fef"},
+    {file = "arclet_entari-0.19.3.post1-py3-none-any.whl", hash = "sha256:909fc7b6dc326f7ae758c3cdf45f5ca01da3ede1a9213bb84987dd1cb0b4671b"},
+    {file = "arclet_entari-0.19.3.post1.tar.gz", hash = "sha256:3b5dbaf27fb896c611fe1c2dca183f98dbb1e8838ffdaf3ec42f6dedab6e2ad7"},
 ]
 
 [[package]]
 name = "arclet-entari"
-version = "0.19.3"
+version = "0.19.3.post1"
 extras = ["dotenv", "yaml"]
 requires_python = ">=3.11"
 summary = "Simple IM Framework based on satori-python"
 groups = ["default"]
 dependencies = [
-    "arclet-entari==0.19.3",
+    "arclet-entari==0.19.3.post1",
     "python-dotenv>=1.2.4",
     "ruamel-yaml>=0.19.1",
 ]
 files = [
-    {file = "arclet_entari-0.19.3-py3-none-any.whl", hash = "sha256:aa3903649a1f8edc14b49e917cae7ce570ca74a6d2e2ae8d4e2b95ec62e07589"},
-    {file = "arclet_entari-0.19.3.tar.gz", hash = "sha256:2eca0310e3373410969ac18e6e3ae0d2bf39c169fcae13d62afb5c8b876a5fef"},
+    {file = "arclet_entari-0.19.3.post1-py3-none-any.whl", hash = "sha256:909fc7b6dc326f7ae758c3cdf45f5ca01da3ede1a9213bb84987dd1cb0b4671b"},
+    {file = "arclet_entari-0.19.3.post1.tar.gz", hash = "sha256:3b5dbaf27fb896c611fe1c2dca183f98dbb1e8838ffdaf3ec42f6dedab6e2ad7"},
 ]
 
 [[package]]
 name = "arclet-entari"
-version = "0.19.3"
+version = "0.19.3.post1"
 extras = ["reload"]
 requires_python = ">=3.11"
 summary = "Simple IM Framework based on satori-python"
 groups = ["dev"]
 dependencies = [
-    "arclet-entari==0.19.3",
+    "arclet-entari==0.19.3.post1",
     "watchfiles>=1.3.0",
 ]
 files = [
-    {file = "arclet_entari-0.19.3-py3-none-any.whl", hash = "sha256:aa3903649a1f8edc14b49e917cae7ce570ca74a6d2e2ae8d4e2b95ec62e07589"},
-    {file = "arclet_entari-0.19.3.tar.gz", hash = "sha256:2eca0310e3373410969ac18e6e3ae0d2bf39c169fcae13d62afb5c8b876a5fef"},
+    {file = "arclet_entari-0.19.3.post1-py3-none-any.whl", hash = "sha256:909fc7b6dc326f7ae758c3cdf45f5ca01da3ede1a9213bb84987dd1cb0b4671b"},
+    {file = "arclet_entari-0.19.3.post1.tar.gz", hash = "sha256:3b5dbaf27fb896c611fe1c2dca183f98dbb1e8838ffdaf3ec42f6dedab6e2ad7"},
 ]
 
 [[package]]
@@ -402,7 +402,7 @@ name = "click"
 version = "8.5.0"
 requires_python = ">=3.10"
 summary = "Composable command line interface toolkit"
-groups = ["default"]
+groups = ["default", "dev"]
 files = [
     {file = "click-8.5.0-py3-none-any.whl", hash = "sha256:255bc9599cf7748b4b1a446ccc735421bd08a2ae529a8b88597d3de5664ee360"},
     {file = "click-8.5.0.tar.gz", hash = "sha256:ba0d2089de75ea0310e2dde03160e6ca10009947fb95a182f9b54021bb272e34"},
@@ -456,24 +456,24 @@ files = [
 
 [[package]]
 name = "entari-plugin-server"
-version = "0.8.1"
+version = "0.8.2"
 requires_python = ">=3.11"
 summary = "Entari plugin for running Satori Server"
 groups = ["default"]
 dependencies = [
     "arclet-entari>=0.19.0.post2",
-    "satori-python-client<1.4.0,>=1.3.10",
-    "satori-python-core<1.4.0,>=1.3.10",
-    "satori-python-server<1.4.0,>=1.3.10",
+    "satori-python-client<1.4.0,>=1.3.11",
+    "satori-python-core<1.4.0,>=1.3.11",
+    "satori-python-server<1.4.0,>=1.3.11",
 ]
 files = [
-    {file = "entari_plugin_server-0.8.1-py3-none-any.whl", hash = "sha256:f14d3548ce01c03bad04cb35da83dee16c2cc94b525ce616f7183ac1e419554e"},
-    {file = "entari_plugin_server-0.8.1.tar.gz", hash = "sha256:7cc1a28557f2198effd84b3f14a90a5fbf2e5fcf9a97bc16fe752f1c186f1d34"},
+    {file = "entari_plugin_server-0.8.2-py3-none-any.whl", hash = "sha256:1cbb7297d03609bc09ac56e397868910af85c3d0b44cded5b1b4ed4981651039"},
+    {file = "entari_plugin_server-0.8.2.tar.gz", hash = "sha256:17b9f4f1fd8648e313febfafbae0e1e056f6b14b477de809d5a86f35f2d2f4a9"},
 ]
 
 [[package]]
 name = "fastapi"
-version = "0.161.1"
+version = "0.162.0"
 requires_python = ">=3.10"
 summary = "FastAPI framework, high performance, easy to learn, fast to code, ready for production"
 groups = ["default"]
@@ -486,8 +486,8 @@ dependencies = [
     "typing-inspection>=0.4.2",
 ]
 files = [
-    {file = "fastapi-0.161.1-py3-none-any.whl", hash = "sha256:a1363080cf9aeedecd99f4e1a23669d7e77542227f6536f4d7bbd59f07ecaa94"},
-    {file = "fastapi-0.161.1.tar.gz", hash = "sha256:4076b88434452e20289379068e976c4a04c65ffc8e6be31510106e150a422f0f"},
+    {file = "fastapi-0.162.0-py3-none-any.whl", hash = "sha256:3785963de305dd09912426cb81f2d230fce98ab3521cdfe97265c8d14983128c"},
+    {file = "fastapi-0.162.0.tar.gz", hash = "sha256:6a22c1e2e6e32e0633ee7e170f00009a29b8228b16feb219ee42f32fd8d88a8f"},
 ]
 
 [[package]]
@@ -618,7 +618,7 @@ version = "0.11.6"
 extras = ["uvicorn"]
 requires_python = "<4.0,>=3.10"
 summary = "a collection of shared components for graia"
-groups = ["default"]
+groups = ["default", "dev"]
 dependencies = [
     "graia-amnesia==0.11.6",
     "uvicorn>=0.35.0",
@@ -806,6 +806,17 @@ files = [
 ]
 
 [[package]]
+name = "linkify-it-py"
+version = "2.2.0"
+requires_python = ">=3.10"
+summary = "Links recognition library with FULL unicode support."
+groups = ["dev"]
+files = [
+    {file = "linkify_it_py-2.2.0-py3-none-any.whl", hash = "sha256:3adc40eb5af300b2605fcfdb968c24e1d780a90f1f2221af7c15e5111e94d443"},
+    {file = "linkify_it_py-2.2.0.tar.gz", hash = "sha256:907acd2d17ac1fbb9ddb62c8957ccbd6158cac602231a15c3b0cd1e215f03cee"},
+]
+
+[[package]]
 name = "loguru"
 version = "0.7.3"
 requires_python = "<4.0,>=3.5"
@@ -833,6 +844,37 @@ dependencies = [
 files = [
     {file = "mako-1.4.3-py3-none-any.whl", hash = "sha256:723296007c870bfd6b3f0c3230dba7198096e5269297ebf5e4eff9e7ffa39d4f"},
     {file = "mako-1.4.3.tar.gz", hash = "sha256:cd6537fe88d5fec315c55c2f8529bc4ce7a9a352ad7db3eeaa6a66e2dd4ec37a"},
+]
+
+[[package]]
+name = "markdown-it-py"
+version = "4.2.0"
+requires_python = ">=3.10"
+summary = "Python port of markdown-it. Markdown parsing, done right!"
+groups = ["dev"]
+dependencies = [
+    "mdurl~=0.1",
+]
+files = [
+    {file = "markdown_it_py-4.2.0-py3-none-any.whl", hash = "sha256:9f7ebbcd14fe59494226453aed97c1070d83f8d24b6fc3a3bcf9a38092641c4a"},
+    {file = "markdown_it_py-4.2.0.tar.gz", hash = "sha256:04a21681d6fbb623de53f6f364d352309d4094dd4194040a10fd51833e418d49"},
+]
+
+[[package]]
+name = "markdown-it-py"
+version = "4.2.0"
+extras = ["linkify", "plugins"]
+requires_python = ">=3.10"
+summary = "Python port of markdown-it. Markdown parsing, done right!"
+groups = ["dev"]
+dependencies = [
+    "linkify-it-py<3,>=1",
+    "markdown-it-py==4.2.0",
+    "mdit-py-plugins>=0.5.0",
+]
+files = [
+    {file = "markdown_it_py-4.2.0-py3-none-any.whl", hash = "sha256:9f7ebbcd14fe59494226453aed97c1070d83f8d24b6fc3a3bcf9a38092641c4a"},
+    {file = "markdown_it_py-4.2.0.tar.gz", hash = "sha256:04a21681d6fbb623de53f6f364d352309d4094dd4194040a10fd51833e418d49"},
 ]
 
 [[package]]
@@ -963,6 +1005,31 @@ files = [
     {file = "markupsafe-3.0.4-cp315-cp315t-win_amd64.whl", hash = "sha256:4f6e0852a0283b1b1fd776eeb7b766a5f440b3e2bd31ab51af3b400585f3965c"},
     {file = "markupsafe-3.0.4-cp315-cp315t-win_arm64.whl", hash = "sha256:39dbacefc411633db5b4378b066a9aca70a3d7e2922c9e578d825f844026eeba"},
     {file = "markupsafe-3.0.4.tar.gz", hash = "sha256:2e9ad7dd851bf45fab9f75cbff4cb493fee9979e8d8c7c9c3ee119022518edd6"},
+]
+
+[[package]]
+name = "mdit-py-plugins"
+version = "0.6.1"
+requires_python = ">=3.10"
+summary = "Collection of plugins for markdown-it-py"
+groups = ["dev"]
+dependencies = [
+    "markdown-it-py<5.0.0,>=2.0.0",
+]
+files = [
+    {file = "mdit_py_plugins-0.6.1-py3-none-any.whl", hash = "sha256:214c82fb2ac524472ab6a5bcab1de80f73b50443e187f401bfd77efbc7c6481d"},
+    {file = "mdit_py_plugins-0.6.1.tar.gz", hash = "sha256:a2bca0f039f39dbd35fb74ae1b5f998608c437463371f0ff7f49a19a17a114d0"},
+]
+
+[[package]]
+name = "mdurl"
+version = "0.1.2"
+requires_python = ">=3.7"
+summary = "Markdown URL utilities"
+groups = ["dev"]
+files = [
+    {file = "mdurl-0.1.2-py3-none-any.whl", hash = "sha256:84008a41e51615a49fc9966191ff91509e3c40b939176e643fd50a5c2196b8f8"},
+    {file = "mdurl-0.1.2.tar.gz", hash = "sha256:bb413d29f5eea38f31dd4754dd7377d4465116fb207585f97bf925588687c1ba"},
 ]
 
 [[package]]
@@ -1155,6 +1222,20 @@ files = [
 ]
 
 [[package]]
+name = "nonechat"
+version = "0.6.1"
+requires_python = "<4.0,>=3.9"
+summary = "Awesome chat console using Textual"
+groups = ["dev"]
+dependencies = [
+    "textual<4.0.0,>=3.7.0",
+]
+files = [
+    {file = "nonechat-0.6.1-py3-none-any.whl", hash = "sha256:899f26416e01cc0f3beb4798e8ce73a47bac4627b610a0609fe07f6d8246bf0c"},
+    {file = "nonechat-0.6.1.tar.gz", hash = "sha256:4cf39badc4af1ebf72062dac879bd8f0a0063ce4f8e53e9679988b2ec6667117"},
+]
+
+[[package]]
 name = "nonestorage"
 version = "0.1.0"
 requires_python = "<4.0,>=3.9"
@@ -1188,6 +1269,17 @@ groups = ["dev"]
 files = [
     {file = "packaging-26.3-py3-none-any.whl", hash = "sha256:d7193f7c8e4e93f444fde0262bf90af30e16fa0ad0ad44cb553c87339b23cd1c"},
     {file = "packaging-26.3.tar.gz", hash = "sha256:94edc256424af38762eb31306eed28beb9f0efc50a8837492c9d6fd6004aed79"},
+]
+
+[[package]]
+name = "platformdirs"
+version = "4.13.5"
+requires_python = ">=3.11"
+summary = "A small Python package for determining appropriate platform-specific dirs, e.g. a `user data dir`."
+groups = ["dev"]
+files = [
+    {file = "platformdirs-4.13.5-py3-none-any.whl", hash = "sha256:53d3ec4280b815c1e0b02edad7f9ee8fda1ba9c0865dd9c2e6e63849ce82fc1e"},
+    {file = "platformdirs-4.13.5.tar.gz", hash = "sha256:05831adf87d392760f4b5c3a0a95579ab5a10b18b9b9bd43680dcb47544788a0"},
 ]
 
 [[package]]
@@ -1523,7 +1615,7 @@ files = [
 
 [[package]]
 name = "pytest-asyncio"
-version = "1.4.0"
+version = "1.4.1"
 requires_python = ">=3.10"
 summary = "Pytest support for asyncio"
 groups = ["dev"]
@@ -1533,8 +1625,8 @@ dependencies = [
     "typing-extensions>=4.12; python_version < \"3.13\"",
 ]
 files = [
-    {file = "pytest_asyncio-1.4.0-py3-none-any.whl", hash = "sha256:933ca923a23075a87fb7070c0ec272a6848489824d887c85c812670932835aa1"},
-    {file = "pytest_asyncio-1.4.0.tar.gz", hash = "sha256:c6c0d2259945122819f171a32ecea2c349ead889ee28176caaf492143424be42"},
+    {file = "pytest_asyncio-1.4.1-py3-none-any.whl", hash = "sha256:507afa78ec77c6661164ef1a2368bc7820383fd1a14b2a7f813de8b5a92949cc"},
+    {file = "pytest_asyncio-1.4.1.tar.gz", hash = "sha256:e8266eb094e5ee9ffdb2068c9836f33e209ea77a970eb846933d416b5602669b"},
 ]
 
 [[package]]
@@ -1553,10 +1645,25 @@ name = "python-multipart"
 version = "0.0.32"
 requires_python = ">=3.10"
 summary = "A streaming multipart parser for Python"
-groups = ["default"]
+groups = ["default", "dev"]
 files = [
     {file = "python_multipart-0.0.32-py3-none-any.whl", hash = "sha256:ff6d3f776f16878c894e52e107296ffc890e913c611b1a4ec6c44e2821fe2e23"},
     {file = "python_multipart-0.0.32.tar.gz", hash = "sha256:be54b7f3fa167bb83e4fcd936b887b708f4e57fe75911c02aebf53efaf8d938e"},
+]
+
+[[package]]
+name = "rich"
+version = "15.0.0"
+requires_python = ">=3.9.0"
+summary = "Render rich text, tables, progress bars, syntax highlighting, markdown and more to the terminal"
+groups = ["dev"]
+dependencies = [
+    "markdown-it-py>=2.2.0",
+    "pygments<3.0.0,>=2.13.0",
+]
+files = [
+    {file = "rich-15.0.0-py3-none-any.whl", hash = "sha256:33bd4ef74232fb73fe9279a257718407f169c09b78a87ad3d296f548e27de0bb"},
+    {file = "rich-15.0.0.tar.gz", hash = "sha256:edd07a4824c6b40189fb7ac9bc4c52536e9780fbbfbddf6f1e2502c31b068c36"},
 ]
 
 [[package]]
@@ -1598,8 +1705,23 @@ files = [
 ]
 
 [[package]]
+name = "satori-python-adapter-console"
+version = "0.6.0"
+requires_python = "<4.0,>=3.10"
+summary = "Satori Protocol SDK for python, adapter for Nonechat"
+groups = ["dev"]
+dependencies = [
+    "nonechat<0.7.0,>=0.6.0",
+    "satori-python-server<1.4.0,>=1.3.7",
+]
+files = [
+    {file = "satori_python_adapter_console-0.6.0-py3-none-any.whl", hash = "sha256:042365b28ac2adbf2edbcf848f8d8833c5687baf83d6472c0a7e9eba6726e7c5"},
+    {file = "satori_python_adapter_console-0.6.0.tar.gz", hash = "sha256:411865a37a492e21e0c5e117f2759c0781b0b44a69b066fddc929c15393fa3ca"},
+]
+
+[[package]]
 name = "satori-python-client"
-version = "1.3.10"
+version = "1.3.11"
 requires_python = "<4.0,>=3.10"
 summary = "Satori Protocol SDK for python, specify client part"
 groups = ["default", "dev"]
@@ -1608,17 +1730,17 @@ dependencies = [
     "graia-amnesia>=0.11.0",
     "launart>=0.8.2",
     "loguru>=0.7.2",
-    "satori-python-core<1.4.0,>=1.3.6",
+    "satori-python-core<1.4.0,>=1.3.11",
     "yarl>=1.9.4",
 ]
 files = [
-    {file = "satori_python_client-1.3.10-py3-none-any.whl", hash = "sha256:d7ac4fdb0121759969e798b35931f191d8d34037127dc32bc72934d8830e270f"},
-    {file = "satori_python_client-1.3.10.tar.gz", hash = "sha256:bf904cccf988ee5e07551e8b2b6c32508e96b5a9baf6e0d4ea4cd064acdeb452"},
+    {file = "satori_python_client-1.3.11-py3-none-any.whl", hash = "sha256:390e6b024d572f768131281db50f25ce3ae17cfa495985bfbfc12b8dd2049206"},
+    {file = "satori_python_client-1.3.11.tar.gz", hash = "sha256:5015efa3f2a0e3f4182620f50b2f4170547c98496e832af164d326fa854d072d"},
 ]
 
 [[package]]
 name = "satori-python-core"
-version = "1.3.10"
+version = "1.3.11"
 requires_python = "<4.0,>=3.10"
 summary = "Satori Protocol SDK for python, specify common part"
 groups = ["default", "dev"]
@@ -1626,30 +1748,30 @@ dependencies = [
     "typing-extensions>=4.7.0",
 ]
 files = [
-    {file = "satori_python_core-1.3.10-py3-none-any.whl", hash = "sha256:4bd94198ef6d8dbac27981fa455ffddcad8b40ad7e17cc934f70c61874e1d665"},
-    {file = "satori_python_core-1.3.10.tar.gz", hash = "sha256:7f0a14877a359c146e89055da88c4ff4c899d0a3d81ea7e97a980d681c566754"},
+    {file = "satori_python_core-1.3.11-py3-none-any.whl", hash = "sha256:05e796df4b548667d9b12dcebb3b8f2bb8d3b6c43ef2a3fa7a066d931af32eab"},
+    {file = "satori_python_core-1.3.11.tar.gz", hash = "sha256:3a13537f80dae47cee4800642741a2947ccce1b471b6bb18fbbf88238f55a76b"},
 ]
 
 [[package]]
 name = "satori-python-server"
-version = "1.3.10"
+version = "1.3.11"
 requires_python = "<4.0,>=3.10"
 summary = "Satori Protocol SDK for python, specify server part"
-groups = ["default"]
+groups = ["default", "dev"]
 dependencies = [
     "aiohttp>=3.9.3",
     "graia-amnesia[uvicorn]<0.12.0,>=0.11.0",
     "launart>=0.8.2",
     "loguru>=0.7.2",
     "python-multipart>=0.0.9",
-    "satori-python-core<1.4.0,>=1.3.6",
+    "satori-python-core<1.4.0,>=1.3.11",
     "starlette>=0.40.0",
     "websockets>=15.0.1",
     "yarl>=1.9.4",
 ]
 files = [
-    {file = "satori_python_server-1.3.10-py3-none-any.whl", hash = "sha256:3730a2826b59d3bf86d617e70db4698450fd87c54e4296b8d1d6ba9cb288ac40"},
-    {file = "satori_python_server-1.3.10.tar.gz", hash = "sha256:08aa9f7144442b130899850c77e0de846fb0c15f0ad0328d5f8de6dacd538f68"},
+    {file = "satori_python_server-1.3.11-py3-none-any.whl", hash = "sha256:b9d9b60525e0641f3a227ef10632d4901bcf4b23227d9200abe08593921e841c"},
+    {file = "satori_python_server-1.3.11.tar.gz", hash = "sha256:70dee193fb6807102c553dc4e210e1b00baa433935f359d7b8eec80009f2ba0d"},
 ]
 
 [[package]]
@@ -1838,7 +1960,7 @@ name = "starlette"
 version = "1.9.0"
 requires_python = ">=3.11"
 summary = "The little ASGI library that shines."
-groups = ["default"]
+groups = ["default", "dev"]
 dependencies = [
     "anyio<5,>=4.0.0",
     "typing-extensions>=4.10.0; python_version < \"3.13\"",
@@ -1938,6 +2060,23 @@ files = [
 ]
 
 [[package]]
+name = "textual"
+version = "3.7.1"
+requires_python = "<4.0.0,>=3.8.1"
+summary = "Modern Text User Interface framework"
+groups = ["dev"]
+dependencies = [
+    "markdown-it-py[linkify,plugins]>=2.1.0",
+    "platformdirs<5,>=3.6.0",
+    "rich>=13.3.3",
+    "typing-extensions<5.0.0,>=4.4.0",
+]
+files = [
+    {file = "textual-3.7.1-py3-none-any.whl", hash = "sha256:ab5d153f4f65e77017977fa150d0376409e0acf5f1d2e25e2e4ab9de6c0d61ff"},
+    {file = "textual-3.7.1.tar.gz", hash = "sha256:a76ba0c8a6c194ef24fd5c3681ebfddca55e7127c064a014128c84fbd7f5d271"},
+]
+
+[[package]]
 name = "typing-extensions"
 version = "4.16.0"
 requires_python = ">=3.9"
@@ -1967,7 +2106,7 @@ name = "uvicorn"
 version = "0.54.0"
 requires_python = ">=3.10"
 summary = "The lightning-fast ASGI server."
-groups = ["default"]
+groups = ["default", "dev"]
 dependencies = [
     "click>=7.0",
     "h11>=0.8",
@@ -1983,7 +2122,7 @@ name = "uvloop"
 version = "0.23.0"
 requires_python = ">=3.8.1"
 summary = "Fast implementation of asyncio event loop on top of libuv"
-groups = ["default"]
+groups = ["default", "dev"]
 marker = "sys_platform != \"win32\""
 files = [
     {file = "uvloop-0.23.0-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:24c58ae4a83e93a04c504bcc678125e36a0bfc44af928ad69444880c60f187a5"},
@@ -2081,7 +2220,7 @@ name = "websockets"
 version = "17.3"
 requires_python = ">=3.11"
 summary = "An implementation of the WebSocket Protocol (RFC 6455 & 7692)"
-groups = ["default"]
+groups = ["default", "dev"]
 files = [
     {file = "websockets-17.3-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:45cc1ccb12ced6d242335159e8221733c8696da5ad0b6ceef6debb0f5ce89110"},
     {file = "websockets-17.3-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:46ae05aa1aecd47d4d7de0f05ce2d1d2eb418f8de614964d754cc3b9a409c400"},
@@ -2256,7 +2395,7 @@ name = "winloop"
 version = "0.8.0"
 requires_python = ">=3.9.0"
 summary = "Windows version of uvloop"
-groups = ["default"]
+groups = ["default", "dev"]
 marker = "sys_platform == \"win32\""
 files = [
     {file = "winloop-0.8.0-cp311-cp311-win_amd64.whl", hash = "sha256:31208cf3a8cff0cb77998ed90cda03cf264e96e083d1c1a0ebdf3a58a1e9fce3"},

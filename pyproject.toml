@@ -4,8 +4,8 @@ version = "1.1.1"
 description = "WebUI Plugin for Entari"
 authors = [{name = "RF-Tar-Railt", email = "rf_tar_railt@qq.com"}]
 dependencies = [
-    "arclet-entari[dotenv,yaml]>=0.19.3",
-    "entari-plugin-server>=0.8.1",
+    "arclet-entari[dotenv,yaml]>=0.19.3.post1",
+    "entari-plugin-server>=0.8.2",
     "entari-plugin-database>=0.4.2",
     "fastapi>=0.135.1",
     "ansi2html>=1.9.2",
@@ -21,7 +21,7 @@ repository = "https://github.com/ArcletProject/entari-plugin-webui"
 
 [dependency-groups]
 dev = [
-    "arclet-entari[reload]>=0.19.3",
+    "arclet-entari[reload]>=0.19.3.post1",
     "pytest>=8",
     "pytest-asyncio>=0.23",
     "ruff>=0.15",
@@ -29,6 +29,7 @@ dev = [
     "anyio>=4",
     "httpx>=0.28.1",
     "sqlalchemy[asyncio]>=2.1.5",
+    "satori-python-adapter-console>=0.6.0",
 ]
 
 [build-system]
