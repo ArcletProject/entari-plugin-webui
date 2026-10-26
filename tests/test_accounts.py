@@ -4,24 +4,24 @@ from types import SimpleNamespace
 from typing import TYPE_CHECKING
 
 import pytest
-from satori import LoginStatus
+from satori import Login, LoginStatus, User
 
 if TYPE_CHECKING:
-    from entari_plugin_webui.core.accounts import AccountRegistry
+    from entari_plugin_webui.core.accounts import Account, AccountRegistry
 
 
 def make_account(
     self_id: str = "bot1",
-    name: str = "Bot One",
+    name: str| None = "Bot One",
     platform: str = "qq",
     adapter: str = "satori",
     avatar: str | None = "https://example.com/avatar.png",
     status: LoginStatus = LoginStatus.ONLINE,
     connected: bool = True,
-):
-    user = SimpleNamespace(id=self_id, name=name, nick=None, avatar=avatar)
-    self_info = SimpleNamespace(user=user, platform=platform, adapter=adapter, status=status)
-    return SimpleNamespace(
+) -> Account:
+    user = User(id=self_id, name=name, nick=None, avatar=avatar)
+    self_info = Login(user=user, platform=platform, adapter=adapter, status=status)
+    return SimpleNamespace(  # type: ignore
         self_info=self_info,
         platform=platform,
         self_id=self_id,
